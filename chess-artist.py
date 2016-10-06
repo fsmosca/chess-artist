@@ -58,8 +58,10 @@ def GetEngineIdName(engine):
                          stdout=subprocess.PIPE,
                          stderr=subprocess.STDOUT)
 
-    # Send command
+    # Send command to engine
     p.stdin.write("uci\n")
+    
+    # Parse engine replies
     for eline in iter(p.stdout.readline, ''):
         line = eline.strip()
 
@@ -76,9 +78,9 @@ def GetEngineIdName(engine):
     p.communicate()
     return engineIdName    
 
-def EvaluatePosition(engine, pos):
-    """ Run engine, setup position pos and send
-        eval command to get its static eval score
+def GetStaticEval(engine, pos):
+    """ Returns static eval by running the engine,
+        setup position pos and send eval command.
     """
     score = -32000.0
 
@@ -87,7 +89,7 @@ def EvaluatePosition(engine, pos):
                          stdout=subprocess.PIPE,
                          stderr=subprocess.STDOUT)
 
-    # Send commands to engine
+    # Send command to engine
     p.stdin.write("uci\n")
 
     # Parse engine replies
@@ -95,16 +97,22 @@ def EvaluatePosition(engine, pos):
         line = eline.strip()
         if "uciok" in line:
             break
+            
+    # Send command to engine
     p.stdin.write("isready\n")
+    
+    # Parse engine replies
     for eline in iter(p.stdout.readline, ''):
         line = eline.strip()
         if "readyok" in line:
             break
+            
+    # Send commands to engine
     p.stdin.write("ucinewgame\n")
     p.stdin.write("position fen " + pos + "\n")
     p.stdin.write("eval\n")
 
-    # Parse the output and extract the score
+    # Parse the output and extract the engine static eval
     for eline in iter(p.stdout.readline, ''):        
         line = eline.strip()
         if 'Total Evaluation: ' in line:
@@ -145,7 +153,7 @@ def main(argv):
     # Verify presence of engine file
     CheckFile(engineName)
 
-    # Delete existing 'out-src.pgn'
+    # Delete existing specified output filename
     DeleteFile(outputFile)
 
     # Get engine id name for the Annotator tag
@@ -154,7 +162,7 @@ def main(argv):
     # Open the input pgn file
     pgnHandle = open(inputFile, 'r')
 
-    # Read the input pgn file
+    # Read the input pgn file using the python-chess module
     game = chess.pgn.read_game(pgnHandle)
     game_cnt = 0
 
@@ -187,7 +195,7 @@ def main(argv):
             fen = nextNode.board().fen()
 
             # Get engine static eval
-            staticEval = EvaluatePosition(engineName, fen)
+            staticEval = GetStaticEval(engineName, fen)
 
             # Write the move and score as comment
             with open(outputFile, 'a+') as f:
