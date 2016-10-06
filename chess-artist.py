@@ -58,8 +58,10 @@ def GetEngineIdName(engine):
                          stdout=subprocess.PIPE,
                          stderr=subprocess.STDOUT)
 
-    # Send command
+    # Send command to engine
     p.stdin.write("uci\n")
+    
+    # Parse engine replies
     for eline in iter(p.stdout.readline, ''):
         line = eline.strip()
 
@@ -76,7 +78,7 @@ def GetEngineIdName(engine):
     p.communicate()
     return engineIdName    
 
-def EvaluatePosition(engine, pos):
+def GetStaticEval(engine, pos):
     """ Run engine, setup position pos and send
         eval command to get its static eval score
     """
@@ -87,7 +89,7 @@ def EvaluatePosition(engine, pos):
                          stdout=subprocess.PIPE,
                          stderr=subprocess.STDOUT)
 
-    # Send commands to engine
+    # Send command to engine
     p.stdin.write("uci\n")
 
     # Parse engine replies
@@ -95,11 +97,17 @@ def EvaluatePosition(engine, pos):
         line = eline.strip()
         if "uciok" in line:
             break
+            
+    # Send command to engine
     p.stdin.write("isready\n")
+    
+    # Parse engine replies
     for eline in iter(p.stdout.readline, ''):
         line = eline.strip()
         if "readyok" in line:
             break
+            
+    # Send commands to engine
     p.stdin.write("ucinewgame\n")
     p.stdin.write("position fen " + pos + "\n")
     p.stdin.write("eval\n")
@@ -187,7 +195,7 @@ def main(argv):
             fen = nextNode.board().fen()
 
             # Get engine static eval
-            staticEval = EvaluatePosition(engineName, fen)
+            staticEval = GetStaticEval(engineName, fen)
 
             # Write the move and score as comment
             with open(outputFile, 'a+') as f:
