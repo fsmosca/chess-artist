@@ -45,6 +45,9 @@ G. Guide
    view of white, if it is positive, it is better for white, and if
    negative it is better for black. Example 1. e4 {+0.74} white is ahead
    by 0.74 of a pawn, or almost 3/4 value of a pawn.
+9. If you want to have a different output filename, or different engine filename
+   or different input filename, then use the command line options below.
+   chess-artist.py -inpgn mygames.pgn -outpgn output.pgn -eng "Stockfish 7.exe"
    
 H. Example annotated game
 [Event "4th Sinquefield Cup 2016"]
