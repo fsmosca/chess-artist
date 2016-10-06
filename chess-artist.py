@@ -65,8 +65,9 @@ def GetEngineIdName(engine):
     for eline in iter(p.stdout.readline, ''):
         line = eline.strip()
 
-        # Print engine output after uci command
-        print(line)
+        # Print to console the id name and author
+        if 'id name ' in line or 'id author ' in line:
+            print(line)
 
         # Save id name
         if 'id name ' in line:
@@ -125,11 +126,11 @@ def GetStaticEval(engine, pos):
     return score 
 
 def EvaluateOptions(opt):
-    """ Convert opt list to dict """
+    """ Convert opt list to dict and returns it """
     return dict([(k, v) for k,v in zip (opt[::2], opt[1::2])])
 
 def GetOptionValue(opt, optName, var):
-    """ Returns value of options """
+    """ Returns value of opt dict given the key """
     if opt.has_key(optName):
         var = opt.get(optName)
     return var
