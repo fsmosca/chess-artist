@@ -79,8 +79,8 @@ def GetEngineIdName(engine):
     return engineIdName    
 
 def GetStaticEval(engine, pos):
-    """ Run engine, setup position pos and send
-        eval command to get its static eval score
+    """ Returns static eval by running the engine,
+        setup position pos and send eval command.
     """
     score = -32000.0
 
@@ -112,7 +112,7 @@ def GetStaticEval(engine, pos):
     p.stdin.write("position fen " + pos + "\n")
     p.stdin.write("eval\n")
 
-    # Parse the output and extract the score
+    # Parse the output and extract the engine static eval
     for eline in iter(p.stdout.readline, ''):        
         line = eline.strip()
         if 'Total Evaluation: ' in line:
@@ -153,7 +153,7 @@ def main(argv):
     # Verify presence of engine file
     CheckFile(engineName)
 
-    # Delete existing 'out-src.pgn'
+    # Delete existing specified output filename
     DeleteFile(outputFile)
 
     # Get engine id name for the Annotator tag
@@ -162,7 +162,7 @@ def main(argv):
     # Open the input pgn file
     pgnHandle = open(inputFile, 'r')
 
-    # Read the input pgn file
+    # Read the input pgn file using the python-chess module
     game = chess.pgn.read_game(pgnHandle)
     game_cnt = 0
 
