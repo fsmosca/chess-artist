@@ -114,13 +114,30 @@ def EvaluatePosition(engine, pos):
     p.stdin.write('quit\n')
     p.communicate()
     assert score != -32000.0, 'Something is wrong in the eval'
-    return score    
+    return score 
+
+def EvaluateOptions(opt):
+    """ Convert opt list to dict """
+    return dict([(k, v) for k,v in zip (opt[::2], opt[1::2])])
+
+def GetOptionValue(opt, optName, var):
+    """ Returns value of options """
+    if opt.has_key(optName):
+        var = opt.get(optName)
+    return var
 
 def main(argv):
     """ start """
     inputFile = 'src.pgn'
     outputFile = 'out_src.pgn'
     engineName = 'engine.exe'
+    
+    # Evaluate the command line options
+    options = EvaluateOptions(argv)
+    if len(options):
+        inputFile = GetOptionValue(options, '-inpgn', inputFile)
+        outputFile = GetOptionValue(options, '-outpgn', outputFile)
+        engineName = GetOptionValue(options, '-eng', engineName)
 
     # Verify presence of input pgn file
     CheckFile(inputFile)
