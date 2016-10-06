@@ -46,7 +46,7 @@ G. Guide
    negative it is better for black. Example 1. e4 {+0.74} white is ahead
    by 0.74 of a pawn, or almost 3/4 value of a pawn.
    
-I. Example annotated game
+H. Example annotated game
 [Event "4th Sinquefield Cup 2016"]
 [Site "Saint Louis USA"]
 [Date "2016.08.05"]
@@ -82,3 +82,9 @@ I. Example annotated game
 40. Qd5 {+0.07} Qe2 {+0.03} 41. Qxa5 {+0.16} Qd1+ {+0.73} 42. Kb2 {+0.06} Qd2+ {+0.66} 
 43. Kb3 {+0.44} Qd1+ {+0.73} 44. Kb2 {+0.06} Qd2+ {+0.66} 45. Ka3 {+0.24} Qc1+ {+0.72} 
 46. Kb4 {+0.48} Qb1+ {+1.17} 47. Ka3 {+0.29}  1/2-1/2
+
+I. Todo list
+1. Annotate a game using an engine's search score along with standard annotation symbols.
+2. Annotate a game with polyglot book.
+3. Annotate a game with Cerebellum book.
+4. Calculate the players' estimated rating based on engine's analysis.
