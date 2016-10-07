@@ -165,12 +165,16 @@ class Analyze(object):
                 engineIdName = ' '.join(idName[2:])            
             if "uciok" in line:           
                 break
+                
+        # Quit the engine
         p.stdin.write('quit\n')
         p.communicate()
         return engineIdName
 
     def GetCerebellumBookMove(self, pos):
         """ Returns a move from cerebellum book """
+        isInfoDepth = False
+        
         # Run the engine.
         p = subprocess.Popen(self.eng, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
@@ -202,17 +206,17 @@ class Analyze(object):
         # Send commands to engine.
         p.stdin.write("ucinewgame\n")
         p.stdin.write("position fen " + pos + "\n")
-
-        # Hack: We will give a 100 ms movetime, if the engine does not consume
-        # this amount of time, then it is using the cerebellum book. The value in 
-        # BOOK_SEARCH_TIME can be tuned as it may probably differ from system to system.
-        startTime = time.clock()
-        endTime = None
         p.stdin.write("go movetime %d\n" %(BOOK_SEARCH_TIME))
 
         # Parse the output and extract the bestmove.
         for eline in iter(p.stdout.readline, ''):        
             line = eline.strip()
+            
+            # If the engine shows info depth ... it is no longer using a book
+            if 'info depth' in line:
+                isInfoDepth = True
+            
+            # Break search when we receive bestmove string from engine
             if 'bestmove ' in line:
                 moveLine = line.split()[1]
                 bestMove = moveLine.strip()
@@ -220,15 +224,16 @@ class Analyze(object):
                 # Get the time now.
                 endTime = time.clock()
                 break
+                
+        # Quit the engine
         p.stdin.write('quit\n')
         p.communicate()
-        assert endTime is not None, 'Error! something is wrong in getting the cerebellum book move.'
 
         # Convert uci move to san move format.
         bestMove = self.UciToSanMove(pos, bestMove)
 
-        # If it successfully gets the cerebellum book move, it has use only a small elapsed time.
-        if 1000 * (endTime - startTime) < BOOK_SEARCH_TIME/4:
+        # If we did not get info depth from engine, then the bestmove is from the book.
+        if not isInfoDepth:
             # True indicates that the bestMove is from cerebellum book.
             return bestMove, True
         return bestMove, False
@@ -272,6 +277,8 @@ class Analyze(object):
                 first = line.split('(')[0]
                 score = float(first.split()[2])
                 break
+                
+        # Quit the engine
         p.stdin.write('quit\n')
         p.communicate()
         assert score != -32000.0, 'Error! something is wrong in static eval calculation.'
