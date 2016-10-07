@@ -97,13 +97,8 @@ class Analyze(object):
         """ Prints engine id name """
         print('Engine name: %s' %(self.GetEngineIdName()))
 
-    def WriteMoves(self, par):
+    def WriteMoves(self, side, cereMove, fmvn, sanMove, staticEval):
         """ Write moves and comments to the output file """
-        side = par[0]
-        cereMove = par[1]
-        fmvn = par[2]
-        sanMove = par[3]
-        staticEval = par[4]
         bookComment = 'cerebellum book'
         
         # Write the move and comments
@@ -113,6 +108,7 @@ class Analyze(object):
             # If side to move is white
             if side:
                 if self.useStaticEvalOpt:
+                    assert staticEval is not None
                     if self.isCereMoveFound:
                         f.write('%d. %s {%+0.2f} (%d. %s {%s}) ' %(fmvn, sanMove, staticEval, fmvn, cereMove, bookComment))
                     else:
@@ -126,6 +122,7 @@ class Analyze(object):
             # Else if side to move is black
             else:
                 if self.useStaticEvalOpt:
+                    assert staticEval is not None
                     if self.isCereMoveFound:
                         f.write('%d... %s {%+0.2f} (%d... %s {%s}) ' %(fmvn, sanMove, staticEval, fmvn, cereMove, bookComment))
                     else:
@@ -346,14 +343,13 @@ class Analyze(object):
                         isCereEnd = True
 
                 # Use FEN after a move to get the static eval
-                staticEval = 0.0
+                staticEval = None
                 if self.useStaticEvalOpt:
                     fenAfterMove = nextNode.board().fen()
                     staticEval = self.GetStaticEval(fenAfterMove)
 
                 # Write moves and comments
-                parList = [side, cereBookMove, fmvn, sanMove, staticEval]
-                self.WriteMoves(parList)
+                self.WriteMoves(side, cereBookMove, fmvn, sanMove, staticEval)
 
                 # Read the next position
                 gameNode = nextNode
