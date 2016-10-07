@@ -2,8 +2,9 @@ A. Program name
 Chess Artist
 
 B. Program description
-It is a python script that can annotate a chess pgn file with
-static evaluation of an engine.
+It is a python script that can annotate chess games in pgn file with
+static evaluation of an engine. It can also annotate games with cerebellum
+book moves using Brainfish engine with its Cerebellum_Light.bin book file.
 
 C. License notice
 This program is free software, you can redistribute it and/or modify
