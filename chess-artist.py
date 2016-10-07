@@ -41,6 +41,7 @@ from chess import pgn
 APP_NAME = 'Chess Artist'
 APP_VERSION = '0.1.0'
 BOOK_MOVE_LIMIT = 30
+BOOK_SEARCH_TIME = 100
 
 def PrintProgram():
     """ Prints program name and version """
@@ -212,7 +213,7 @@ class Analyze(object):
         # We will give a 1 sec movetime, if the engine does not consume
         # this amount of time then it is using the cerebellum book.
         startTime = time.clock()
-        p.stdin.write("go movetime 500\n")
+        p.stdin.write("go movetime %d\n" %(BOOK_SEARCH_TIME))
 
         # Parse the output and extract the bestmove
         for eline in iter(p.stdout.readline, ''):        
@@ -229,7 +230,7 @@ class Analyze(object):
         bestMove = self.UciToSanMove(pos, bestMove)
 
         # If it is using cerebellum book
-        if 1000*(endTime - startTime) <= 200:
+        if 1000*(endTime - startTime) < BOOK_SEARCH_TIME/4:
             return bestMove, True
         return bestMove, False
 
@@ -375,8 +376,9 @@ def main(argv):
     inputFile = 'src.pgn'
     outputFile = 'out_src.pgn'
     engineName = 'engine.exe'
-    isUseCereBookOption = 0
-    isUseStaticEvalOption = 0
+    useCereBookOption = 0
+    useStaticEvalOption = 0
+    cereBookFile = 'Cerebellum_Light.bin'
     
     # Evaluate the command line options
     options = EvaluateOptions(argv)
@@ -384,8 +386,8 @@ def main(argv):
         inputFile = GetOptionValue(options, '-inpgn', inputFile)
         outputFile = GetOptionValue(options, '-outpgn', outputFile)
         engineName = GetOptionValue(options, '-eng', engineName)
-        isUseCereBookOption = GetOptionValue(options, '-cerebook', isUseCereBookOption)
-        isUseStaticEvalOption = GetOptionValue(options, '-staticeval', isUseStaticEvalOption)
+        useCereBookOption = GetOptionValue(options, '-cerebook', useCereBookOption)
+        useStaticEvalOption = GetOptionValue(options, '-staticeval', useStaticEvalOption)
 
     # Verify presence of input pgn and engine file
     CheckFile(inputFile)
@@ -393,9 +395,15 @@ def main(argv):
 
     # Delete existing output file
     DeleteFile(outputFile)
-
+    
+    # Disable use of cere book when Cerebellum_Light.bin is missing
+    if useCereBookOption:
+        if not os.path.isfile(cereBookFile):
+            useCereBookOption = 0
+            print('Warning! cerebellum book is missing')
+            
     # Declare a variable g of class Analyze
-    g = Analyze(inputFile, outputFile, engineName, isUseCereBookOption, isUseStaticEvalOption)
+    g = Analyze(inputFile, outputFile, engineName, useCereBookOption, useStaticEvalOption)
 
     # Print engine id name
     g.PrintEngineIdName()
