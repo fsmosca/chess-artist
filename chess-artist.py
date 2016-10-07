@@ -68,23 +68,21 @@ def GetOptionValue(opt, optName, var):
     """ Returns value of opt dict given the key """
     if opt.has_key(optName):
         var = opt.get(optName)
-        if optName == '-cerebook':
-            var = int(var)
-        elif optName == '-staticeval':
+        if optName == '-staticeval':
             var = int(var)
     return var
 
 class Analyze(object):
     """ An object that will read and annotate games in a pgn file """
-    def __init__(self, infn, outfn, eng, useCereBookOpt, useStaticEvalOpt):
+    def __init__(self, infn, outfn, eng, bookTypeOpt, useStaticEvalOpt):
         """ Initialize """
-        self.infn = infn # Input pgn filename
-        self.outfn = outfn # Output pgn filename
-        self.eng = eng # Engine filename
-        self.useCereBookOpt = useCereBookOpt # Option to use cerebellum book
-        self.useStaticEvalOpt = useStaticEvalOpt # Option to annotate with static eval
-        self.writeCnt = 0 # Used for formatting the output
-        self.isCereMoveFound = False # Used in writing book moves
+        self.infn = infn
+        self.outfn = outfn
+        self.eng = eng
+        self.bookTypeOpt = bookTypeOpt
+        self.useStaticEvalOpt = useStaticEvalOpt
+        self.writeCnt = 0
+        self.isCereMoveFound = False
 
     def UciToSanMove(self, pos, uciMove):
         """ Returns san move given uci move """
@@ -97,7 +95,7 @@ class Analyze(object):
         """ Prints engine id name """
         print('Engine name: %s' %(self.GetEngineIdName()))
 
-    def WriteMoves(self, side, cereMove, fmvn, sanMove, staticEval):
+    def WriteMoves(self, side, fmvn, sanMove, cereMove, staticEval):
         """ Write moves and comments to the output file """
         bookComment = 'cerebellum book'
         
@@ -108,7 +106,7 @@ class Analyze(object):
             # If side to move is white
             if side:
                 if self.useStaticEvalOpt:
-                    assert staticEval is not None
+                    assert staticEval is not None, 'Error! static eval is not correct.'
                     if self.isCereMoveFound:
                         f.write('%d. %s {%+0.2f} (%d. %s {%s}) ' %(fmvn, sanMove, staticEval, fmvn, cereMove, bookComment))
                     else:
@@ -122,7 +120,7 @@ class Analyze(object):
             # Else if side to move is black
             else:
                 if self.useStaticEvalOpt:
-                    assert staticEval is not None
+                    assert staticEval is not None, 'Error! static eval is not correct.'
                     if self.isCereMoveFound:
                         f.write('%d... %s {%+0.2f} (%d... %s {%s}) ' %(fmvn, sanMove, staticEval, fmvn, cereMove, bookComment))
                     else:
@@ -224,7 +222,7 @@ class Analyze(object):
                 break
         p.stdin.write('quit\n')
         p.communicate()
-        assert endTime is not None, 'Warning! something is wrong in getting the cerebellum book move.'
+        assert endTime is not None, 'Error! something is wrong in getting the cerebellum book move.'
 
         # Convert uci move to san move format.
         bestMove = self.UciToSanMove(pos, bestMove)
@@ -276,7 +274,7 @@ class Analyze(object):
                 break
         p.stdin.write('quit\n')
         p.communicate()
-        assert score != -32000.0, 'Warning! Something is wrong in the static eval calculation'
+        assert score != -32000.0, 'Error! something is wrong in static eval calculation.'
         return score
 
     def Annotate(self):
@@ -284,11 +282,11 @@ class Analyze(object):
         # Get engine id name for the Annotator tag.
         engIdName = self.GetEngineIdName()
 
-        # Disable useCereBookOpt if engine is not Brainfish.
-        if self.useCereBookOpt:
+        # Disable bookTypeOpt if engine is not Brainfish.
+        if self.bookTypeOpt == 'cerebellum':
             brainFishEngine = self.GetEngineIdName()
             if 'Brainfish' not in brainFishEngine:
-                self.useCereBookOpt = 0
+                self.bookTypeOpt = None
                 print('\nWarning!! engine is not Brainfish, cerebellum book is disabled.\n')
         
         # Open the input pgn file
@@ -336,7 +334,7 @@ class Analyze(object):
                 # Try to get a cerebellum book move.
                 self.isCereMoveFound = False
                 cereBookMove = None
-                if self.useCereBookOpt:                    
+                if self.bookTypeOpt == 'cerebellum':                    
                     if not isCereEnd:
                         # Use FEN before a move.
                         fenBeforeMove = gameNode.board().fen()
@@ -353,7 +351,7 @@ class Analyze(object):
                     staticEval = self.GetStaticEval(fenAfterMove)
 
                 # Write moves and comments.
-                self.WriteMoves(side, cereBookMove, fmvn, sanMove, staticEval)
+                self.WriteMoves(side, fmvn, sanMove, cereBookMove, staticEval)
 
                 # Read the next position.
                 gameNode = nextNode
@@ -376,7 +374,7 @@ def main(argv):
     inputFile = 'src.pgn'
     outputFile = 'out_src.pgn'
     engineName = 'engine.exe'
-    useCereBookOption = 0
+    bookTypeOption = None # [None, cerebellum, polyglot]
     useStaticEvalOption = 0
     cereBookFile = 'Cerebellum_Light.bin'
     
@@ -386,7 +384,7 @@ def main(argv):
         inputFile = GetOptionValue(options, '-inpgn', inputFile)
         outputFile = GetOptionValue(options, '-outpgn', outputFile)
         engineName = GetOptionValue(options, '-eng', engineName)
-        useCereBookOption = GetOptionValue(options, '-cerebook', useCereBookOption)
+        bookTypeOption = GetOptionValue(options, '-book', bookTypeOption)
         useStaticEvalOption = GetOptionValue(options, '-staticeval', useStaticEvalOption)
 
     # Verify presence of input pgn and engine file.
@@ -397,13 +395,13 @@ def main(argv):
     DeleteFile(outputFile)
     
     # Disable use of cerebellum book when Cerebellum_Light.bin is missing.
-    if useCereBookOption:
+    if bookTypeOption == 'cerebellum':
         if not os.path.isfile(cereBookFile):
-            useCereBookOption = 0
-            print('Warning! cerebellum book is missing')
+            bookTypeOption = None
+            print('Warning! cerebellum book is missing.')
             
     # Declare a variable g of class Analyze.
-    g = Analyze(inputFile, outputFile, engineName, useCereBookOption, useStaticEvalOption)
+    g = Analyze(inputFile, outputFile, engineName, bookTypeOption, useStaticEvalOption)
 
     # Print engine id name.
     g.PrintEngineIdName()
@@ -415,3 +413,4 @@ def main(argv):
 
 if __name__ == "__main__":
     main(sys.argv[1:])
+
