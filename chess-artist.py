@@ -41,7 +41,7 @@ from chess import pgn
 APP_NAME = 'Chess Artist'
 APP_VERSION = '0.1.0'
 BOOK_MOVE_LIMIT = 30
-BOOK_SEARCH_TIME = 100
+BOOK_SEARCH_TIME = 200
 
 def PrintProgram():
     """ Prints program name and version """
