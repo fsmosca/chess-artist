@@ -220,9 +220,6 @@ class Analyze(object):
             if 'bestmove ' in line:
                 moveLine = line.split()[1]
                 bestMove = moveLine.strip()
-                
-                # Get the time now.
-                endTime = time.clock()
                 break
                 
         # Quit the engine
