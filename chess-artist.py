@@ -75,7 +75,7 @@ def GetOptionValue(opt, optName, var):
     return var
 
 class Analyze(object):
-    """ analyze object """
+    """ An object that will read and annotate games in a pgn file """
     def __init__(self, infn, outfn, eng, useCereBookOpt, useStaticEvalOpt):
         """ Initialize """
         self.infn = infn # Input pgn filename
@@ -84,7 +84,7 @@ class Analyze(object):
         self.useCereBookOpt = useCereBookOpt # Option to use cerebellum book
         self.useStaticEvalOpt = useStaticEvalOpt # Option to annotate with static eval
         self.writeCnt = 0 # Used for formatting the output
-        self.isCereMoveFound = False
+        self.isCereMoveFound = False # Used in writing book moves
 
     def UciToSanMove(self, pos, uciMove):
         """ Returns san move given uci move """
@@ -133,7 +133,7 @@ class Analyze(object):
                     else:
                         f.write('%s ' %(sanMove))
 
-                # Format output, don't write in one long line
+                # Format output, don't write in one long line.
                 if self.isCereMoveFound:
                     if self.writeCnt >= 2:
                         self.writeCnt = 0
@@ -152,18 +152,16 @@ class Analyze(object):
         engineIdName = self.eng[0:-4]
 
         # Run the engine
-        p = subprocess.Popen(self.eng, stdin=subprocess.PIPE,
-                             stdout=subprocess.PIPE,
-                             stderr=subprocess.STDOUT)
+        p = subprocess.Popen(self.eng, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
-        # Send command to engine
+        # Send command to engine.
         p.stdin.write("uci\n")
         
-        # Parse engine replies
+        # Parse engine replies.
         for eline in iter(p.stdout.readline, ''):
             line = eline.strip()
 
-            # Save id name
+            # Save id name.
             if 'id name ' in line:
                 idName = line.split()
                 engineIdName = ' '.join(idName[2:])            
@@ -175,59 +173,65 @@ class Analyze(object):
 
     def GetCerebellumBookMove(self, pos):
         """ Returns a move from cerebellum book """
-        # Run the engine
+        # Run the engine.
         p = subprocess.Popen(self.eng, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
-        # Send command to engine
+        # Send command to engine.
         p.stdin.write("uci\n")
 
-        # Parse engine replies
+        # Parse engine replies.
         for eline in iter(p.stdout.readline, ''):
             line = eline.strip()
             if "uciok" in line:
                 break
 
-        # Set the path of Brainfish cerebellum book. Make sure Brainfish engine,
-        # the script, and the cerebellum book are on the same directory.
+        # Set the path of Brainfish cerebellum book. Make sure the Brainfish engine,
+        # the script and the cerebellum book are on the same directory.
         p.stdin.write("setoption name BookPath value Cerebellum_Light.bin\n")
 
-        # Set threads to 1 just in case the default threads is changed.
+        # Set threads to 1 just in case the default threads is changed in the future.
         p.stdin.write("setoption name Threads value 1\n")
                 
-        # Send command to engine
+        # Send command to engine.
         p.stdin.write("isready\n")
         
-        # Parse engine replies
+        # Parse engine replies.
         for eline in iter(p.stdout.readline, ''):
             line = eline.strip()
             if "readyok" in line:
                 break
                 
-        # Send commands to engine
+        # Send commands to engine.
         p.stdin.write("ucinewgame\n")
         p.stdin.write("position fen " + pos + "\n")
 
-        # We will give a 1 sec movetime, if the engine does not consume
-        # this amount of time then it is using the cerebellum book.
+        # Hack: We will give a 100 ms movetime, if the engine does not consume
+        # this amount of time, then it is using the cerebellum book. The value in 
+        # BOOK_SEARCH_TIME can be tuned as it may probably differ from system to system.
         startTime = time.clock()
+        endTime = None
         p.stdin.write("go movetime %d\n" %(BOOK_SEARCH_TIME))
 
-        # Parse the output and extract the bestmove
+        # Parse the output and extract the bestmove.
         for eline in iter(p.stdout.readline, ''):        
             line = eline.strip()
             if 'bestmove ' in line:
                 moveLine = line.split()[1]
                 bestMove = moveLine.strip()
+                
+                # Get the time now.
+                endTime = time.clock()
                 break
         p.stdin.write('quit\n')
         p.communicate()
-        endTime = time.clock()
+        assert endTime is not None, 'Warning! something is wrong in getting the cerebellum book move.'
 
-        # Convert uci move to san move format
+        # Convert uci move to san move format.
         bestMove = self.UciToSanMove(pos, bestMove)
 
-        # If it is using cerebellum book
-        if 1000*(endTime - startTime) < BOOK_SEARCH_TIME/4:
+        # If it successfully gets the cerebellum book move, it has use only a small elapsed time.
+        if 1000 * (endTime - startTime) < BOOK_SEARCH_TIME/4:
+            # True indicates that the bestMove is from cerebellum book.
             return bestMove, True
         return bestMove, False
 
@@ -237,33 +241,33 @@ class Analyze(object):
         """
         score = -32000.0
 
-        # Run the engine
+        # Run the engine.
         p = subprocess.Popen(self.eng, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
-        # Send command to engine
+        # Send command to engine.
         p.stdin.write("uci\n")
 
-        # Parse engine replies
+        # Parse engine replies.
         for eline in iter(p.stdout.readline, ''):
             line = eline.strip()
             if "uciok" in line:
                 break
                 
-        # Send command to engine
+        # Send command to engine.
         p.stdin.write("isready\n")
         
-        # Parse engine replies
+        # Parse engine replies.
         for eline in iter(p.stdout.readline, ''):
             line = eline.strip()
             if "readyok" in line:
                 break
                 
-        # Send commands to engine
+        # Send commands to engine.
         p.stdin.write("ucinewgame\n")
         p.stdin.write("position fen " + pos + "\n")
         p.stdin.write("eval\n")
 
-        # Parse the output and extract the engine static eval
+        # Parse the output and extract the engine static eval.
         for eline in iter(p.stdout.readline, ''):        
             line = eline.strip()
             if 'Total Evaluation: ' in line:
@@ -272,15 +276,15 @@ class Analyze(object):
                 break
         p.stdin.write('quit\n')
         p.communicate()
-        assert score != -32000.0, 'Something is wrong in the eval'
+        assert score != -32000.0, 'Warning! Something is wrong in the static eval calculation'
         return score
 
     def Annotate(self):
         """ Parse the pgn file and annotate the games """
-        # Get engine id name for the Annotator tag
+        # Get engine id name for the Annotator tag.
         engIdName = self.GetEngineIdName()
 
-        # Disable useCereBookOpt if engine is not Brainfish
+        # Disable useCereBookOpt if engine is not Brainfish.
         if self.useCereBookOpt:
             brainFishEngine = self.GetEngineIdName()
             if 'Brainfish' not in brainFishEngine:
@@ -290,38 +294,38 @@ class Analyze(object):
         # Open the input pgn file
         pgnHandle = open(self.infn, 'r')
 
-        # Read the input pgn file using the python-chess module
+        # Read the input pgn file using the python-chess module.
         game = chess.pgn.read_game(pgnHandle)
 
-        # Used for displaying progress in console
+        # Used for displaying progress in console.
         gameCnt = 0
 
-        # Loop thru the games
+        # Loop thru the games.
         while game:
             gameCnt += 1
 
-            # Used for formatting the output
+            # Used for formatting the output.
             self.writeCnt = 0
 
-            # Show progress in console
+            # Show progress in console.
             print('Annotating game %d...' %(gameCnt))
 
-            # We don't access cere book if isCereEnd is true
+            # We don't access cere book if isCereEnd is true.
             isCereEnd = False
 
-            # Save the tag section of the game
+            # Save the tag section of the game.
             for key, value in game.headers.items():
                 with open(self.outfn, 'a+') as f:
                     f.write('[%s \"%s\"]\n' %(key, value))
 
-            # Write the annotator tag
+            # Write the annotator tag.
             with open(self.outfn, 'a+') as f:
                 f.write('[Annotator "%s"]\n\n' %(engIdName))
 
-            # Get result to be written later as game termination marker
+            # Save result to be written later as game termination marker.
             res = game.headers['Result']
 
-            # Loop thru the moves
+            # Loop thru the moves.
             gameNode = game        
             while gameNode.variations:
                 side = gameNode.board().turn
@@ -329,39 +333,39 @@ class Analyze(object):
                 nextNode = gameNode.variation(0)                      
                 sanMove = nextNode.san()
 
-                # Try to get a cerebellum book move
+                # Try to get a cerebellum book move.
                 self.isCereMoveFound = False
                 cereBookMove = None
                 if self.useCereBookOpt:                    
                     if not isCereEnd:
-                        # Use FEN before a move
+                        # Use FEN before a move.
                         fenBeforeMove = gameNode.board().fen()
                         cereBookMove, self.isCereMoveFound = self.GetCerebellumBookMove(fenBeforeMove)
 
-                    # End trying to find cere book beyond move BOOK_MOVE_LIMIT.
+                    # End trying to find cerebellum book beyond BOOK_MOVE_LIMIT.
                     if not self.isCereMoveFound and fmvn > BOOK_MOVE_LIMIT:
                         isCereEnd = True
 
-                # Use FEN after a move to get the static eval
+                # Use FEN after a move to get the static eval.
                 staticEval = None
                 if self.useStaticEvalOpt:
                     fenAfterMove = nextNode.board().fen()
                     staticEval = self.GetStaticEval(fenAfterMove)
 
-                # Write moves and comments
+                # Write moves and comments.
                 self.WriteMoves(side, cereBookMove, fmvn, sanMove, staticEval)
 
-                # Read the next position
+                # Read the next position.
                 gameNode = nextNode
 
-            # Write the result and a space between games
+            # Write the result and a space between games.
             with open(self.outfn, 'a') as f:
                 f.write('%s\n\n' %(res))
 
-            # Read the next game 
+            # Read the next game.
             game = chess.pgn.read_game(pgnHandle)
 
-        # Close the file handle
+        # Close the file handle.
         pgnHandle.close()
         
 def main(argv):
@@ -376,7 +380,7 @@ def main(argv):
     useStaticEvalOption = 0
     cereBookFile = 'Cerebellum_Light.bin'
     
-    # Evaluate the command line options
+    # Evaluate the command line options.
     options = EvaluateOptions(argv)
     if len(options):
         inputFile = GetOptionValue(options, '-inpgn', inputFile)
@@ -385,26 +389,26 @@ def main(argv):
         useCereBookOption = GetOptionValue(options, '-cerebook', useCereBookOption)
         useStaticEvalOption = GetOptionValue(options, '-staticeval', useStaticEvalOption)
 
-    # Verify presence of input pgn and engine file
+    # Verify presence of input pgn and engine file.
     CheckFile(inputFile)
     CheckFile(engineName)
 
-    # Delete existing output file
+    # Delete existing output file.
     DeleteFile(outputFile)
     
-    # Disable use of cere book when Cerebellum_Light.bin is missing
+    # Disable use of cerebellum book when Cerebellum_Light.bin is missing.
     if useCereBookOption:
         if not os.path.isfile(cereBookFile):
             useCereBookOption = 0
             print('Warning! cerebellum book is missing')
             
-    # Declare a variable g of class Analyze
+    # Declare a variable g of class Analyze.
     g = Analyze(inputFile, outputFile, engineName, useCereBookOption, useStaticEvalOption)
 
-    # Print engine id name
+    # Print engine id name.
     g.PrintEngineIdName()
 
-    # Call method Annotate of class Analyze to annotate the game
+    # Call method Annotate of class Analyze to annotate the game.
     g.Annotate()      
 
     print('Done!!\n')    
