@@ -58,58 +58,102 @@ G. Guide
    negative it is better for black. Example 1. e4 {+0.74} white is ahead
    by 0.74 of a pawn, or almost 3/4 value of a pawn.
    
-H. Example annotated game with static eval and cerebellum book
-[Event "4th Sinquefield Cup 2016"]
-[Site "Saint Louis USA"]
-[Date "2016.08.05"]
+H. Examples of annotated games with static evaluation, search score and cerebellum book move annotations.
+
+(1) Static evaluation
+
+[Event "10th Tal Mem 2016"]
+[Site "Moscow RUS"]
+[Date "2016.09.26"]
 [Round "1.1"]
-[White "Giri, Anish"]
-[Black "Vachier-Lagrave, Maxime"]
+[White "Aronian, Levon"]
+[Black "Gelfand, Boris"]
 [Result "1/2-1/2"]
 [WhiteTitle "GM"]
 [BlackTitle "GM"]
-[WhiteElo "2769"]
-[BlackElo "2819"]
-[ECO "B90"]
-[Opening "Sicilian"]
-[Variation "Najdorf"]
-[WhiteFideId "24116068"]
-[BlackFideId "623539"]
-[EventDate "2016.08.05"]
+[WhiteElo "2795"]
+[BlackElo "2743"]
+[ECO "A35"]
+[Opening "English"]
+[Variation "symmetrical, four knights system"]
+[WhiteFideId "13300474"]
+[BlackFideId "2805677"]
+[EventDate "2016.09.26"]
 [Annotator "Brainfish 280816 64 POPCNT"]
 
-1. e4 {+0.83} (1. e4 {cerebellum book}) 1... c5 {+0.71} (1... e5 {cerebellum book}) 
-2. Nf3 {+1.05} (2. Nf3 {cerebellum book}) 2... d6 {+0.41} (2... d6 {cerebellum book}) 
-3. d4 {+1.21} (3. d4 {cerebellum book}) 3... cxd4 {+0.32} (3... cxd4 {cerebellum book}) 
-4. Nxd4 {+1.37} (4. Nxd4 {cerebellum book}) 4... Nf6 {+0.68} (4... Nf6 {cerebellum book}) 
-5. Nc3 {+1.26} (5. Nc3 {cerebellum book}) 5... a6 {+1.08} (5... a6 {cerebellum book}) 
-6. Be3 {+1.24} (6. Be3 {cerebellum book}) 6... Ng4 {+1.27} (6... e5 {cerebellum book}) 
-7. Bc1 {+0.97} (7. Bg5 {cerebellum book}) 7... Nf6 {+1.08} (7... Nf6 {cerebellum book}) 
-8. f3 {+1.03} (8. Be3 {cerebellum book}) 8... e5 {+0.40} (8... e5 {cerebellum book}) 
-9. Nb3 {+0.72} (9. Nb3 {cerebellum book}) 9... Be6 {+0.37} (9... Be6 {cerebellum book}) 
-10. Be3 {+0.66} (10. Be3 {cerebellum book}) 10... Be7 {+0.59} (10... Be7 {cerebellum book}) 
-11. Qd2 {+0.53} (11. Be2 {cerebellum book}) 11... O-O {-0.19} (11... O-O {cerebellum book}) 
-12. O-O-O {+0.15} (12. h4 {cerebellum book}) 12... Nbd7 {-0.21} (12... Nbd7 {cerebellum book}) 
-13. g4 {-0.21} (13. Kb1 {cerebellum book}) 13... b5 {-0.29} (13... b5 {cerebellum book}) 
-14. g5 {+0.09} (14. Nd5 {cerebellum book}) 14... b4 {-0.17} (14... Nh5 {cerebellum book}) 
-15. gxf6 {+3.36} (15. Ne2 {cerebellum book}) 15... bxc3 {-0.54} (15... bxc3 {cerebellum book}) 
-16. Qxc3 {+1.24} (16. Qxc3 {cerebellum book}) 16... Nxf6 {-0.20} (16... Nxf6 {cerebellum book}) 
-17. Na5 {-0.35} (17. Na5 {cerebellum book}) 17... Rc8 {-0.44} (17... Qd7 {cerebellum book}) 
-18. Nc6 {+0.26} (18. Nc6 {cerebellum book}) 18... Qe8 {+0.15} (18... Qc7 {cerebellum book}) 
-19. Nxe7+ {+3.74} (19. Nxe7+ {cerebellum book}) 19... Qxe7 {-0.23} (19... Qxe7 {cerebellum book}) 
-20. Qa5 {-0.45} (20. Qa5 {cerebellum book}) 20... Rc6 {-0.45} (20... Rc6 {cerebellum book}) 
-21. Kb1 {-0.12} (21. Rg1 {cerebellum book}) 21... Rfc8 {-0.61} (21... Rfc8 {cerebellum book}) 
-22. Rd2 {-0.57} (22. Rg1 {cerebellum book}) 22... Nh5 {-0.35} (22... Nh5 {cerebellum book}) 
-23. Rg1 {-0.04} (23. Rg1 {cerebellum book}) 23... Qh4 {-0.84} (23... Qf6 {cerebellum book}) 
-24. Be2 {+0.00} Nf4 {-0.46} 25. Bd1 {-0.63} f5 {-0.43} 
-26. exf5 {+0.23} Bxf5 {-0.66} 27. Ka1 {-0.66} d5 {-1.01} 
-28. c3 {-0.85} Rg6 {-0.79} 29. Rxg6 {+3.86} hxg6 {+0.14} 
-30. Bxf4 {+4.07} Qxf4 {-0.35} 31. Qxd5+ {+1.21} Kh7 {+1.42} 
-32. Bb3 {+1.66} a5 {+1.72} 33. a4 {+1.57} Re8 {+1.92} 
-34. Ka2 {+1.80} Be6 {+1.68} 35. Qc6 {+1.05} Bxb3+ {-2.31} 
-36. Kxb3 {+0.74} Rb8+ {+0.80} 37. Kc2 {+0.49} Rxb2+ {-0.32} 
-38. Kxb2 {+5.97} Qxd2+ {+0.35} 39. Kb3 {+0.15} Qxh2 {+0.07} 
-40. Qd5 {+0.08} Qe2 {+0.04} 41. Qxa5 {+0.15} Qd1+ {+0.64} 
-42. Kb2 {+0.02} Qd2+ {+0.49} 43. Kb3 {+0.31} Qd1+ {+0.64} 
-44. Kb2 {+0.02} Qd2+ {+0.49} 45. Ka3 {+0.26} Qc1+ {+0.54} 
-46. Kb4 {+0.72} Qb1+ {+1.03} 47. Ka3 {+0.35} 1/2-1/2
+{Move comments are from engine static evaluation.}
+1. c4 {+0.20} (1. e4 {cerebellum book}) 1... c5 {+0.08} (1... e6 {cerebellum book}) 
+2. Nf3 {+0.53} (2. Nf3 {cerebellum book}) 2... Nc6 {+0.04} (2... Nc6 {cerebellum book}) 
+3. Nc3 {+0.48} (3. Nc3 {cerebellum book}) 3... Nf6 {+0.08} (3... g6 {cerebellum book}) 
+4. g3 {+0.23} (4. g3 {cerebellum book}) 4... d5 {-1.09} (4... d5 {cerebellum book}) 
+5. d4 {+0.04} (5. d4 {cerebellum book}) 5... cxd4 {-1.72} (5... cxd4 {cerebellum book}) 
+6. Nxd4 {-0.08} (6. Nxd4 {cerebellum book}) 6... dxc4 {-0.83} (6... dxc4 {cerebellum book}) 
+7. Nxc6 {+4.95} (7. Nxc6 {cerebellum book}) 7... Qxd1+ {-7.60} (7... Qxd1+ {cerebellum book}) 
+8. Nxd1 {+2.00} (8. Nxd1 {cerebellum book}) 8... bxc6 {-0.73} (8... bxc6 {cerebellum book}) 
+9. Bg2 {-0.29} (9. Bg2 {cerebellum book}) 9... Nd5 {-0.24} (9... Nd5 {cerebellum book}) 
+10. Ne3 {-0.08} (10. Ne3 {cerebellum book}) 10... e6 {-0.32} (10... Ba6 {cerebellum book}) 
+11. Nxc4 {+0.53} (11. Nxc4 {cerebellum book}) 11... Ba6 {+0.18} (11... Ba6 {cerebellum book}) 
+12. b3 {+0.26} (12. b3 {cerebellum book}) 12... Bb4+ {+0.27} (12... Bb4+ {cerebellum book}) 
+13. Bd2 {+0.19} (13. Bd2 {cerebellum book}) 13... Ke7 {+0.14} (13... Bxd2+ {cerebellum book}) 
+14. Rc1 {+0.20} (14. Rc1 {cerebellum book}) 14... Rhc8 {+0.31} (14... Rhc8 {cerebellum book}) 
+15. Ne5 {+0.16} (15. Bxb4+ {cerebellum book}) c5 {+0.05} 16. Bxb4 {+3.71} cxb4 {-0.03} 
+17. Rxc8 {+7.10} Rxc8 {-0.25} 18. Bxd5 {+2.65} Kd6 {+2.46} 
+19. Bf3 {+3.11} Kxe5 {-0.78} 20. Kd2 {-0.46} Rc5 {-0.21} 
+21. a3 {-0.40} bxa3 {-2.16} 22. Ra1 {-1.63} Bb5 {-1.58} 
+23. Rxa3 {-0.17} Rc7 {-0.26} 24. h4 {-0.40} h6 {-0.29} 
+25. Ra2 {-0.37} g5 {-0.21} 26. hxg5 {+0.86} hxg5 {-0.14} 
+27. Rc2 {-0.18} Rxc2+ {-6.05} 28. Kxc2 {-0.28} Kd4 {-0.07} 
+29. e3+ {-0.08} Kc5 {+0.09} 30. Kc3 {+0.03} a5 {+0.15} 
+31. Bd1 {-0.10} f6 {+0.02} 32. f4 {-0.19} e5 {-0.05} 
+33. Bf3 {-0.07} Be8 {+0.13} 34. Bd1 {-0.14} Bb5 {-0.05} 
+35. Bf3 {-0.07} Be8 {+0.13} 36. Bd1 {-0.14} Bb5 {-0.05} 
+1/2-1/2
+
+(2) Search score
+
+[Event "10th Tal Mem 2016"]
+[Site "Moscow RUS"]
+[Date "2016.09.26"]
+[Round "1.1"]
+[White "Aronian, Levon"]
+[Black "Gelfand, Boris"]
+[Result "1/2-1/2"]
+[WhiteTitle "GM"]
+[BlackTitle "GM"]
+[WhiteElo "2795"]
+[BlackElo "2743"]
+[ECO "A35"]
+[Opening "English"]
+[Variation "symmetrical, four knights system"]
+[WhiteFideId "13300474"]
+[BlackFideId "2805677"]
+[EventDate "2016.09.26"]
+[Annotator "Brainfish 280816 64 POPCNT"]
+
+{Move comments are from engine search score.}
+1. c4 {-0.05} (1. e4 {cerebellum book}) 1... c5 {+0.21} (1... e6 {cerebellum book}) 
+2. Nf3 {+0.26} (2. Nf3 {cerebellum book}) 2... Nc6 {+0.19} (2... Nc6 {cerebellum book}) 
+3. Nc3 {+0.17} (3. Nc3 {cerebellum book}) 3... Nf6 {+0.08} (3... g6 {cerebellum book}) 
+4. g3 {-0.11} (4. g3 {cerebellum book}) 4... d5 {+0.00} (4... d5 {cerebellum book}) 
+5. d4 {+0.03} (5. d4 {cerebellum book}) 5... cxd4 {+0.15} (5... cxd4 {cerebellum book}) 
+6. Nxd4 {+0.24} (6. Nxd4 {cerebellum book}) 6... dxc4 {+0.29} (6... dxc4 {cerebellum book}) 
+7. Nxc6 {+0.13} (7. Nxc6 {cerebellum book}) 7... Qxd1+ {+0.24} (7... Qxd1+ {cerebellum book}) 
+8. Nxd1 {+0.25} (8. Nxd1 {cerebellum book}) 8... bxc6 {+0.27} (8... bxc6 {cerebellum book}) 
+9. Bg2 {+0.19} (9. Bg2 {cerebellum book}) 9... Nd5 {+0.20} (9... Nd5 {cerebellum book}) 
+10. Ne3 {+0.14} (10. Ne3 {cerebellum book}) 10... e6 {+0.05} (10... Ba6 {cerebellum book}) 
+11. Nxc4 {+0.19} (11. Nxc4 {cerebellum book}) 11... Ba6 {+0.25} (11... Ba6 {cerebellum book}) 
+12. b3 {+0.10} (12. b3 {cerebellum book}) 12... Bb4+ {+0.25} (12... Bb4+ {cerebellum book}) 
+13. Bd2 {+0.26} (13. Bd2 {cerebellum book}) 13... Ke7 {+0.41} (13... Bxd2+ {cerebellum book}) 
+14. Rc1 {+0.36} (14. Rc1 {cerebellum book}) 14... Rhc8 {+0.31} (14... Rhc8 {cerebellum book}) 
+15. Ne5 {+0.16} (15. Bxb4+ {cerebellum book}) c5 {+0.18} 16. Bxb4 {+0.07} cxb4 {+0.21} 
+17. Rxc8 {-0.24} Rxc8 {-0.15} 18. Bxd5 {-0.20} Kd6 {-0.13} 
+19. Bf3 {-0.19} Kxe5 {-0.18} 20. Kd2 {-0.18} Rc5 {-0.19} 
+21. a3 {-0.12} bxa3 {-0.16} 22. Ra1 {-0.36} Bb5 {+0.00} 
+23. Rxa3 {+0.00} Rc7 {+0.01} 24. h4 {+0.00} h6 {+0.00} 
+25. Ra2 {+0.00} g5 {+0.00} 26. hxg5 {-0.02} hxg5 {-0.03} 
+27. Rc2 {-0.03} Rxc2+ {-0.06} 28. Kxc2 {-0.07} Kd4 {-0.07} 
+29. e3+ {-0.08} Kc5 {-0.06} 30. Kc3 {-0.07} a5 {-0.07} 
+31. Bd1 {-0.06} f6 {-0.07} 32. f4 {-0.03} e5 {-0.03} 
+33. Bf3 {-0.02} Be8 {-0.12} 34. Bd1 {-0.04} Bb5 {-0.03} 
+35. Bf3 {-0.02} Be8 {-0.12} 36. Bd1 {-0.04} Bb5 {-0.03} 
+1/2-1/2
