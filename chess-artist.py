@@ -42,6 +42,7 @@ APP_NAME = 'Chess Artist'
 APP_VERSION = '0.1.0'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
+MAX_SCORE = 32000
 
 def PrintProgram():
     """ Prints program name and version """
@@ -105,9 +106,18 @@ class Analyze():
         """ Prints engine id name """
         print('Engine name: %s' %(self.GetEngineIdName()))
 
-    def WriteMoves(self, side, fmvn, sanMove, cereMove, staticEval):
+    def WriteMoves(self, side, fmvn, sanMove, cereMove, posScore, isGameOver):
         """ Write moves and comments to the output file """
         bookComment = 'cerebellum book'
+
+        # If no legal move after this last move we just write the moves
+        if isGameOver:
+            with open(self.outfn, 'a+') as f:
+                if side:
+                    f.write('%d. %s ' %(fmvn, sanMove))
+                else:
+                    f.write('%s ' %(sanMove))
+            return                        
         
         # Write the move and comments
         with open(self.outfn, 'a+') as f:
@@ -115,12 +125,12 @@ class Analyze():
 
             # If side to move is white
             if side:
-                if self.evalTypeOpt == 'static':
-                    assert staticEval is not None, 'Error! static eval is not correct.'
+                if self.evalTypeOpt == 'static' or self.evalTypeOpt == 'search':
+                    assert posScore is not None, 'Error! static eval is not correct.'
                     if self.isCereMoveFound:
-                        f.write('%d. %s {%+0.2f} (%d. %s {%s}) ' %(fmvn, sanMove, staticEval, fmvn, cereMove, bookComment))
+                        f.write('%d. %s {%+0.2f} (%d. %s {%s}) ' %(fmvn, sanMove, posScore, fmvn, cereMove, bookComment))
                     else:
-                        f.write('%d. %s {%+0.2f} ' %(fmvn, sanMove, staticEval))
+                        f.write('%d. %s {%+0.2f} ' %(fmvn, sanMove, posScore))
                 else:
                     if self.isCereMoveFound:
                         f.write('%d. %s (%d. %s {%s}) ' %(fmvn, sanMove, fmvn, cereMove, bookComment))
@@ -129,12 +139,12 @@ class Analyze():
                         
             # Else if side to move is black
             else:
-                if self.evalTypeOpt == 'static':
-                    assert staticEval is not None, 'Error! static eval is not correct.'
+                if self.evalTypeOpt == 'static' or self.evalTypeOpt == 'search':
+                    assert posScore is not None, 'Error! static eval is not correct.'
                     if self.isCereMoveFound:
-                        f.write('%d... %s {%+0.2f} (%d... %s {%s}) ' %(fmvn, sanMove, staticEval, fmvn, cereMove, bookComment))
+                        f.write('%d... %s {%+0.2f} (%d... %s {%s}) ' %(fmvn, sanMove, posScore, fmvn, cereMove, bookComment))
                     else:
-                        f.write('%s {%+0.2f} ' %(sanMove, staticEval))
+                        f.write('%s {%+0.2f} ' %(sanMove, posScore))
                 else:
                     if self.isCereMoveFound:
                         f.write('%d... %s (%d... %s {%s}) ' %(fmvn, sanMove, fmvn, cereMove, bookComment))
@@ -146,7 +156,7 @@ class Analyze():
                     if self.writeCnt >= 2:
                         self.writeCnt = 0
                         f.write('\n')
-                elif self.evalTypeOpt == 'static':
+                elif self.evalTypeOpt == 'static' or self.evalTypeOpt == 'search':
                     if self.writeCnt >= 4:
                         self.writeCnt = 0
                         f.write('\n')
@@ -154,6 +164,15 @@ class Analyze():
                     if self.writeCnt >= 10:
                         self.writeCnt = 0
                         f.write('\n')
+
+    def MateDistanceToValue(self, d):
+        """ Returns value given distance to mate """
+        value = 0
+        if d < 0:
+            value = -2*d - MAX_SCORE
+        elif d > 0:
+            value = MAX_SCORE - 2*d + 1
+        return value
 
     def GetEngineIdName(self):
         """ Returns the engine id name """
@@ -291,6 +310,80 @@ class Analyze():
         assert score != -32000.0, 'Error! something is wrong in static eval calculation.'
         return score
 
+    def GetSearchScore(self, pos, side):
+        """ Returns search bestmove and score from the engine. """
+
+        # Initialize
+        engOptionHash = 64 # MB
+        engOptionThreads = 1
+        engMoveTime = 500 # 0.5 sec
+        scoreCp = 100000
+
+        # Run the engine.
+        p = subprocess.Popen(self.eng, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
+        # Send command to engine.
+        p.stdin.write("uci\n")
+
+        # Parse engine replies.
+        for eline in iter(p.stdout.readline, ''):
+            line = eline.strip()
+            if "uciok" in line:
+                break
+
+        # Set Hash and Threads options to uci engine
+        p.stdin.write("setoption name Hash value %d\n" %(engOptionHash))
+        p.stdin.write("setoption name Threads value %d\n" %(engOptionThreads))
+                
+        # Send command to engine.
+        p.stdin.write("isready\n")
+        
+        # Parse engine replies.
+        for eline in iter(p.stdout.readline, ''):
+            line = eline.strip()
+            if "readyok" in line:
+                break
+                
+        # Send commands to engine.
+        p.stdin.write("ucinewgame\n")
+        p.stdin.write("position fen " + pos + "\n")
+        p.stdin.write("go movetime %d\n" %(engMoveTime))
+
+        # Parse the output and extract the engine search score.
+        for eline in iter(p.stdout.readline, ''):        
+            line = eline.strip()
+            if 'score cp ' in line:
+                splitStr = line.split()
+                scoreIndex = splitStr.index('score')
+                scoreCp = int(splitStr[scoreIndex + 2])
+            if 'score mate ' in line:
+                splitStr = line.split()
+                scoreIndex = splitStr.index('score')
+                mateInN = int(splitStr[scoreIndex + 2])
+
+                # Convert mate in move number to value
+                scoreCp = self.MateDistanceToValue(mateInN)        
+                
+            # Break search when we receive bestmove string from engine
+            if 'bestmove ' in line:
+                break
+                
+        # Quit the engine
+        p.stdin.write('quit\n')
+        p.communicate()        
+        assert scoreCp != 100000, 'Error, search failed to return a score.'
+
+        # Invert the score sign because we analyze the position after the move.
+        scoreCp = -1 * scoreCp
+
+        # Convert score from the point of view of white.
+        if not side:
+            scoreCp = -1 * scoreCp
+
+        # Convert the score to pawn unit in float type
+        scoreP = float(scoreCp)/100.0
+        return scoreP
+
     def Annotate(self):
         """ Parse the pgn file and annotate the games """
         # Get engine id name for the Annotator tag.
@@ -345,27 +438,34 @@ class Analyze():
                 nextNode = gameNode.variation(0)                      
                 sanMove = nextNode.san()
 
-                # Try to get a cerebellum book move.
+                # (1) Try to get a cerebellum book move.
                 self.isCereMoveFound = False
                 cereBookMove = None
-                if self.bookTypeOpt == 'cerebellum':                    
-                    if not isCereEnd:
-                        # Use FEN before a move.
-                        fenBeforeMove = gameNode.board().fen()
-                        cereBookMove, self.isCereMoveFound = self.GetCerebellumBookMove(fenBeforeMove)
+                if self.bookTypeOpt == 'cerebellum' and not isCereEnd:
+                    # Use FEN before a move.
+                    fenBeforeMove = gameNode.board().fen()
+                    cereBookMove, self.isCereMoveFound = self.GetCerebellumBookMove(fenBeforeMove)
 
                     # End trying to find cerebellum book move beyond BOOK_MOVE_LIMIT.
                     if not self.isCereMoveFound and fmvn > BOOK_MOVE_LIMIT:
                         isCereEnd = True
 
-                # Use FEN after a move to get the static eval.
-                staticEval = None
+                # (2) Get the score of the position after a move.
+                posScore = None
                 if self.evalTypeOpt == 'static':
                     fenAfterMove = nextNode.board().fen()
-                    staticEval = self.GetStaticEval(fenAfterMove)
-
-                # Write moves and comments.
-                self.WriteMoves(side, fmvn, sanMove, cereBookMove, staticEval)
+                    staticScore = self.GetStaticEval(fenAfterMove)
+                    posScore = staticScore
+                elif self.evalTypeOpt == 'search':
+                    fenAfterMove = nextNode.board().fen()
+                    searchScore = self.GetSearchScore(fenAfterMove, side)
+                    posScore = searchScore
+                    
+                # Check if game is over after a move                
+                isGameOver = nextNode.board().is_game_over(True)
+                
+                # (3) Write moves and comments.
+                self.WriteMoves(side, fmvn, sanMove, cereBookMove, posScore, isGameOver)
 
                 # Read the next position.
                 gameNode = nextNode
