@@ -68,19 +68,17 @@ def GetOptionValue(opt, optName, var):
     """ Returns value of opt dict given the key """
     if opt.has_key(optName):
         var = opt.get(optName)
-        if optName == '-staticeval':
-            var = int(var)
     return var
 
-class Analyze(object):
+class Analyze():
     """ An object that will read and annotate games in a pgn file """
-    def __init__(self, infn, outfn, eng, bookTypeOpt, useStaticEvalOpt):
+    def __init__(self, infn, outfn, eng, bookTypeOpt, evalTypeOpt):
         """ Initialize """
         self.infn = infn
         self.outfn = outfn
         self.eng = eng
         self.bookTypeOpt = bookTypeOpt
-        self.useStaticEvalOpt = useStaticEvalOpt
+        self.evalTypeOpt = evalTypeOpt
         self.writeCnt = 0
         self.isCereMoveFound = False
 
@@ -105,7 +103,7 @@ class Analyze(object):
 
             # If side to move is white
             if side:
-                if self.useStaticEvalOpt:
+                if self.evalTypeOpt == 'static':
                     assert staticEval is not None, 'Error! static eval is not correct.'
                     if self.isCereMoveFound:
                         f.write('%d. %s {%+0.2f} (%d. %s {%s}) ' %(fmvn, sanMove, staticEval, fmvn, cereMove, bookComment))
@@ -119,7 +117,7 @@ class Analyze(object):
                         
             # Else if side to move is black
             else:
-                if self.useStaticEvalOpt:
+                if self.evalTypeOpt == 'static':
                     assert staticEval is not None, 'Error! static eval is not correct.'
                     if self.isCereMoveFound:
                         f.write('%d... %s {%+0.2f} (%d... %s {%s}) ' %(fmvn, sanMove, staticEval, fmvn, cereMove, bookComment))
@@ -136,7 +134,7 @@ class Analyze(object):
                     if self.writeCnt >= 2:
                         self.writeCnt = 0
                         f.write('\n')
-                elif self.useStaticEvalOpt:
+                elif self.evalTypeOpt == 'static':
                     if self.writeCnt >= 4:
                         self.writeCnt = 0
                         f.write('\n')
@@ -290,7 +288,7 @@ class Analyze(object):
         if self.bookTypeOpt == 'cerebellum':
             brainFishEngine = self.GetEngineIdName()
             if 'Brainfish' not in brainFishEngine:
-                self.bookTypeOpt = None
+                self.bookTypeOpt = 'none'
                 print('\nWarning!! engine is not Brainfish, cerebellum book is disabled.\n')
         
         # Open the input pgn file
@@ -350,7 +348,7 @@ class Analyze(object):
 
                 # Use FEN after a move to get the static eval.
                 staticEval = None
-                if self.useStaticEvalOpt:
+                if self.evalTypeOpt == 'static':
                     fenAfterMove = nextNode.board().fen()
                     staticEval = self.GetStaticEval(fenAfterMove)
 
@@ -378,8 +376,8 @@ def main(argv):
     inputFile = 'src.pgn'
     outputFile = 'out_src.pgn'
     engineName = 'engine.exe'
-    bookTypeOption = None # [None, cerebellum, polyglot]
-    useStaticEvalOption = 0
+    bookTypeOption = 'none' # ['none', 'cerebellum', 'polyglot']
+    evalTypeOption = 'static' # ['none', 'static', 'search']
     cereBookFile = 'Cerebellum_Light.bin'
     
     # Evaluate the command line options.
@@ -389,7 +387,7 @@ def main(argv):
         outputFile = GetOptionValue(options, '-outpgn', outputFile)
         engineName = GetOptionValue(options, '-eng', engineName)
         bookTypeOption = GetOptionValue(options, '-book', bookTypeOption)
-        useStaticEvalOption = GetOptionValue(options, '-staticeval', useStaticEvalOption)
+        evalTypeOption = GetOptionValue(options, '-eval', evalTypeOption)
 
     # Verify presence of input pgn and engine file.
     CheckFile(inputFile)
@@ -401,11 +399,11 @@ def main(argv):
     # Disable use of cerebellum book when Cerebellum_Light.bin is missing.
     if bookTypeOption == 'cerebellum':
         if not os.path.isfile(cereBookFile):
-            bookTypeOption = None
+            bookTypeOption = 'none'
             print('Warning! cerebellum book is missing.')
             
-    # Declare a variable g of class Analyze.
-    g = Analyze(inputFile, outputFile, engineName, bookTypeOption, useStaticEvalOption)
+    # Create an object of class Analyze.
+    g = Analyze(inputFile, outputFile, engineName, bookTypeOption, evalTypeOption)
 
     # Print engine id name.
     g.PrintEngineIdName()
@@ -417,4 +415,4 @@ def main(argv):
 
 if __name__ == "__main__":
     main(sys.argv[1:])
-
+   
