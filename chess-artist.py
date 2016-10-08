@@ -403,9 +403,6 @@ def main(argv):
 
     # Check input, output and engine files.
     CheckFiles(inputFile, outputFile, engineName)
-
-    # Delete existing output file.
-    DeleteFile(outputFile)
     
     # Disable use of cerebellum book when Cerebellum_Light.bin is missing.
     if bookTypeOption == 'cerebellum':
@@ -417,6 +414,9 @@ def main(argv):
     if bookTypeOption == 'none' and evalTypeOption == 'none':
         print('Warning! options were not defined.')
         sys.exit(1)
+        
+    # Delete existing output file.
+    DeleteFile(outputFile)
         
     # Convert options to dict
     options = {'-book': bookTypeOption, '-eval': evalTypeOption}
