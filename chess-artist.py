@@ -82,6 +82,8 @@ def GetOptionValue(opt, optName, var):
     """ Returns value of opt dict given the key """
     if opt.has_key(optName):
         var = opt.get(optName)
+        if optName == '-movetime':
+            var = int(var)
     return var
 
 class Analyze():
@@ -93,6 +95,7 @@ class Analyze():
         self.eng = eng
         self.bookTypeOpt = opt['-book']
         self.evalTypeOpt = opt['-eval']
+        self.moveTimeOpt = opt['-movetime']
         self.writeCnt = 0
         self.isCereMoveFound = False
 
@@ -342,7 +345,6 @@ class Analyze():
         # Initialize
         engOptionHash = 64
         engOptionThreads = 1
-        engMoveTime = 500
         scoreCp = MAX_SEARCH_SCORE
 
         # Run the engine.
@@ -373,7 +375,7 @@ class Analyze():
         # Send commands to engine.
         p.stdin.write("ucinewgame\n")
         p.stdin.write("position fen " + pos + "\n")
-        p.stdin.write("go movetime %d\n" %(engMoveTime))
+        p.stdin.write("go movetime %d\n" %(self.moveTimeOpt))
 
         # Parse the output and extract the engine search score.
         for eline in iter(p.stdout.readline, ''):        
@@ -460,7 +462,7 @@ class Analyze():
                     f.write('{Move comments are from engine static evaluation.}\n')
             elif self.evalTypeOpt == 'search':
                 with open(self.outfn, 'a+') as f:
-                    f.write('{Move comments are from engine search score.}\n')
+                    f.write('{Move comments are from engine search score @ %0.1fs/pos}\n' %(self.moveTimeOpt/1000.0))
 
             # Save result to be written later as game termination marker.
             res = game.headers['Result']
@@ -526,6 +528,7 @@ def main(argv):
     bookTypeOption = 'none' # ['none', 'cerebellum', 'polyglot']
     evalTypeOption = 'static' # ['none', 'static', 'search']
     cereBookFile = 'Cerebellum_Light.bin'
+    moveTimeOption = 500 # 500 ms default
     
     # Evaluate the command line options.
     options = EvaluateOptions(argv)
@@ -535,6 +538,7 @@ def main(argv):
         engineName = GetOptionValue(options, '-eng', engineName)
         bookTypeOption = GetOptionValue(options, '-book', bookTypeOption)
         evalTypeOption = GetOptionValue(options, '-eval', evalTypeOption)
+        moveTimeOption = GetOptionValue(options, '-movetime', moveTimeOption)
 
     # Check input, output and engine files.
     CheckFiles(inputFile, outputFile, engineName)
@@ -554,7 +558,7 @@ def main(argv):
     DeleteFile(outputFile)
         
     # Convert options to dict
-    options = {'-book': bookTypeOption, '-eval': evalTypeOption}
+    options = {'-book': bookTypeOption, '-eval': evalTypeOption, '-movetime': moveTimeOption}
 
     # Create an object of class Analyze.
     g = Analyze(inputFile, outputFile, engineName, **options)
