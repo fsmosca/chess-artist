@@ -43,6 +43,7 @@ APP_VERSION = '0.1.0'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
+MAX_SEARCH_SCORE = 100000
 
 def PrintProgram():
     """ Prints program name and version """
@@ -106,18 +107,35 @@ class Analyze():
         """ Prints engine id name """
         print('Engine name: %s' %(self.GetEngineIdName()))
 
-    def WriteMoves(self, side, fmvn, sanMove, cereMove, posScore, isGameOver):
-        """ Write moves and comments to the output file """
-        bookComment = 'cerebellum book'
+    def WriteMovesOnly(self, side, moveNumber, sanMove):
+        """ Write moves only in the output file """
+        # Write the moves
+        with open(self.outfn, 'a+') as f:
+            if side:
+                f.write('%d. %s ' %(moveNumber, sanMove))
+            else:
+                f.write('%s ' %(sanMove))
 
-        # If no legal move after this last move we just write the moves
-        if isGameOver:
-            with open(self.outfn, 'a+') as f:
-                if side:
-                    f.write('%d. %s ' %(fmvn, sanMove))
-                else:
-                    f.write('%s ' %(sanMove))
-            return                        
+    def WriteMovesWithScore(self, side, moveNumber, sanMove, posScore):
+        """ Write moves with score in the output file """
+        # Write the move and comments
+        with open(self.outfn, 'a+') as f:
+            self.writeCnt += 1
+
+            # If side to move is white
+            if side:
+                f.write('%d. %s {%+0.2f} ' %(moveNumber, sanMove, posScore))
+            else:
+                f.write('%s {%+0.2f} ' %(sanMove, posScore))
+
+                # Format output, don't write movetext in one long line.
+                if self.writeCnt >= 4:
+                    self.writeCnt = 0
+                    f.write('\n')
+
+    def WriteMovesWithBookMove(self, side, moveNumber, sanMove, bookMove):
+        """ Write moves with book moves in the output file """
+        bookComment = 'cerebellum book'
         
         # Write the move and comments
         with open(self.outfn, 'a+') as f:
@@ -125,46 +143,54 @@ class Analyze():
 
             # If side to move is white
             if side:
-                if self.evalTypeOpt == 'static' or self.evalTypeOpt == 'search':
-                    assert posScore is not None, 'Error! static eval is not correct.'
-                    if self.isCereMoveFound:
-                        f.write('%d. %s {%+0.2f} (%d. %s {%s}) ' %(fmvn, sanMove, posScore, fmvn, cereMove, bookComment))
-                    else:
-                        f.write('%d. %s {%+0.2f} ' %(fmvn, sanMove, posScore))
-                else:
-                    if self.isCereMoveFound:
-                        f.write('%d. %s (%d. %s {%s}) ' %(fmvn, sanMove, fmvn, cereMove, bookComment))
-                    else:
-                        f.write('%d. %s ' %(fmvn, sanMove))
-                        
-            # Else if side to move is black
+                f.write('%d. %s (%d. %s {%s}) ' %(moveNumber, sanMove, moveNumber, bookMove, bookComment))
             else:
-                if self.evalTypeOpt == 'static' or self.evalTypeOpt == 'search':
-                    assert posScore is not None, 'Error! static eval is not correct.'
-                    if self.isCereMoveFound:
-                        f.write('%d... %s {%+0.2f} (%d... %s {%s}) ' %(fmvn, sanMove, posScore, fmvn, cereMove, bookComment))
-                    else:
-                        f.write('%s {%+0.2f} ' %(sanMove, posScore))
-                else:
-                    if self.isCereMoveFound:
-                        f.write('%d... %s (%d... %s {%s}) ' %(fmvn, sanMove, fmvn, cereMove, bookComment))
-                    else:
-                        f.write('%s ' %(sanMove))
+                f.write('%d... %s (%d... %s {%s}) ' %(moveNumber, sanMove, moveNumber, bookMove, bookComment))
 
                 # Format output, don't write movetext in one long line.
-                if self.isCereMoveFound:
-                    if self.writeCnt >= 2:
-                        self.writeCnt = 0
-                        f.write('\n')
-                elif self.evalTypeOpt == 'static' or self.evalTypeOpt == 'search':
-                    if self.writeCnt >= 4:
-                        self.writeCnt = 0
-                        f.write('\n')
-                else:
-                    if self.writeCnt >= 10:
-                        self.writeCnt = 0
-                        f.write('\n')
+                if self.writeCnt >= 2:
+                    self.writeCnt = 0
+                    f.write('\n')
 
+    def WriteMovesWithScoreAndBookMove(self, side, moveNumber, sanMove, bookMove, posScore):
+        """ Write moves with score and book moves in the output file """
+        bookComment = 'cerebellum book'
+        
+        # Write the move and comments
+        with open(self.outfn, 'a+') as f:
+            self.writeCnt += 1
+
+            # If side to move is white
+            if side:
+                f.write('%d. %s {%+0.2f} (%d. %s {%s}) ' %(moveNumber, sanMove, posScore, moveNumber, bookMove, bookComment))
+            else:
+                f.write('%d... %s {%+0.2f} (%d... %s {%s}) ' %(moveNumber, sanMove, posScore, moveNumber, bookMove, bookComment))
+
+                # Format output, don't write movetext in one long line.
+                if self.writeCnt >= 2:
+                    self.writeCnt = 0
+                    f.write('\n')        
+
+    def WriteMoves(self, side, fmvn, sanMove, bookMove, posScore, isGameOver):
+        """ Write moves and comments to the output file """
+        # If game is over [mate, stalemate] just print the move.
+        if isGameOver:
+            self.WriteMovesOnly(side, fmvn, sanMove)
+            return
+
+        # Write rest of moves and comments.
+        # (1) With score
+        if not self.isCereMoveFound and self.evalTypeOpt != 'none':
+            self.WriteMovesWithScore(side, fmvn, sanMove, posScore)
+
+        # (2) With book move
+        elif self.isCereMoveFound and self.evalTypeOpt == 'none':
+            self.WriteMovesWithBookMove(side, fmvn, sanMove, bookMove)
+
+        # (3) With score and book move
+        elif self.isCereMoveFound and self.evalTypeOpt != 'none':
+            self.WriteMovesWithScoreAndBookMove(side, fmvn, sanMove, bookMove, posScore)
+            
     def MateDistanceToValue(self, d):
         """ Returns value given distance to mate """
         value = 0
@@ -314,10 +340,10 @@ class Analyze():
         """ Returns search bestmove and score from the engine. """
 
         # Initialize
-        engOptionHash = 64 # MB
+        engOptionHash = 64
         engOptionThreads = 1
-        engMoveTime = 500 # 0.5 sec
-        scoreCp = 100000
+        engMoveTime = 500
+        scoreCp = MAX_SEARCH_SCORE
 
         # Run the engine.
         p = subprocess.Popen(self.eng, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
@@ -371,7 +397,7 @@ class Analyze():
         # Quit the engine
         p.stdin.write('quit\n')
         p.communicate()        
-        assert scoreCp != 100000, 'Error, search failed to return a score.'
+        assert scoreCp != MAX_SEARCH_SCORE, 'Error, search failed to return a score.'
 
         # Invert the score sign because we analyze the position after the move.
         scoreCp = -1 * scoreCp
@@ -427,10 +453,19 @@ class Analyze():
             with open(self.outfn, 'a+') as f:
                 f.write('[Annotator "%s"]\n\n' %(engIdName))
 
+            # Before the movetext are written, add a comment of whether
+            # move comments are from static evaluation or search score of the engine.
+            if self.evalTypeOpt == 'static':
+                with open(self.outfn, 'a+') as f:
+                    f.write('{Move comments are from engine static evaluation.}\n')
+            elif self.evalTypeOpt == 'search':
+                with open(self.outfn, 'a+') as f:
+                    f.write('{Move comments are from engine search score.}\n')
+
             # Save result to be written later as game termination marker.
             res = game.headers['Result']
 
-            # Loop thru the moves.
+            # Loop thru the moves within this game.
             gameNode = game        
             while gameNode.variations:
                 side = gameNode.board().turn
@@ -461,8 +496,8 @@ class Analyze():
                     searchScore = self.GetSearchScore(fenAfterMove, side)
                     posScore = searchScore
                     
-                # Check if game is over after a move                
-                isGameOver = nextNode.board().is_game_over(True)
+                # If game is over by checkmate and stalemate                
+                isGameOver = nextNode.board().is_checkmate() or nextNode.board().is_stalemate()
                 
                 # (3) Write moves and comments.
                 self.WriteMoves(side, fmvn, sanMove, cereBookMove, posScore, isGameOver)
@@ -512,7 +547,7 @@ def main(argv):
 
     # Exit if options are none.
     if bookTypeOption == 'none' and evalTypeOption == 'none':
-        print('Warning! options were not defined.')
+        print('Warning! options were not defined. Nothing has been processed.')
         sys.exit(1)
         
     # Delete existing output file.
@@ -534,4 +569,3 @@ def main(argv):
 
 if __name__ == "__main__":
     main(sys.argv[1:])
- 
