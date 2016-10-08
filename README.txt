@@ -112,6 +112,7 @@ H. Example annotated game with static eval and cerebellum book
 46. Kb4 {+0.72} Qb1+ {+1.03} 47. Ka3 {+0.35} 1/2-1/2
 
 I. Todo list
+0. Refactor WriteMoves()
 1. Annotate a game using an engine's search score along with standard annotation symbols.
 2. Annotate a game with polyglot book.
 3. Calculate the players' estimated rating based on engine's analysis.
