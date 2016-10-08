@@ -84,6 +84,10 @@ def GetOptionValue(opt, optName, var):
         var = opt.get(optName)
         if optName == '-movetime':
             var = int(var)
+        elif optName == '-enghash':
+            var = int(var)
+        elif optName == '-engthreads':
+            var = int(var)
     return var
 
 class Analyze():
@@ -96,6 +100,8 @@ class Analyze():
         self.bookTypeOpt = opt['-book']
         self.evalTypeOpt = opt['-eval']
         self.moveTimeOpt = opt['-movetime']
+        self.engHashOpt = opt['-enghash']
+        self.engThreadsOpt = opt['-engthreads']
         self.writeCnt = 0
         self.isCereMoveFound = False
 
@@ -343,8 +349,6 @@ class Analyze():
         """ Returns search bestmove and score from the engine. """
 
         # Initialize
-        engOptionHash = 64
-        engOptionThreads = 1
         scoreCp = MAX_SEARCH_SCORE
 
         # Run the engine.
@@ -360,8 +364,8 @@ class Analyze():
                 break
 
         # Set Hash and Threads options to uci engine
-        p.stdin.write("setoption name Hash value %d\n" %(engOptionHash))
-        p.stdin.write("setoption name Threads value %d\n" %(engOptionThreads))
+        p.stdin.write("setoption name Hash value %d\n" %(self.engHashOpt))
+        p.stdin.write("setoption name Threads value %d\n" %(self.engThreadsOpt))
                 
         # Send command to engine.
         p.stdin.write("isready\n")
@@ -462,7 +466,8 @@ class Analyze():
                     f.write('{Move comments are from engine static evaluation.}\n')
             elif self.evalTypeOpt == 'search':
                 with open(self.outfn, 'a+') as f:
-                    f.write('{Move comments are from engine search score @ %0.1fs/pos}\n' %(self.moveTimeOpt/1000.0))
+                    f.write('{Hash %dmb, Threads %d, engine search score @ %0.1fs/pos}\n'\
+                            %(self.engHashOpt, self.engThreadsOpt, self.moveTimeOpt/1000.0))
 
             # Save result to be written later as game termination marker.
             res = game.headers['Result']
@@ -525,10 +530,12 @@ def main(argv):
     inputFile = 'src.pgn'
     outputFile = 'out_src.pgn'
     engineName = 'engine.exe'
-    bookTypeOption = 'none' # ['none', 'cerebellum', 'polyglot']
-    evalTypeOption = 'static' # ['none', 'static', 'search']
+    bookOption = 'none' # ['none', 'cerebellum', 'polyglot']
+    evalOption = 'static' # ['none', 'static', 'search']
     cereBookFile = 'Cerebellum_Light.bin'
     moveTimeOption = 500 # 500 ms default
+    engHashOption = 32 # 32 mb
+    engThreadsOption = 1
     
     # Evaluate the command line options.
     options = EvaluateOptions(argv)
@@ -536,29 +543,40 @@ def main(argv):
         inputFile = GetOptionValue(options, '-inpgn', inputFile)
         outputFile = GetOptionValue(options, '-outpgn', outputFile)
         engineName = GetOptionValue(options, '-eng', engineName)
-        bookTypeOption = GetOptionValue(options, '-book', bookTypeOption)
-        evalTypeOption = GetOptionValue(options, '-eval', evalTypeOption)
+        bookOption = GetOptionValue(options, '-book', bookOption)
+        evalOption = GetOptionValue(options, '-eval', evalOption)
         moveTimeOption = GetOptionValue(options, '-movetime', moveTimeOption)
+        engHashOption = GetOptionValue(options, '-enghash', engHashOption)
+        engThreadsOption = GetOptionValue(options, '-engthreads', engThreadsOption)
 
     # Check input, output and engine files.
     CheckFiles(inputFile, outputFile, engineName)
     
     # Disable use of cerebellum book when Cerebellum_Light.bin is missing.
-    if bookTypeOption == 'cerebellum':
+    if bookOption == 'cerebellum':
         if not os.path.isfile(cereBookFile):
-            bookTypeOption = 'none'
+            bookOption = 'none'
             print('Warning! cerebellum book is missing.')
 
     # Exit if options are none.
-    if bookTypeOption == 'none' and evalTypeOption == 'none':
+    if bookOption == 'none' and evalOption == 'none':
         print('Warning! options were not defined. Nothing has been processed.')
         sys.exit(1)
         
     # Delete existing output file.
     DeleteFile(outputFile)
+
+    # Check Limits
+    if engThreadsOption <= 0:
+        engThreadsOption = 1
         
     # Convert options to dict
-    options = {'-book': bookTypeOption, '-eval': evalTypeOption, '-movetime': moveTimeOption}
+    options = {'-book': bookOption,
+               '-eval': evalOption,
+               '-movetime': moveTimeOption,
+               '-enghash': engHashOption,
+               '-engthreads': engThreadsOption
+               }
 
     # Create an object of class Analyze.
     g = Analyze(inputFile, outputFile, engineName, **options)
