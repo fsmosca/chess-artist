@@ -52,13 +52,25 @@ def DeleteFile(fn):
     if os.path.isfile(fn):
         os.remove(fn)
 
-def CheckFile(fn):
-    """ Verify if fn is present or not.
-        If file is not available the program will exit.
+def CheckFiles(infn, outfn, engfn):
+    """ Quit program if infn is missing.
+        Quit program if infn and outfn is the same.
+        Quit program if engfn is missing.
     """
-    if not os.path.isfile(fn):
-        print('Error! %s is missing' %(fn))
-        sys.exit(1)   
+    # input file is missing
+    if not os.path.isfile(infn):
+        print('Error! %s is missing' %(infn))
+        sys.exit(1)
+
+    # input file and output file is the same.
+    if infn == outfn:
+        print('Error! input filename and output filename is the same')
+        sys.exit(1)
+
+    # engine file is missing.
+    if not os.path.isfile(engfn):
+        print('Error! %s is missing' %(engfn))
+        sys.exit(1)
 
 def EvaluateOptions(opt):
     """ Convert opt list to dict and returns it """
@@ -72,13 +84,13 @@ def GetOptionValue(opt, optName, var):
 
 class Analyze():
     """ An object that will read and annotate games in a pgn file """
-    def __init__(self, infn, outfn, eng, bookTypeOpt, evalTypeOpt):
+    def __init__(self, infn, outfn, eng, **opt):
         """ Initialize """
         self.infn = infn
         self.outfn = outfn
         self.eng = eng
-        self.bookTypeOpt = bookTypeOpt
-        self.evalTypeOpt = evalTypeOpt
+        self.bookTypeOpt = opt['-book']
+        self.evalTypeOpt = opt['-eval']
         self.writeCnt = 0
         self.isCereMoveFound = False
 
@@ -129,7 +141,7 @@ class Analyze():
                     else:
                         f.write('%s ' %(sanMove))
 
-                # Format output, don't write in one long line.
+                # Format output, don't write movetext in one long line.
                 if self.isCereMoveFound:
                     if self.writeCnt >= 2:
                         self.writeCnt = 0
@@ -342,7 +354,7 @@ class Analyze():
                         fenBeforeMove = gameNode.board().fen()
                         cereBookMove, self.isCereMoveFound = self.GetCerebellumBookMove(fenBeforeMove)
 
-                    # End trying to find cerebellum book beyond BOOK_MOVE_LIMIT.
+                    # End trying to find cerebellum book move beyond BOOK_MOVE_LIMIT.
                     if not self.isCereMoveFound and fmvn > BOOK_MOVE_LIMIT:
                         isCereEnd = True
 
@@ -389,9 +401,8 @@ def main(argv):
         bookTypeOption = GetOptionValue(options, '-book', bookTypeOption)
         evalTypeOption = GetOptionValue(options, '-eval', evalTypeOption)
 
-    # Verify presence of input pgn and engine file.
-    CheckFile(inputFile)
-    CheckFile(engineName)
+    # Check input, output and engine files.
+    CheckFiles(inputFile, outputFile, engineName)
 
     # Delete existing output file.
     DeleteFile(outputFile)
@@ -401,9 +412,17 @@ def main(argv):
         if not os.path.isfile(cereBookFile):
             bookTypeOption = 'none'
             print('Warning! cerebellum book is missing.')
-            
+
+    # Exit if options are none.
+    if bookTypeOption == 'none' and evalTypeOption == 'none':
+        print('Warning! options were not defined.')
+        sys.exit(1)
+        
+    # Convert options to dict
+    options = {'-book': bookTypeOption, '-eval': evalTypeOption}
+
     # Create an object of class Analyze.
-    g = Analyze(inputFile, outputFile, engineName, bookTypeOption, evalTypeOption)
+    g = Analyze(inputFile, outputFile, engineName, **options)
 
     # Print engine id name.
     g.PrintEngineIdName()
@@ -415,4 +434,4 @@ def main(argv):
 
 if __name__ == "__main__":
     main(sys.argv[1:])
-   
+ 
