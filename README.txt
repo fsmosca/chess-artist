@@ -45,12 +45,14 @@ G. Guide
 5. If you want the game to be annotated with moves from Cerebellum_Light.bin book use the
    following command line using the -book option and Brainfish engine. The book Cerebellum_Light.bin
    should be in the same directory with the Brainfish engine and the script chess-artist.py.
-   chess-artist -inpgn mygames.pgn -outpgn mygames_cere.pgn -eng Brainfish.exe -book cerebellum -eval none
+   chess-artist -inpgn myg.pgn -outpgn myg_cere.pgn -eng Brainfish.exe -book cerebellum -eval none
 6. If you want the game to be annotated with moves from Cerebellum_Light.bin book and with static eval
    use the following command line. The book Cerebellum_Light.bin should be in the same directory with
    the Brainfish engine and the script chess-artist.py.
-   chess-artist -inpgn mygames.pgn -outpgn mygames_cere_se.pgn -eng Brainfish.exe -book cerebellum -eval static
-7. In the annotated game the value in the comment is from the point of
+   chess-artist -inpgn myg.pgn -outpgn myg_cere_se.pgn -eng Brainfish.exe -book cerebellum -eval static
+7. If you want the game to be annotated with engine search score, use the following command line.
+   chess-artist -inpgn myg.pgn -outpgn myg_es.pgn -eng stockfish.exe -eval search
+8. In the annotated game the value in the comment is from the point of
    view of white, if it is positive, it is better for white, and if
    negative it is better for black. Example 1. e4 {+0.74} white is ahead
    by 0.74 of a pawn, or almost 3/4 value of a pawn.
