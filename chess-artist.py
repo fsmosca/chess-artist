@@ -614,9 +614,11 @@ class Analyze():
         """ Annotate epd file with bm, ce, acs, acd, and Ae op codes
             Ae - analyzing engine, a special op code for this script
         """
+        cntEpd = 0
         # Open the epd file for reading.
         with open(self.infn, 'r') as f:
             for lines in f:
+                cntEpd += 1
                 # Remove white space at beginning and end of lines.
                 epdLine = lines.strip()
 
@@ -627,12 +629,19 @@ class Analyze():
                 # Add hmvc and fmvn to create a FEN for the engine
                 fen = epd + ' 0 1'
 
+                # Show progress in console
+                print('epd %d: %s' %(cntEpd, epd))
+
                 # Get analysis
                 acd, acs, bm, ce, Ae = self.GetEpdAnalysis(fen)
 
+                # Show progress in console
+                print('bm: %s' %(bm))
+                print('ce: %+d\n' %(ce))
+
                 # Save to output file the epd analysis
                 with open(self.outfn, 'a') as f1:
-                    f1.write('%s acd %d; acs %d; bm %s; ce %d; Ae \"%s\";\n'\
+                    f1.write('%s acd %d; acs %d; bm %s; ce %+d; Ae \"%s\";\n'\
                              %(epd, acd, acs, bm, ce, Ae))
 
 def main(argv):
