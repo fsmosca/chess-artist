@@ -44,6 +44,9 @@ BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
 MAX_SEARCH_SCORE = 100000
+TEST_SEARCH_DEPTH = 1000
+EPD_FILE = 1
+PGN_FILE = 2
 
 def PrintProgram():
     """ Prints program name and version """
@@ -58,6 +61,7 @@ def CheckFiles(infn, outfn, engfn):
     """ Quit program if infn is missing.
         Quit program if infn and outfn is the same.
         Quit program if engfn is missing.
+        Quit program if input file type is not epd or pgn
     """
     # input file is missing
     if not os.path.isfile(infn):
@@ -72,6 +76,11 @@ def CheckFiles(infn, outfn, engfn):
     # engine file is missing.
     if not os.path.isfile(engfn):
         print('Error! %s is missing' %(engfn))
+        sys.exit(1)
+
+    # If file is not epd or pgn
+    if not infn.endswith('.epd') and not infn.endswith('.pgn'):
+        print('Error! %s is not an epd or pgn file' %(infn))
         sys.exit(1)
 
 def EvaluateOptions(opt):
@@ -416,7 +425,86 @@ class Analyze():
         scoreP = float(scoreCp)/100.0
         return scoreP
 
-    def Annotate(self):
+    def GetEpdAnalysis(self, pos):
+        """ Returns acd, acs, bm, ce and Ae op codes. """
+
+        # Initialize
+        bestMove = None
+        engineIdName = self.eng[0:-4]
+        scoreCp = MAX_SEARCH_SCORE
+        depthSearched = TEST_SEARCH_DEPTH
+
+        # Run the engine.
+        p = subprocess.Popen(self.eng, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
+        # Send command to engine.
+        p.stdin.write("uci\n")
+
+        # Parse engine replies.
+        for eline in iter(p.stdout.readline, ''):
+            line = eline.strip()
+            
+            # Save id name.
+            if 'id name ' in line:
+                idName = line.split()
+                engineIdName = ' '.join(idName[2:])                
+            if "uciok" in line:
+                break
+
+        # Set Hash and Threads options to uci engine
+        p.stdin.write("setoption name Hash value %d\n" %(self.engHashOpt))
+        p.stdin.write("setoption name Threads value %d\n" %(self.engThreadsOpt))
+                
+        # Send command to engine.
+        p.stdin.write("isready\n")
+        
+        # Parse engine replies.
+        for eline in iter(p.stdout.readline, ''):
+            line = eline.strip()
+            if "readyok" in line:
+                break
+                
+        # Send commands to engine.
+        p.stdin.write("ucinewgame\n")
+        p.stdin.write("position fen " + pos + "\n")
+        p.stdin.write("go movetime %d\n" %(self.moveTimeOpt))
+
+        # Parse the output and extract the engine search score.
+        for eline in iter(p.stdout.readline, ''):        
+            line = eline.strip()
+            if 'score cp ' in line:
+                splitStr = line.split()
+                scoreIndex = splitStr.index('score')
+                scoreCp = int(splitStr[scoreIndex + 2])
+            if 'score mate ' in line:
+                splitStr = line.split()
+                scoreIndex = splitStr.index('score')
+                mateInN = int(splitStr[scoreIndex + 2])
+                
+                # Convert mate in move number to value
+                scoreCp = self.MateDistanceToValue(mateInN)
+            if 'depth ' in line:
+                splitStr = line.split()
+                depthIndex = splitStr.index('depth')
+                depthSearched = int(splitStr[depthIndex + 1])                     
+
+            # Break search when we receive bestmove
+            if 'bestmove ' in line:
+                bestMove = line.split()[1]
+                break
+                
+        # Quit the engine
+        p.stdin.write('quit\n')
+        p.communicate()
+
+        # Convert uci move to san move format.
+        bestMove = self.UciToSanMove(pos, bestMove)
+        
+        assert scoreCp != MAX_SEARCH_SCORE, 'Error!, search failed to return a score.'
+        assert bestMove is not None, 'Error! seach failed to return a move.'
+        return depthSearched, self.moveTimeOpt/1000, bestMove, scoreCp, engineIdName
+
+    def AnnotatePgn(self):
         """ Parse the pgn file and annotate the games """
         # Get engine id name for the Annotator tag.
         engIdName = self.GetEngineIdName()
@@ -521,7 +609,32 @@ class Analyze():
 
         # Close the file handle.
         pgnHandle.close()
-        
+
+    def AnnotateEpd(self):
+        """ Annotate epd file with bm, ce, acs, acd, and Ae op codes
+            Ae - analyzing engine, a special op code for this script
+        """
+        # Open the epd file for reading.
+        with open(self.infn, 'r') as f:
+            for lines in f:
+                # Remove white space at beginning and end of lines.
+                epdLine = lines.strip()
+
+                # Get only first 4 fields [pieces side castle_flag ep_sq]
+                epdLineSplit = epdLine.split()
+                epd = ' '.join(epdLineSplit[0:4])
+
+                # Add hmvc and fmvn to create a FEN for the engine
+                fen = epd + ' 0 1'
+
+                # Get analysis
+                acd, acs, bm, ce, Ae = self.GetEpdAnalysis(fen)
+
+                # Save to output file the epd analysis
+                with open(self.outfn, 'a') as f1:
+                    f1.write('%s acd %d; acs %d; bm %s; ce %d; Ae \"%s\";\n'\
+                             %(epd, acd, acs, bm, ce, Ae))
+
 def main(argv):
     """ start """
     PrintProgram()
@@ -533,15 +646,15 @@ def main(argv):
     bookOption = 'none' # ['none', 'cerebellum', 'polyglot']
     evalOption = 'static' # ['none', 'static', 'search']
     cereBookFile = 'Cerebellum_Light.bin'
-    moveTimeOption = 500 # 500 ms default
+    moveTimeOption = 0
     engHashOption = 32 # 32 mb
     engThreadsOption = 1
     
     # Evaluate the command line options.
     options = EvaluateOptions(argv)
     if len(options):
-        inputFile = GetOptionValue(options, '-inpgn', inputFile)
-        outputFile = GetOptionValue(options, '-outpgn', outputFile)
+        inputFile = GetOptionValue(options, '-infile', inputFile)
+        outputFile = GetOptionValue(options, '-outfile', outputFile)
         engineName = GetOptionValue(options, '-eng', engineName)
         bookOption = GetOptionValue(options, '-book', bookOption)
         evalOption = GetOptionValue(options, '-eval', evalOption)
@@ -558,10 +671,21 @@ def main(argv):
             bookOption = 'none'
             print('Warning! cerebellum book is missing.')
 
-    # Exit if options are none.
-    if bookOption == 'none' and evalOption == 'none':
-        print('Warning! options were not defined. Nothing has been processed.')
+    # Determine if input file is epd or pgn or None.
+    if inputFile.endswith('.epd'):
+        fileType = EPD_FILE
+    elif inputFile.endswith('.pgn'):
+        fileType = PGN_FILE
+    
+    # Exit if book and eval options are none and file type is pgn.
+    if bookOption == 'none' and evalOption == 'none' and filetype == PGN_FILE:
+        print('Error! options were not defined. Nothing has been processed.')
         sys.exit(1)
+
+    # Exit if file type is epd and move time is 0.
+    if fileType == EPD_FILE and moveTimeOption <= 0:
+        print('Error! movetime is zero.')
+        sys.exit(1)        
         
     # Delete existing output file.
     DeleteFile(outputFile)
@@ -584,8 +708,13 @@ def main(argv):
     # Print engine id name.
     g.PrintEngineIdName()
 
-    # Call method Annotate of class Analyze to annotate the game.
-    g.Annotate()      
+    # If input file is epd
+    if fileType == EPD_FILE:
+        g.AnnotateEpd()
+    # Else if input file is pgn
+    elif fileType == PGN_FILE:
+        g.AnnotatePgn()
+    # else would not reach here because it is checked under CheckFiles()
 
     print('Done!!\n')    
 
