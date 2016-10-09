@@ -42,19 +42,21 @@ G. Guide
    and Brainfish with Cerebellum_Light.bin book here,
    http://www.zipproth.de/#Brainfish_download
 4. If you want the game to be annotated with engine static eval use the following command line.
-   chess-artist -inpgn mygames.pgn -outpgn mygames_se.pgn -eng stockfish.exe -eval static
+   chess-artist -infile mygames.pgn -outfile mygames_se.pgn -eng stockfish.exe -eval static
 5. If you want the game to be annotated with moves from Cerebellum_Light.bin book use the
    following command line using the -book option and Brainfish engine. The book Cerebellum_Light.bin
    should be in the same directory with the Brainfish engine and the script chess-artist.py.
-   chess-artist -inpgn myg.pgn -outpgn myg_cere.pgn -eng Brainfish.exe -book cerebellum -eval none
+   chess-artist -infile myg.pgn -outfile myg_cere.pgn -eng Brainfish.exe -book cerebellum -eval none
 6. If you want the game to be annotated with moves from Cerebellum_Light.bin book and with static eval
    use the following command line. The book Cerebellum_Light.bin should be in the same directory with
    the Brainfish engine and the script chess-artist.py.
-   chess-artist -inpgn myg.pgn -outpgn myg_cere_se.pgn -eng Brainfish.exe -book cerebellum -eval static
+   chess-artist -infile myg.pgn -outfile myg_cere_se.pgn -eng Brainfish.exe -book cerebellum -eval static
 7. If you want the game to be annotated with engine search score, at movetime of 1 second per position,
    engine Hash of 128 and Threads of 1, use the following command line.
-   chess-artist -inpgn myg.pgn -outpgn myg_es.pgn -eng stockfish.exe -enghash 128 -engthreads 1 -eval search -movetime 1000
-8. In the annotated game the value in the comment is from the point of
+   chess-artist -infile myg.pgn -outfile myg_es.pgn -eng stockfish.exe -enghash 128 -engthreads 1 -eval search -movetime 1000
+8. If you want to annotate an epd file with bm, ce and other op codes at 10s per position. See example output in section H below.
+   chess-artist -infile myepd.epd -outfile myepd_out.epd -eng Branfish.exe -enghash 128 -engthreads 1 -movetime 10000
+9. In the annotated game the value in the comment is from the point of
    view of white, if it is positive, it is better for white, and if
    negative it is better for black. Example 1. e4 {+0.74} white is ahead
    by 0.74 of a pawn, or almost 3/4 value of a pawn.
@@ -151,3 +153,11 @@ H. Examples of annotated games with static evaluation, search score and cerebell
 24. Bd5 {-3.88} Rxf4+ {-3.84} 25. Kg2 {-4.02} Rf2+ {-3.82} 
 26. Kg3 {-4.31} f4+ {-4.06} 27. Kh3 {-4.43} f3 {-4.22} 
 0-1
+
+(3) Epd analysis
+
+Input:
+r1bk1b1r/ppp2ppp/2p5/4Pn2/8/5N2/PPP2PPP/RNB2RK1 w - -
+
+Output:
+r1bk1b1r/ppp2ppp/2p5/4Pn2/8/5N2/PPP2PPP/RNB2RK1 w - - acd 17; acs 10; bm Nc3; ce 30; Ae "Brainfish 280816 64 POPCNT";
