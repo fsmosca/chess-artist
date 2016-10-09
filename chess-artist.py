@@ -678,7 +678,7 @@ def main(argv):
         fileType = PGN_FILE
     
     # Exit if book and eval options are none and file type is pgn.
-    if bookOption == 'none' and evalOption == 'none' and filetype == PGN_FILE:
+    if bookOption == 'none' and evalOption == 'none' and fileType == PGN_FILE:
         print('Error! options were not defined. Nothing has been processed.')
         sys.exit(1)
 
