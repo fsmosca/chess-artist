@@ -43,7 +43,7 @@ APP_VERSION = '0.1.0'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
-MAX_SEARCH_SCORE = 100000
+TEST_SEARCH_SCORE = 100000
 TEST_SEARCH_DEPTH = 1000
 EPD_FILE = 1
 PGN_FILE = 2
@@ -113,6 +113,7 @@ class Analyze():
         self.engThreadsOpt = opt['-engthreads']
         self.writeCnt = 0
         self.isCereMoveFound = False
+        self.engIdName = self.GetEngineIdName()
 
     def UciToSanMove(self, pos, uciMove):
         """ Returns san move given uci move """
@@ -123,7 +124,7 @@ class Analyze():
 
     def PrintEngineIdName(self):
         """ Prints engine id name """
-        print('Engine name: %s' %(self.GetEngineIdName()))
+        print('Engine name: %s' %(self.engIdName))
 
     def WriteMovesOnly(self, side, moveNumber, sanMove):
         """ Write moves only in the output file """
@@ -134,7 +135,7 @@ class Analyze():
             else:
                 f.write('%s ' %(sanMove))
 
-    def WriteMovesWithScore(self, side, moveNumber, sanMove, posScore):
+    def WriteMovesWithScore(self, side, moveNumber, sanMove, posScore, engMove, engScore):
         """ Write moves with score in the output file """
         # Write the move and comments
         with open(self.outfn, 'a+') as f:
@@ -142,12 +143,58 @@ class Analyze():
 
             # If side to move is white
             if side:
-                f.write('%d. %s {%+0.2f} ' %(moveNumber, sanMove, posScore))
+                if sanMove != engMove:
+                    moveNag = '$0'
+
+                    # Blunder ??
+                    if posScore < -1.5 and engScore >= -0.15:
+                        moveNag = '$4'
+
+                    # Mistake ?
+                    elif posScore < -0.75 and engScore >= -0.15:
+                        moveNag = '$2'
+
+                    # Dubious ?!
+                    elif posScore < -0.15 and engScore >= -0.15:
+                        moveNag = '$6'
+
+                    # Mistake ? if engScore is winning and posScore is below winning
+                    elif engScore > +1.50 and posScore <= +0.75:
+                        moveNag = '$2'                        
+
+                    # Write moves and comments
+                    f.write('%d. %s %s {%+0.2f} (%d. %s {%+0.2f - %s})' %(moveNumber, sanMove, moveNag, posScore,
+                                                                          moveNumber, engMove, engScore, self.engIdName))
+                else:                    
+                    f.write('%d. %s {%+0.2f} ' %(moveNumber, sanMove, posScore))
             else:
-                f.write('%s {%+0.2f} ' %(sanMove, posScore))
+                if sanMove != engMove:
+                    moveNag = '$0'
+
+                    # Blunder ??
+                    if posScore > +1.5 and engScore <= +0.15:
+                        moveNag = '$4'
+
+                    # Mistake ?
+                    elif posScore > +0.75 and engScore <= +0.15:
+                        moveNag = '$2'
+
+                    # Dubious ?!
+                    elif posScore > +0.15 and engScore <= +0.15:
+                        moveNag = '$6'
+
+                    # Mistake ? if engScore is winning and posScore is below winning
+                    elif engScore < -1.50 and posScore >= -0.75:
+                        moveNag = '$2'
+
+                    # Write moves and comments  
+                    f.write('%d... %s %s {%+0.2f} (%d... %s {%+0.2f - %s})' %(moveNumber, sanMove, moveNag, posScore,
+                                                                           moveNumber, engMove, engScore, self.engIdName))
+                else:
+                    f.write('%s {%+0.2f} ' %(sanMove, posScore))
 
                 # Format output, don't write movetext in one long line.
-                if self.writeCnt >= 4:
+                if self.writeCnt >= 2:
                     self.writeCnt = 0
                     f.write('\n')
 
@@ -170,7 +217,7 @@ class Analyze():
                     self.writeCnt = 0
                     f.write('\n')
 
-    def WriteMovesWithScoreAndBookMove(self, side, moveNumber, sanMove, bookMove, posScore):
+    def WriteMovesWithScoreAndBookMove(self, side, moveNumber, sanMove, bookMove, posScore, engMove, engScore):
         """ Write moves with score and book moves in the output file """
         bookComment = 'cerebellum book'
         
@@ -180,16 +227,64 @@ class Analyze():
 
             # If side to move is white
             if side:
-                f.write('%d. %s {%+0.2f} (%d. %s {%s}) ' %(moveNumber, sanMove, posScore, moveNumber, bookMove, bookComment))
+                if sanMove != engMove:
+                    moveNag = '$0'
+
+                    # Blunder ??
+                    if posScore < -1.5 and engScore >= -0.15:
+                        moveNag = '$4'
+
+                    # Mistake ?
+                    elif posScore < -0.75 and engScore >= -0.15:
+                        moveNag = '$2'
+
+                    # Dubious ?!
+                    elif posScore < -0.15 and engScore >= -0.15:
+                        moveNag = '$6'
+
+                    # Mistake ? if engScore is winning and posScore is below winning
+                    elif engScore > +1.50 and posScore <= +0.75:
+                        moveNag = '$2'    
+
+                    # Write moves and comments
+                    f.write('%d. %s %s {%+0.2f} (%d. %s {%s}) (%d. %s {%+0.2f - %s}) ' %(moveNumber, sanMove, moveNag, posScore,
+                                                                                      moveNumber, bookMove, bookComment,
+                                                                                      moveNumber, engMove, engScore, self.engIdName))
+                else:
+                    f.write('%d. %s {%+0.2f} (%d. %s {%s}) ' %(moveNumber, sanMove, posScore, moveNumber, bookMove, bookComment))
             else:
-                f.write('%d... %s {%+0.2f} (%d... %s {%s}) ' %(moveNumber, sanMove, posScore, moveNumber, bookMove, bookComment))
+                if sanMove != engMove:
+                    moveNag = '$0'
+
+                    # Blunder ??
+                    if posScore > +1.5 and engScore <= +0.15:
+                        moveNag = '$4'
+
+                    # Mistake ?
+                    elif posScore > +0.75 and engScore <= +0.15:
+                        moveNag = '$2'
+
+                    # Dubious ?!
+                    elif posScore > +0.15 and engScore <= +0.15:
+                        moveNag = '$6'
+
+                    # Mistake ? if engScore is winning and posScore is below winning
+                    elif engScore < -1.50 and posScore >= -0.75:
+                        moveNag = '$2'
+
+                    # Write moves and comments
+                    f.write('%d... %s %s {%+0.2f} (%d... %s {%s}) (%d... %s {%+0.2f - %s}) ' %(moveNumber, sanMove, moveNag, posScore,
+                                                                                       moveNumber, bookMove, bookComment,
+                                                                                       moveNumber, engMove, engScore, self.engIdName))
+                else:
+                    f.write('%d... %s {%+0.2f} (%d... %s {%s}) ' %(moveNumber, sanMove, posScore, moveNumber, bookMove, bookComment))
 
                 # Format output, don't write movetext in one long line.
                 if self.writeCnt >= 2:
                     self.writeCnt = 0
                     f.write('\n')        
 
-    def WriteMoves(self, side, fmvn, sanMove, bookMove, posScore, isGameOver):
+    def WriteMoves(self, side, fmvn, sanMove, bookMove, posScore, isGameOver, engMove, engScore):
         """ Write moves and comments to the output file """
         # If game is over [mate, stalemate] just print the move.
         if isGameOver:
@@ -199,7 +294,7 @@ class Analyze():
         # Write rest of moves and comments.
         # (1) With score
         if not self.isCereMoveFound and self.evalOpt != 'none':
-            self.WriteMovesWithScore(side, fmvn, sanMove, posScore)
+            self.WriteMovesWithScore(side, fmvn, sanMove, posScore, engMove, engScore)
 
         # (2) With book move
         elif self.isCereMoveFound and self.evalOpt == 'none':
@@ -207,7 +302,7 @@ class Analyze():
 
         # (3) With score and book move
         elif self.isCereMoveFound and self.evalOpt != 'none':
-            self.WriteMovesWithScoreAndBookMove(side, fmvn, sanMove, bookMove, posScore)
+            self.WriteMovesWithScoreAndBookMove(side, fmvn, sanMove, bookMove, posScore, engMove, engScore)
             
     def MateDistanceToValue(self, d):
         """ Returns value given distance to mate """
@@ -308,7 +403,7 @@ class Analyze():
             return bestMove, True
         return bestMove, False
 
-    def GetStaticEval(self, pos):
+    def GetStaticEvalAfterMove(self, pos):
         """ Returns static eval by running the engine,
             setup position pos and send eval command.
         """
@@ -354,11 +449,83 @@ class Analyze():
         assert score != -32000.0, 'Error! something is wrong in static eval calculation.'
         return score
 
-    def GetSearchScore(self, pos, side):
+    def GetSearchScoreBeforeMove(self, pos, side):
         """ Returns search bestmove and score from the engine. """
 
         # Initialize
-        scoreCp = MAX_SEARCH_SCORE
+        scoreCp = TEST_SEARCH_SCORE
+
+        # Run the engine.
+        p = subprocess.Popen(self.eng, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
+        # Send command to engine.
+        p.stdin.write("uci\n")
+
+        # Parse engine replies.
+        for eline in iter(p.stdout.readline, ''):
+            line = eline.strip()
+            if "uciok" in line:
+                break
+
+        # Set Hash and Threads options to uci engine
+        p.stdin.write("setoption name Hash value %d\n" %(self.engHashOpt))
+        p.stdin.write("setoption name Threads value %d\n" %(self.engThreadsOpt))
+                
+        # Send command to engine.
+        p.stdin.write("isready\n")
+        
+        # Parse engine replies.
+        for eline in iter(p.stdout.readline, ''):
+            line = eline.strip()
+            if "readyok" in line:
+                break
+                
+        # Send commands to engine.
+        p.stdin.write("ucinewgame\n")
+        p.stdin.write("position fen " + pos + "\n")
+        p.stdin.write("go movetime %d\n" %(self.moveTimeOpt))
+
+        # Parse the output and extract the engine search score.
+        for eline in iter(p.stdout.readline, ''):        
+            line = eline.strip()
+            if 'score cp ' in line:
+                splitStr = line.split()
+                scoreIndex = splitStr.index('score')
+                scoreCp = int(splitStr[scoreIndex + 2])
+            if 'score mate ' in line:
+                splitStr = line.split()
+                scoreIndex = splitStr.index('score')
+                mateInN = int(splitStr[scoreIndex + 2])
+
+                # Convert mate in move number to value
+                scoreCp = self.MateDistanceToValue(mateInN)        
+                
+            # Break search when we receive bestmove string from engine
+            if 'bestmove ' in line:
+                bestMove = line.split()[1]
+                break
+                
+        # Quit the engine
+        p.stdin.write('quit\n')
+        p.communicate()        
+        assert scoreCp != TEST_SEARCH_SCORE, 'Error, search failed to return a score.'
+
+        # Convert uci move to san move format.
+        bestMove = self.UciToSanMove(pos, bestMove)
+
+        # Convert score from the point of view of white.
+        if not side:
+            scoreCp = -1 * scoreCp
+
+        # Convert the score to pawn unit in float type
+        scoreP = float(scoreCp)/100.0
+        return bestMove, scoreP
+
+    def GetSearchScoreAfterMove(self, pos, side):
+        """ Returns search bestmove and score from the engine. """
+
+        # Initialize
+        scoreCp = TEST_SEARCH_SCORE
 
         # Run the engine.
         p = subprocess.Popen(self.eng, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
@@ -412,7 +579,7 @@ class Analyze():
         # Quit the engine
         p.stdin.write('quit\n')
         p.communicate()        
-        assert scoreCp != MAX_SEARCH_SCORE, 'Error, search failed to return a score.'
+        assert scoreCp != TEST_SEARCH_SCORE, 'Error, search failed to return a score.'
 
         # Invert the score sign because we analyze the position after the move.
         scoreCp = -1 * scoreCp
@@ -431,7 +598,7 @@ class Analyze():
         # Initialize
         bestMove = None
         engineIdName = self.eng[0:-4]
-        scoreCp = MAX_SEARCH_SCORE
+        scoreCp = TEST_SEARCH_SCORE
         depthSearched = TEST_SEARCH_DEPTH
 
         # Run the engine.
@@ -500,18 +667,18 @@ class Analyze():
         # Convert uci move to san move format.
         bestMove = self.UciToSanMove(pos, bestMove)
         
-        assert scoreCp != MAX_SEARCH_SCORE, 'Error!, search failed to return a score.'
+        assert scoreCp != TEST_SEARCH_SCORE, 'Error!, search failed to return a score.'
         assert bestMove is not None, 'Error! seach failed to return a move.'
         return depthSearched, self.moveTimeOpt/1000, bestMove, scoreCp, engineIdName
 
     def AnnotatePgn(self):
         """ Parse the pgn file and annotate the games """
         # Get engine id name for the Annotator tag.
-        engIdName = self.GetEngineIdName()
+        engIdName = self.engIdName
 
         # Disable bookOpt if engine is not Brainfish.
         if self.bookOpt == 'cerebellum':
-            brainFishEngine = self.GetEngineIdName()
+            brainFishEngine = self.engIdName
             if 'Brainfish' not in brainFishEngine:
                 self.bookOpt = 'none'
                 print('\nWarning!! engine is not Brainfish, cerebellum book is disabled.\n')
@@ -584,18 +751,21 @@ class Analyze():
                 posScore = None
                 if self.evalOpt == 'static':
                     fenAfterMove = nextNode.board().fen()
-                    staticScore = self.GetStaticEval(fenAfterMove)
+                    staticScore = self.GetStaticEvalAfterMove(fenAfterMove)
                     posScore = staticScore
                 elif self.evalOpt == 'search':
                     fenAfterMove = nextNode.board().fen()
-                    searchScore = self.GetSearchScore(fenAfterMove, side)
+                    searchScore = self.GetSearchScoreAfterMove(fenAfterMove, side)
                     posScore = searchScore
+
+                # (2.1) Search the engine score and move recommendations.
+                engBestMove, engBestScore = self.GetSearchScoreBeforeMove(gameNode.board().fen(), side)
                     
-                # If game is over by checkmate and stalemate                
+                # If game is over by checkmate and stalemate after a move              
                 isGameOver = nextNode.board().is_checkmate() or nextNode.board().is_stalemate()
                 
                 # (3) Write moves and comments.
-                self.WriteMoves(side, fmvn, sanMove, cereBookMove, posScore, isGameOver)
+                self.WriteMoves(side, fmvn, sanMove, cereBookMove, posScore, isGameOver, engBestMove, engBestScore)
 
                 # Read the next position.
                 gameNode = nextNode
@@ -652,7 +822,7 @@ def main(argv):
     inputFile = 'src.pgn'
     outputFile = 'out_src.pgn'
     engineName = 'engine.exe'
-    bookOption = 'none' # ['none', 'cerebellum', 'polyglot']
+    bookOption = 'none'   # ['none', 'cerebellum', 'polyglot']
     evalOption = 'static' # ['none', 'static', 'search']
     cereBookFile = 'Cerebellum_Light.bin'
     moveTimeOption = 0
@@ -708,7 +878,7 @@ def main(argv):
                '-eval': evalOption,
                '-movetime': moveTimeOption,
                '-enghash': engHashOption,
-               '-engthreads': engThreadsOption
+               '-engthreads': engThreadsOption,
                }
 
     # Create an object of class Analyze.
