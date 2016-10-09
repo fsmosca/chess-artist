@@ -106,8 +106,8 @@ class Analyze():
         self.infn = infn
         self.outfn = outfn
         self.eng = eng
-        self.bookTypeOpt = opt['-book']
-        self.evalTypeOpt = opt['-eval']
+        self.bookOpt = opt['-book']
+        self.evalOpt = opt['-eval']
         self.moveTimeOpt = opt['-movetime']
         self.engHashOpt = opt['-enghash']
         self.engThreadsOpt = opt['-engthreads']
@@ -198,15 +198,15 @@ class Analyze():
 
         # Write rest of moves and comments.
         # (1) With score
-        if not self.isCereMoveFound and self.evalTypeOpt != 'none':
+        if not self.isCereMoveFound and self.evalOpt != 'none':
             self.WriteMovesWithScore(side, fmvn, sanMove, posScore)
 
         # (2) With book move
-        elif self.isCereMoveFound and self.evalTypeOpt == 'none':
+        elif self.isCereMoveFound and self.evalOpt == 'none':
             self.WriteMovesWithBookMove(side, fmvn, sanMove, bookMove)
 
         # (3) With score and book move
-        elif self.isCereMoveFound and self.evalTypeOpt != 'none':
+        elif self.isCereMoveFound and self.evalOpt != 'none':
             self.WriteMovesWithScoreAndBookMove(side, fmvn, sanMove, bookMove, posScore)
             
     def MateDistanceToValue(self, d):
@@ -509,11 +509,11 @@ class Analyze():
         # Get engine id name for the Annotator tag.
         engIdName = self.GetEngineIdName()
 
-        # Disable bookTypeOpt if engine is not Brainfish.
-        if self.bookTypeOpt == 'cerebellum':
+        # Disable bookOpt if engine is not Brainfish.
+        if self.bookOpt == 'cerebellum':
             brainFishEngine = self.GetEngineIdName()
             if 'Brainfish' not in brainFishEngine:
-                self.bookTypeOpt = 'none'
+                self.bookOpt = 'none'
                 print('\nWarning!! engine is not Brainfish, cerebellum book is disabled.\n')
         
         # Open the input pgn file
@@ -549,10 +549,10 @@ class Analyze():
 
             # Before the movetext are written, add a comment of whether
             # move comments are from static evaluation or search score of the engine.
-            if self.evalTypeOpt == 'static':
+            if self.evalOpt == 'static':
                 with open(self.outfn, 'a+') as f:
                     f.write('{Move comments are from engine static evaluation.}\n')
-            elif self.evalTypeOpt == 'search':
+            elif self.evalOpt == 'search':
                 with open(self.outfn, 'a+') as f:
                     f.write('{Hash %dmb, Threads %d, engine search score @ %0.1fs/pos}\n'\
                             %(self.engHashOpt, self.engThreadsOpt, self.moveTimeOpt/1000.0))
@@ -571,7 +571,7 @@ class Analyze():
                 # (1) Try to get a cerebellum book move.
                 self.isCereMoveFound = False
                 cereBookMove = None
-                if self.bookTypeOpt == 'cerebellum' and not isCereEnd:
+                if self.bookOpt == 'cerebellum' and not isCereEnd:
                     # Use FEN before a move.
                     fenBeforeMove = gameNode.board().fen()
                     cereBookMove, self.isCereMoveFound = self.GetCerebellumBookMove(fenBeforeMove)
@@ -582,11 +582,11 @@ class Analyze():
 
                 # (2) Get the score of the position after a move.
                 posScore = None
-                if self.evalTypeOpt == 'static':
+                if self.evalOpt == 'static':
                     fenAfterMove = nextNode.board().fen()
                     staticScore = self.GetStaticEval(fenAfterMove)
                     posScore = staticScore
-                elif self.evalTypeOpt == 'search':
+                elif self.evalOpt == 'search':
                     fenAfterMove = nextNode.board().fen()
                     searchScore = self.GetSearchScore(fenAfterMove, side)
                     posScore = searchScore
