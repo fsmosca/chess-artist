@@ -97,6 +97,8 @@ def GetOptionValue(opt, optName, var):
             var = int(var)
         elif optName == '-engthreads':
             var = int(var)
+        elif optName == '-movestart':
+            var = int(var)
     return var
 
 class Analyze():
@@ -111,6 +113,7 @@ class Analyze():
         self.moveTimeOpt = opt['-movetime']
         self.engHashOpt = opt['-enghash']
         self.engThreadsOpt = opt['-engthreads']
+        self.moveStartOpt = opt['-movestart']
         self.writeCnt = 0
         self.isCereMoveFound = False
         self.engIdName = self.GetEngineIdName()
@@ -287,7 +290,7 @@ class Analyze():
     def WriteMoves(self, side, fmvn, sanMove, bookMove, posScore, isGameOver, engMove, engScore):
         """ Write moves and comments to the output file """
         # If game is over [mate, stalemate] just print the move.
-        if isGameOver:
+        if isGameOver or fmvn < self.moveStartOpt:
             self.WriteMovesOnly(side, fmvn, sanMove)
             return
 
@@ -735,6 +738,13 @@ class Analyze():
                 nextNode = gameNode.variation(0)                      
                 sanMove = nextNode.san()
 
+                # (0) Don't start the engine analysis when fmvn is below self.moveStartOpt
+                if fmvn < self.moveStartOpt:
+                    self.isCereMoveFound = False
+                    self.WriteMoves(side, fmvn, sanMove, None, None, False, None, None)
+                    gameNode = nextNode
+                    continue                    
+
                 # (1) Try to get a cerebellum book move.
                 self.isCereMoveFound = False
                 cereBookMove = None
@@ -794,10 +804,16 @@ class Analyze():
 
                 # Get only first 4 fields [pieces side castle_flag ep_sq]
                 epdLineSplit = epdLine.split()
-                epd = ' '.join(epdLineSplit[0:4])
+                epd = ' '.join(epdLineSplit[0:4])                
 
                 # Add hmvc and fmvn to create a FEN for the engine
                 fen = epd + ' 0 1'
+
+                # If this position has no legal move we skip it.
+                b = chess.Board(fen)
+                isGameOver = b.is_checkmate() or b.is_stalemate()
+                if isGameOver:
+                    continue
 
                 # Show progress in console
                 print('epd %d: %s' %(cntEpd, epd))
@@ -828,6 +844,7 @@ def main(argv):
     moveTimeOption = 0
     engHashOption = 32 # 32 mb
     engThreadsOption = 1
+    moveStartOption = 8
     
     # Evaluate the command line options.
     options = EvaluateOptions(argv)
@@ -840,6 +857,7 @@ def main(argv):
         moveTimeOption = GetOptionValue(options, '-movetime', moveTimeOption)
         engHashOption = GetOptionValue(options, '-enghash', engHashOption)
         engThreadsOption = GetOptionValue(options, '-engthreads', engThreadsOption)
+        moveStartOption = GetOptionValue(options, '-movestart', moveStartOption)
 
     # Check input, output and engine files.
     CheckFiles(inputFile, outputFile, engineName)
@@ -879,6 +897,7 @@ def main(argv):
                '-movetime': moveTimeOption,
                '-enghash': engHashOption,
                '-engthreads': engThreadsOption,
+               '-movestart': moveStartOption
                }
 
     # Create an object of class Analyze.
