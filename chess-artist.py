@@ -127,7 +127,7 @@ class Analyze():
 
     def PrintEngineIdName(self):
         """ Prints engine id name """
-        print('Engine name: %s' %(self.engIdName))
+        print('Analyzing engine: %s' %(self.engIdName))
 
     def GetMoveNag(self, side, posScore, engScore):
         """ Returns ??, ?, ?! depending on the player score and analyzing engine score.
@@ -181,6 +181,8 @@ class Analyze():
 
     def WriteMovesWithScore(self, side, moveNumber, sanMove, posScore, engMove, engScore):
         """ Write moves with score in the output file """
+        engineIdName = self.engIdName
+        
         # Write the move and comments
         with open(self.outfn, 'a+') as f:
             self.writeCnt += 1
@@ -192,7 +194,7 @@ class Analyze():
 
                     # Write moves and comments
                     f.write('%d. %s %s {%+0.2f} (%d. %s {%+0.2f - %s})' %(moveNumber, sanMove, moveNag, posScore,
-                                                                          moveNumber, engMove, engScore, self.engIdName))
+                                                                          moveNumber, engMove, engScore, engineIdName))
                 else:                    
                     f.write('%d. %s {%+0.2f} ' %(moveNumber, sanMove, posScore))
             else:
@@ -201,7 +203,7 @@ class Analyze():
 
                     # Write moves and comments  
                     f.write('%d... %s %s {%+0.2f} (%d... %s {%+0.2f - %s})' %(moveNumber, sanMove, moveNag, posScore,
-                                                                           moveNumber, engMove, engScore, self.engIdName))
+                                                                           moveNumber, engMove, engScore, engineIdName))
                 else:
                     f.write('%s {%+0.2f} ' %(sanMove, posScore))
 
@@ -232,6 +234,7 @@ class Analyze():
     def WriteMovesWithScoreAndBookMove(self, side, moveNumber, sanMove, bookMove, posScore, engMove, engScore):
         """ Write moves with score and book moves in the output file """
         bookComment = 'cerebellum book'
+        engineIdName = self.engIdName
         
         # Write the move and comments
         with open(self.outfn, 'a+') as f:
@@ -245,7 +248,7 @@ class Analyze():
                     # Write moves and comments
                     f.write('%d. %s %s {%+0.2f} (%d. %s {%s}) (%d. %s {%+0.2f - %s}) ' %(moveNumber, sanMove, moveNag, posScore,
                                                                                       moveNumber, bookMove, bookComment,
-                                                                                      moveNumber, engMove, engScore, self.engIdName))
+                                                                                      moveNumber, engMove, engScore, engineIdName))
                 else:
                     f.write('%d. %s {%+0.2f} (%d. %s {%s}) ' %(moveNumber, sanMove, posScore, moveNumber, bookMove, bookComment))
             else:
@@ -255,7 +258,7 @@ class Analyze():
                     # Write moves and comments
                     f.write('%d... %s %s {%+0.2f} (%d... %s {%s}) (%d... %s {%+0.2f - %s}) ' %(moveNumber, sanMove, moveNag, posScore,
                                                                                        moveNumber, bookMove, bookComment,
-                                                                                       moveNumber, engMove, engScore, self.engIdName))
+                                                                                       moveNumber, engMove, engScore, engineIdName))
                 else:
                     f.write('%d... %s {%+0.2f} (%d... %s {%s}) ' %(moveNumber, sanMove, posScore, moveNumber, bookMove, bookComment))
 
@@ -577,7 +580,6 @@ class Analyze():
 
         # Initialize
         bestMove = None
-        engineIdName = self.eng[0:-4]
         scoreCp = TEST_SEARCH_SCORE
         depthSearched = TEST_SEARCH_DEPTH
 
@@ -589,12 +591,7 @@ class Analyze():
 
         # Parse engine replies.
         for eline in iter(p.stdout.readline, ''):
-            line = eline.strip()
-            
-            # Save id name.
-            if 'id name ' in line:
-                idName = line.split()
-                engineIdName = ' '.join(idName[2:])                
+            line = eline.strip()               
             if "uciok" in line:
                 break
 
@@ -616,7 +613,7 @@ class Analyze():
         p.stdin.write("position fen " + pos + "\n")
         p.stdin.write("go movetime %d\n" %(self.moveTimeOpt))
 
-        # Parse the output and extract the engine search score.
+        # Parse the output and extract the engine search score, depth and bestmove
         for eline in iter(p.stdout.readline, ''):        
             line = eline.strip()
             if 'score cp ' in line:
@@ -646,20 +643,21 @@ class Analyze():
 
         # Convert uci move to san move format.
         bestMove = self.UciToSanMove(pos, bestMove)
-        
+
+        # Verify values to be returned
+        assert depthSearched != TEST_SEARCH_DEPTH, 'Error the engine does not search at all.'
         assert scoreCp != TEST_SEARCH_SCORE, 'Error!, search failed to return a score.'
         assert bestMove is not None, 'Error! seach failed to return a move.'
-        return depthSearched, self.moveTimeOpt/1000, bestMove, scoreCp, engineIdName
+        return depthSearched, self.moveTimeOpt/1000, bestMove, scoreCp, self.engIdName
 
     def AnnotatePgn(self):
         """ Parse the pgn file and annotate the games """
         # Get engine id name for the Annotator tag.
-        engIdName = self.engIdName
+        engineIdName = self.engIdName
 
         # Disable bookOpt if engine is not Brainfish.
         if self.bookOpt == 'cerebellum':
-            brainFishEngine = self.engIdName
-            if 'Brainfish' not in brainFishEngine:
+            if 'Brainfish' not in engineIdName:
                 self.bookOpt = 'none'
                 print('\nWarning!! engine is not Brainfish, cerebellum book is disabled.\n')
         
@@ -692,7 +690,7 @@ class Analyze():
 
             # Write the annotator tag.
             with open(self.outfn, 'a+') as f:
-                f.write('[Annotator "%s"]\n\n' %(engIdName))
+                f.write('[Annotator "%s"]\n\n' %(engineIdName))
 
             # Before the movetext are written, add a comment of whether
             # move comments are from static evaluation or search score of the engine.
@@ -769,7 +767,7 @@ class Analyze():
 
     def AnnotateEpd(self):
         """ Annotate epd file with bm, ce, acs, acd, and Ae op codes
-            Ae - analyzing engine, a special op code for this script
+            Ae - analyzing engine, a special op code for this script.
         """
         cntEpd = 0
         # Open the epd file for reading.
@@ -786,15 +784,17 @@ class Analyze():
                 # Add hmvc and fmvn to create a FEN for the engine
                 fen = epd + ' 0 1'
 
-                # If this position has no legal move we skip it.
-                b = chess.Board(fen)
-                isGameOver = b.is_checkmate() or b.is_stalemate()
-                if isGameOver:
-                    print('Warning! epd \"%s\"\nhas no legal move - skipped.\n' %(epd))
-                    continue
-
                 # Show progress in console
                 print('epd %d: %s' %(cntEpd, epd))
+
+                # If this position has no legal move then we skip it.
+                pos = chess.Board(fen)
+                isGameOver = pos.is_checkmate() or pos.is_stalemate()
+                if isGameOver:
+                    # Show warning in console.
+                    print('Warning! epd \"%s\"' %(epd))
+                    print('has no legal move - skipped.\n')
+                    continue
 
                 # Get analysis
                 acd, acs, bm, ce, Ae = self.GetEpdAnalysis(fen)
@@ -887,6 +887,7 @@ def main(argv):
     # If input file is epd
     if fileType == EPD_FILE:
         g.AnnotateEpd()
+        
     # Else if input file is pgn
     elif fileType == PGN_FILE:
         g.AnnotatePgn()
