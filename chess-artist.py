@@ -114,6 +114,7 @@ class Analyze():
         self.engHashOpt = opt['-enghash']
         self.engThreadsOpt = opt['-engthreads']
         self.moveStartOpt = opt['-movestart']
+        self.jobOpt = opt['-job']
         self.writeCnt = 0
         self.isCereMoveFound = False
         self.engIdName = self.GetEngineIdName()
@@ -648,7 +649,7 @@ class Analyze():
         assert depthSearched != TEST_SEARCH_DEPTH, 'Error the engine does not search at all.'
         assert scoreCp != TEST_SEARCH_SCORE, 'Error!, search failed to return a score.'
         assert bestMove is not None, 'Error! seach failed to return a move.'
-        return depthSearched, self.moveTimeOpt/1000, bestMove, scoreCp, self.engIdName
+        return depthSearched, self.moveTimeOpt/1000, bestMove, scoreCp
 
     def AnnotatePgn(self):
         """ Parse the pgn file and annotate the games """
@@ -770,21 +771,23 @@ class Analyze():
             Ae - analyzing engine, a special op code for this script.
         """
         cntEpd = 0
+        
         # Open the epd file for reading.
         with open(self.infn, 'r') as f:
             for lines in f:
                 cntEpd += 1
+                
                 # Remove white space at beginning and end of lines.
                 epdLine = lines.strip()
 
-                # Get only first 4 fields [pieces side castle_flag ep_sq]
+                # Get only first 4 fields [pieces side castle_flag ep_sq].
                 epdLineSplit = epdLine.split()
                 epd = ' '.join(epdLineSplit[0:4])                
 
-                # Add hmvc and fmvn to create a FEN for the engine
+                # Add hmvc and fmvn to create a FEN for the engine.
                 fen = epd + ' 0 1'
 
-                # Show progress in console
+                # Show progress in console.
                 print('epd %d: %s' %(cntEpd, epd))
 
                 # If this position has no legal move then we skip it.
@@ -796,18 +799,131 @@ class Analyze():
                     print('has no legal move - skipped.\n')
                     continue
 
-                # Get analysis
-                acd, acs, bm, ce, Ae = self.GetEpdAnalysis(fen)
+                # Get engine analysis.
+                acd, acs, bm, ce = self.GetEpdAnalysis(fen)
 
-                # Show progress in console
+                # Show progress in console.
                 print('bm: %s' %(bm))
                 print('ce: %+d\n' %(ce))
 
-                # Save to output file the epd analysis
+                # Save to output file the epd analysis.
                 with open(self.outfn, 'a') as f1:
                     f1.write('%s acd %d; acs %d; bm %s; ce %+d; Ae \"%s\";\n'\
-                             %(epd, acd, acs, bm, ce, Ae))
+                             %(epd, acd, acs, bm, ce, self.engIdName))
 
+    def GetEpdBm(self, epdLineList):
+        """ return the bm in a list format in the epd line """
+        # Example epd line:
+        # [pieces] [side] [castle] [ep] bm e4 Nf3; c0 "id 1";
+        bmIndex = epdLineList.index('bm')
+
+        # Extract the string beyond the bm.
+        bmStartValue = ' '.join(epdLineList[bmIndex+1:])
+
+        # Remove trailing and leading empty space in the string.
+        bmStartValue = bmStartValue.strip()
+
+        # Split at semi colon.
+        semiColonSplit = bmStartValue.split(';')
+
+        # Extract the bm by taking the value with index [0].
+        bmValue = semiColonSplit[0]
+
+        # There could be more than 1 bm so we save it in a list.
+        epdBm = bmValue.split()
+        return epdBm
+
+    def IsCorrectEngineBm(self, engineBm, epdBm):
+        """ Returns True or False.
+            Check if engineBm is correct against epdBm list
+        """
+        found = False
+        for ebm in epdBm:
+            if engineBm == ebm:
+                found = True
+                break
+        return found
+
+    def TestEngineWithEpd(self):
+        """ Test engine with epd test suite, results will be in the output file. """
+        cntEpd = 0
+        cntCorrect = 0
+        cntValidEpd = 0
+        
+        # Open the epd file for reading.
+        with open(self.infn, 'r') as f:
+            for lines in f:
+                cntEpd += 1
+                
+                # Remove white space at beginning and end of lines.
+                epdLine = lines.strip()
+
+                # Get only first 4 fields [pieces side castle_flag ep_sq].
+                epdLineSplit = epdLine.split()
+                epd = ' '.join(epdLineSplit[0:4])                
+
+                # Add hmvc and fmvn to create a FEN for the engine.
+                fen = epd + ' 0 1'
+
+                # Show progress in console.
+                print('epd %d: %s' %(cntEpd, epdLine))
+
+                # If this position has no legal move then we skip it.
+                pos = chess.Board(fen)
+                isGameOver = pos.is_checkmate() or pos.is_stalemate()
+                if isGameOver:
+                    # Show warning in console.
+                    print('Warning! epd \"%s\"' %(epd))
+                    print('has no legal move - skipped.\n')
+                    continue
+
+                # If the epd line has no bm then we just skip it.
+                if 'bm ' not in epdLine:
+                    print('Warning!! epd \"%s\"')
+                    print('has no bm op code - skipped.\n')
+                    continue
+
+                # Get the bm(s) move in the epd line, epdBm is a list.
+                epdBm = self.GetEpdBm(epdLineSplit)                
+
+                # Get engine analysis, we are only interested on bm.
+                acd, acs, bm, ce = self.GetEpdAnalysis(fen)
+                cntValidEpd += 1
+
+                # Show progress in console.
+                print('engine bm: %s' %(bm))
+
+                # Check bm of engine against the bm in epd, if found count it.
+                isCorrect = self.IsCorrectEngineBm(bm, epdBm)
+                if isCorrect:
+                    cntCorrect += 1
+                    print('correct: %d' %(cntCorrect))
+                print
+
+        # Print test summary.
+        cntWrong = cntValidEpd - cntCorrect
+        pctCorrect = 0.0
+        if cntValidEpd:
+            pctCorrect = (100.0 * cntCorrect)/cntValidEpd
+
+        # Print summary to console
+        print(':: EPD %s TEST RESULTS ::\n' %(self.infn))
+        print('Total epd lines       : %d' %(cntEpd))
+        print('Total tested positions: %d' %(cntValidEpd))
+        print('Total correct         : %d' %(cntCorrect))
+        print('Correct percentage    : %0.1f' %(pctCorrect))
+
+        # Write to output file, that was specified in -infile [value].
+        with open(self.outfn, 'a') as f:
+            f.write(':: EPD %s TEST RESULTS ::\n' %(self.infn))
+            f.write('Engine        : %s\n' %(self.engIdName))
+            f.write('Time/pos (sec): %0.1f\n\n' %(self.moveTimeOpt/1000.0))
+            
+            f.write('Total epd lines       : %d\n' %(cntEpd))
+            f.write('Total tested positions: %d\n' %(cntValidEpd))
+            f.write('Total correct         : %d\n' %(cntCorrect))
+            f.write('Correct percentage    : %0.1f\n' %(pctCorrect))
+            
 def main(argv):
     """ start """
     PrintProgram()
@@ -823,6 +939,7 @@ def main(argv):
     engHashOption = 32 # 32 mb
     engThreadsOption = 1
     moveStartOption = 8
+    jobOption = 'analyze' # ['analyze', 'test']
     
     # Evaluate the command line options.
     options = EvaluateOptions(argv)
@@ -836,6 +953,7 @@ def main(argv):
         engHashOption = GetOptionValue(options, '-enghash', engHashOption)
         engThreadsOption = GetOptionValue(options, '-engthreads', engThreadsOption)
         moveStartOption = GetOptionValue(options, '-movestart', moveStartOption)
+        jobOption = GetOptionValue(options, '-job', jobOption)
 
     # Check input, output and engine files.
     CheckFiles(inputFile, outputFile, engineName)
@@ -865,17 +983,18 @@ def main(argv):
     # Delete existing output file.
     DeleteFile(outputFile)
 
-    # Check Limits
+    # Check Limits.
     if engThreadsOption <= 0:
         engThreadsOption = 1
         
-    # Convert options to dict
+    # Convert options to dict.
     options = {'-book': bookOption,
                '-eval': evalOption,
                '-movetime': moveTimeOption,
                '-enghash': engHashOption,
                '-engthreads': engThreadsOption,
-               '-movestart': moveStartOption
+               '-movestart': moveStartOption,
+               '-job': jobOption
                }
 
     # Create an object of class Analyze.
@@ -886,12 +1005,18 @@ def main(argv):
 
     # If input file is epd
     if fileType == EPD_FILE:
-        g.AnnotateEpd()
+        # if -job option has value 'test'.
+        if jobOption == 'test':
+            g.TestEngineWithEpd()
+
+        # Else (-job value is 'analyze' by default).
+        else:
+            g.AnnotateEpd()
         
-    # Else if input file is pgn
+    # Else if input file is pgn.
     elif fileType == PGN_FILE:
         g.AnnotatePgn()
-    # else would not reach here because it is checked under CheckFiles()
+    # else would not reach here because it is checked under CheckFiles().
 
     print('Done!!\n')    
 
