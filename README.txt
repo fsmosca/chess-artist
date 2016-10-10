@@ -5,7 +5,9 @@ B. Program description
 It is a python script that can annotate chess games in pgn file with
 static evaluation and search score of an engine. It can also annotate
 games with cerebellum book moves using the Brainfish engine with its
-Cerebellum_Light.bin book file.
+Cerebellum_Light.bin book file. The script can also annotate an epd file
+with acd, acs, bm, and ce op codes. It can also test the engine with epd
+test suite creating summary of solved positions.
 
 C. License notice
 This program is free software, you can redistribute it and/or modify
