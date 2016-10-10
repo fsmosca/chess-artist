@@ -812,8 +812,10 @@ class Analyze():
                              %(epd, acd, acs, bm, ce, self.engIdName))
 
     def GetEpdBm(self, epdLineList):
-        """ return the bm in a list format in the epd line """
-        # Example epd line:
+        """ return the bm in a list format in the epd line.
+            There can be more 1 bm in a given epd.
+        """
+        # Example epd line.
         # [pieces] [side] [castle] [ep] bm e4 Nf3; c0 "id 1";
         bmIndex = epdLineList.index('bm')
 
@@ -859,6 +861,7 @@ class Analyze():
                 epdLine = lines.strip()
 
                 # Get only first 4 fields [pieces side castle_flag ep_sq].
+                # In future version it will consider hmvc op code.
                 epdLineSplit = epdLine.split()
                 epd = ' '.join(epdLineSplit[0:4])                
 
@@ -888,6 +891,8 @@ class Analyze():
 
                 # Get engine analysis, we are only interested on bm.
                 acd, acs, bm, ce = self.GetEpdAnalysis(fen)
+                
+                # There percentage correct is based on valid epd only
                 cntValidEpd += 1
 
                 # Show progress in console.
@@ -913,7 +918,7 @@ class Analyze():
         print('Total correct         : %d' %(cntCorrect))
         print('Correct percentage    : %0.1f' %(pctCorrect))
 
-        # Write to output file, that was specified in -infile [value].
+        # Write to output file, that was specified in -outfile option.
         with open(self.outfn, 'a') as f:
             f.write(':: EPD %s TEST RESULTS ::\n' %(self.infn))
             f.write('Engine        : %s\n' %(self.engIdName))
