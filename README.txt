@@ -56,108 +56,91 @@ G. Guide
    chess-artist -infile myg.pgn -outfile myg_es.pgn -eng stockfish.exe -enghash 128 -engthreads 1 -eval search -movetime 1000
 8. If you want to annotate an epd file with bm, ce and other op codes at 10s per position. See example output in section H below.
    chess-artist -infile myepd.epd -outfile myepd_out.epd -eng Branfish.exe -enghash 128 -engthreads 1 -movetime 10000
-9. In the annotated game the value in the comment is from the point of
+9. If you want to test a uci engine on epd test suite to see how many best moves it could find, add the -job test option value.
+   chess-artist -infile wacnew.epd -outfile wacnew_out.txt -eng Sf.exe -enghash 128 -engthreads 1 -movetime 500 -job test
+10. In the annotated game the value in the comment is from the point of
    view of white, if it is positive, it is better for white, and if
    negative it is better for black. Example 1. e4 {+0.74} white is ahead
-   by 0.74 of a pawn, or almost 3/4 value of a pawn.
+   by 0.74 of a pawn.
    
 H. Examples of annotated games with static evaluation, search score and cerebellum book move annotations.
 
-(1) Static evaluation
+(1) Search score by the engine with cerebellum book
 
-[Event "10th Tal Mem 2016"]
-[Site "Moscow RUS"]
-[Date "2016.09.26"]
-[Round "1.1"]
-[White "Aronian, Levon"]
-[Black "Gelfand, Boris"]
-[Result "1/2-1/2"]
-[WhiteTitle "GM"]
-[BlackTitle "GM"]
-[WhiteElo "2795"]
-[BlackElo "2743"]
-[ECO "A35"]
-[Opening "English"]
-[Variation "symmetrical, four knights system"]
-[WhiteFideId "13300474"]
-[BlackFideId "2805677"]
-[EventDate "2016.09.26"]
+[Event "TCh-RUS w Rapid 2016"]
+[Site "Sochi RUS"]
+[Date "2016.10.05"]
+[Round "2.1"]
+[White "Pogonina, Natalija"]
+[Black "Sukhareva, Evgeniya"]
+[Result "1-0"]
+[WhiteTitle "WGM"]
+[WhiteElo "2484"]
+[BlackElo "2151"]
+[ECO "D30"]
+[Opening "Queen's gambit declined"]
+[WhiteTeam "Yugra (Khanty)"]
+[BlackTeam "Tyumen (Tyumen region)"]
+[WhiteFideId "4147855"]
+[BlackFideId "4167155"]
+[EventDate "2016.10.05"]
 [Annotator "Brainfish 280816 64 POPCNT"]
 
-{Move comments are from engine static evaluation.}
-1. c4 {+0.20} (1. e4 {cerebellum book}) 1... c5 {+0.08} (1... e6 {cerebellum book}) 
-2. Nf3 {+0.53} (2. Nf3 {cerebellum book}) 2... Nc6 {+0.04} (2... Nc6 {cerebellum book}) 
-3. Nc3 {+0.48} (3. Nc3 {cerebellum book}) 3... Nf6 {+0.08} (3... g6 {cerebellum book}) 
-4. g3 {+0.23} (4. g3 {cerebellum book}) 4... d5 {-1.09} (4... d5 {cerebellum book}) 
-5. d4 {+0.04} (5. d4 {cerebellum book}) 5... cxd4 {-1.72} (5... cxd4 {cerebellum book}) 
-6. Nxd4 {-0.08} (6. Nxd4 {cerebellum book}) 6... dxc4 {-0.83} (6... dxc4 {cerebellum book}) 
-7. Nxc6 {+4.95} (7. Nxc6 {cerebellum book}) 7... Qxd1+ {-7.60} (7... Qxd1+ {cerebellum book}) 
-8. Nxd1 {+2.00} (8. Nxd1 {cerebellum book}) 8... bxc6 {-0.73} (8... bxc6 {cerebellum book}) 
-9. Bg2 {-0.29} (9. Bg2 {cerebellum book}) 9... Nd5 {-0.24} (9... Nd5 {cerebellum book}) 
-10. Ne3 {-0.08} (10. Ne3 {cerebellum book}) 10... e6 {-0.32} (10... Ba6 {cerebellum book}) 
-11. Nxc4 {+0.53} (11. Nxc4 {cerebellum book}) 11... Ba6 {+0.18} (11... Ba6 {cerebellum book}) 
-12. b3 {+0.26} (12. b3 {cerebellum book}) 12... Bb4+ {+0.27} (12... Bb4+ {cerebellum book}) 
-13. Bd2 {+0.19} (13. Bd2 {cerebellum book}) 13... Ke7 {+0.14} (13... Bxd2+ {cerebellum book}) 
-14. Rc1 {+0.20} (14. Rc1 {cerebellum book}) 14... Rhc8 {+0.31} (14... Rhc8 {cerebellum book}) 
-15. Ne5 {+0.16} (15. Bxb4+ {cerebellum book}) c5 {+0.05} 16. Bxb4 {+3.71} cxb4 {-0.03} 
-17. Rxc8 {+7.10} Rxc8 {-0.25} 18. Bxd5 {+2.65} Kd6 {+2.46} 
-19. Bf3 {+3.11} Kxe5 {-0.78} 20. Kd2 {-0.46} Rc5 {-0.21} 
-21. a3 {-0.40} bxa3 {-2.16} 22. Ra1 {-1.63} Bb5 {-1.58} 
-23. Rxa3 {-0.17} Rc7 {-0.26} 24. h4 {-0.40} h6 {-0.29} 
-25. Ra2 {-0.37} g5 {-0.21} 26. hxg5 {+0.86} hxg5 {-0.14} 
-27. Rc2 {-0.18} Rxc2+ {-6.05} 28. Kxc2 {-0.28} Kd4 {-0.07} 
-29. e3+ {-0.08} Kc5 {+0.09} 30. Kc3 {+0.03} a5 {+0.15} 
-31. Bd1 {-0.10} f6 {+0.02} 32. f4 {-0.19} e5 {-0.05} 
-33. Bf3 {-0.07} Be8 {+0.13} 34. Bd1 {-0.14} Bb5 {-0.05} 
-35. Bf3 {-0.07} Be8 {+0.13} 36. Bd1 {-0.14} Bb5 {-0.05} 
-1/2-1/2
+{Hash 128mb, Threads 1, engine search score @ 5.0s/pos}
+1. d4 d5 2. c4 e6 3. Nf3 Nf6 4. g3 c6 5. Bg2 Be7 6. O-O O-O 7. b3 b6 8. Bb2 Bb7 9. Nc3 Na6 10. Qd3 Rc8 11. cxd5 cxd5 12. Rac1 $0 {-0.03} (12. Rfc1 {+0.00 - Brainfish 280816 64 POPCNT})12... Nb4 $0 {+0.00} (12... Ne4 {-0.03 - Brainfish 280816 64 POPCNT})
+13. Qb1 {+0.06} 13... Qd6 $0 {+0.00} (13... Nc6 {+0.03 - Brainfish 280816 64 POPCNT})
+14. Rfd1 $0 {+0.00} (14. a3 {+0.00 - Brainfish 280816 64 POPCNT})14... Ba6 $0 {+0.06} (14... Qb8 {+0.00 - Brainfish 280816 64 POPCNT})
+15. e3 $0 {+0.09} (15. a3 {+0.06 - Brainfish 280816 64 POPCNT})15... Qb8 $0 {+0.08} (15... Nc6 {+0.09 - Brainfish 280816 64 POPCNT})
+16. Ne5 {+0.08} Bb7 {+0.11} 
+17. Bf1 $0 {-0.06} (17. f4 {+0.07 - Brainfish 280816 64 POPCNT})Nc6 {-0.04} 
+18. Nf3 {+0.00} 18... Rfd8 $0 {-0.07} (18... h6 {+0.00 - Brainfish 280816 64 POPCNT})
+19. a3 $0 {-0.14} (19. Be2 {-0.07 - Brainfish 280816 64 POPCNT})Na5 {-0.15} 
+20. Qa2 {-0.03} 20... Rc7 $0 {-0.02} (20... a6 {-0.03 - Brainfish 280816 64 POPCNT})
+21. Nd2 $0 {-0.14} (21. Ne5 {-0.02 - Brainfish 280816 64 POPCNT})Rdc8 {-0.11} 
+22. b4 $0 {-0.03} (22. Bd3 {-0.11 - Brainfish 280816 64 POPCNT})22... Nc6 $0 {+0.00} (22... Nc4 {-0.03 - Brainfish 280816 64 POPCNT})
+23. Nf3 $0 {-0.06} (23. Bd3 {+0.00 - Brainfish 280816 64 POPCNT})Qa8 {+0.00} 
+24. Qb3 $0 {-0.08} (24. Qb1 {+0.00 - Brainfish 280816 64 POPCNT})24... h6 $0 {-0.05} (24... a6 {-0.08 - Brainfish 280816 64 POPCNT})
+25. h3 $6 {-0.17} (25. Bd3 {-0.05 - Brainfish 280816 64 POPCNT})25... Bf8 $0 {-0.05} (25... a6 {-0.12 - Brainfish 280816 64 POPCNT})
+26. Nb5 $0 {-0.04} (26. Rc2 {-0.05 - Brainfish 280816 64 POPCNT})Rd7 {+0.00} 
+27. Nc3 $0 {+0.00} (27. Rc2 {+0.00 - Brainfish 280816 64 POPCNT})27... Rdd8 $0 {+0.06} (27... Bd6 {+0.00 - Brainfish 280816 64 POPCNT})
+28. Rc2 {-0.03} 28... Ne7 $0 {+0.08} (28... Ne4 {-0.03 - Brainfish 280816 64 POPCNT})
+29. Rdc1 {+0.17} Nf5 {+0.10} 
+30. Ne5 $0 {+0.15} (30. Nb5 {+0.10 - Brainfish 280816 64 POPCNT})Nd6 {+0.15} 
+31. a4 $0 {-0.05} (31. Nb5 {+0.15 - Brainfish 280816 64 POPCNT})31... a6 $6 {+0.41} (31... Nd7 {-0.05 - Brainfish 280816 64 POPCNT})
+32. Ba3 $0 {+0.29} (32. b5 {+0.41 - Brainfish 280816 64 POPCNT})32... Nf5 $0 {+0.65} (32... Nfe4 {+0.29 - Brainfish 280816 64 POPCNT})
+33. b5 {+0.54} 33... Bxa3 $0 {+0.67} (33... Bd6 {+0.54 - Brainfish 280816 64 POPCNT})
+34. Qxa3 {+0.73} 34... axb5 $4 {+1.56} (34... Ne8 {+0.73 - Brainfish 280816 64 POPCNT})
+35. Nxb5 {+1.56} Rxc2 {+1.79} 
+36. Rxc2 {+1.73} 36... Rc8 $0 {+3.44} (36... Rf8 {+1.73 - Brainfish 280816 64 POPCNT})
+37. Rxc8+ {+3.88} Qxc8 {+3.81} 
+38. g4 {+3.84} 38... Nh4 $0 {+4.31} (38... Qc2 {+3.84 - Brainfish 280816 64 POPCNT})
+39. Qe7 {+4.01} 39... Bc6 $0 {+6.70} (39... Ne4 {+4.01 - Brainfish 280816 64 POPCNT})
+40. Qxf7+ {+6.55} 40... Kh7 $0 {+7.19} (40... Kh8 {+6.55 - Brainfish 280816 64 POPCNT})
+41. Nd6 $0 {+7.44} (41. Bd3+ {+7.19 - Brainfish 280816 64 POPCNT})Qa8 {+8.56} 
+42. Qxe6 $0 {+7.30} (42. Bd3+ {+8.56 - Brainfish 280816 64 POPCNT})42... Bxa4 $0 {+8.38} (42... Qxa4 {+7.30 - Brainfish 280816 64 POPCNT})
+43. Nf5 $0 {+5.34} (43. Bd3+ {+8.38 - Brainfish 280816 64 POPCNT})43... Nxf5 $0 {+4.45} (43... Qe8 {+5.34 - Brainfish 280816 64 POPCNT})
+44. Qxf5+ {+4.24} 44... Kg8 $0 {+5.75} (44... Kh8 {+4.22 - Brainfish 280816 64 POPCNT})
+45. Qe6+ {+6.00} Kh7 {+6.14} 
+46. h4 $0 {+4.57} (46. Bd3+ {+6.14 - Brainfish 280816 64 POPCNT})Bc2 {+4.83} 
+47. g5 $0 {+4.05} (47. Qxb6 {+4.86 - Brainfish 280816 64 POPCNT})47... hxg5 $0 {+6.01} (47... Qe8 {+3.94 - Brainfish 280816 64 POPCNT})
+48. hxg5 {+4.89} 48... Ne8 $0 {+319.81} (48... Qe8 {+5.10 - Brainfish 280816 64 POPCNT})
+49. g6+ {+319.82} 1-0
 
-(2) Search score
-
-[Event "42nd Olympiad 2016"]
-[Site "Baku AZE"]
-[Date "2016.09.02"]
-[Round "1.1"]
-[White "Kigigha, Bomo"]
-[Black "Karjakin, Sergey"]
-[Result "0-1"]
-[Board "1"]
-[WhiteTitle "FM"]
-[BlackTitle "GM"]
-[WhiteElo "2340"]
-[BlackElo "2769"]
-[ECO "A05"]
-[Opening "Reti opening"]
-[WhiteTeam "Nigeria"]
-[BlackTeam "Russia"]
-[WhiteFideId "8500037"]
-[BlackFideId "14109603"]
-[EventDate "2016.09.02"]
-[Annotator "Brainfish 280816 64 POPCNT"]
-
-{Hash 128mb, Threads 1, engine search score @ 0.8s/pos}
-1. Nf3 {+0.16} (1. e4 {cerebellum book}) 1... Nf6 {+0.26} (1... d5 {cerebellum book}) 
-2. g3 {+0.02} (2. d4 {cerebellum book}) 2... d5 {-0.18} (2... d5 {cerebellum book}) 
-3. c4 {-0.22} (3. Bg2 {cerebellum book}) 3... d4 {-0.21} (3... d4 {cerebellum book}) 
-4. Bg2 {-0.37} (4. b4 {cerebellum book}) 4... c5 {-0.55} (4... c5 {cerebellum book}) 
-5. b4 {-0.41} (5. b4 {cerebellum book}) 5... cxb4 {-0.51} (5... cxb4 {cerebellum book}) 
-6. O-O {-0.65} (6. a3 {cerebellum book}) Nc6 {-0.53} 7. e3 {-0.69} e5 {-0.50} 
-8. exd4 {-1.04} e4 {-0.93} 9. Ng5 {-1.69} Qxd4 {-1.74} 
-10. Qb3 {-1.66} Qxa1 {-1.90} 11. Bb2 {-1.64} Na5 {-1.68} 
-12. Bxa1 {-1.69} Nxb3 {-1.75} 13. axb3 {-1.75} Bf5 {-1.59} 
-14. Bxf6 {-3.25} gxf6 {-3.20} 15. Nxe4 {-3.09} O-O-O {-3.18} 
-16. Re1 {-3.13} Kb8 {-2.80} 17. g4 {-3.21} Bg6 {-2.90} 
-18. f4 {-3.38} f5 {-3.84} 19. Ng3 {-3.27} Bc5+ {-3.50} 
-20. Kf1 {-3.53} Rd4 {-3.36} 21. Ne2 {-3.53} Rhd8 {-3.30} 
-22. g5 {-3.58} Bh5 {-3.18} 23. Nxd4 {-3.61} Rxd4 {-3.72} 
-24. Bd5 {-3.88} Rxf4+ {-3.84} 25. Kg2 {-4.02} Rf2+ {-3.82} 
-26. Kg3 {-4.31} f4+ {-4.06} 27. Kh3 {-4.43} f3 {-4.22} 
-0-1
-
-(3) Epd analysis
+(2) Epd analysis, annotate epd with acd, acs, bm, ce and Ae op codes
 
 Input:
 r1bk1b1r/ppp2ppp/2p5/4Pn2/8/5N2/PPP2PPP/RNB2RK1 w - -
 
 Output:
 r1bk1b1r/ppp2ppp/2p5/4Pn2/8/5N2/PPP2PPP/RNB2RK1 w - - acd 17; acs 10; bm Nc3; ce 30; Ae "Brainfish 280816 64 POPCNT";
+
+(3) Sample output on engine testing on epd test suites.
+
+:: EPD wacnewpartial.epd TEST RESULTS ::
+Engine        : Brainfish 280816 64 POPCNT
+Time/pos (sec): 0.3
+
+Total epd lines       : 24
+Total tested positions: 24
+Total correct         : 23
+Correct percentage    : 95.8
