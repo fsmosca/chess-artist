@@ -194,7 +194,7 @@ class Analyze():
                     moveNag = self.GetMoveNag(side, posScore, engScore)                       
 
                     # Write moves and comments
-                    f.write('%d. %s %s {%+0.2f} (%d. %s {%+0.2f - %s})' %(moveNumber, sanMove, moveNag, posScore,
+                    f.write('%d. %s %s {%+0.2f} (%d. %s {%+0.2f - %s}) ' %(moveNumber, sanMove, moveNag, posScore,
                                                                           moveNumber, engMove, engScore, engineIdName))
                 else:                    
                     f.write('%d. %s {%+0.2f} ' %(moveNumber, sanMove, posScore))
@@ -203,7 +203,7 @@ class Analyze():
                     moveNag = self.GetMoveNag(side, posScore, engScore)
 
                     # Write moves and comments  
-                    f.write('%d... %s %s {%+0.2f} (%d... %s {%+0.2f - %s})' %(moveNumber, sanMove, moveNag, posScore,
+                    f.write('%d... %s %s {%+0.2f} (%d... %s {%+0.2f - %s}) ' %(moveNumber, sanMove, moveNag, posScore,
                                                                            moveNumber, engMove, engScore, engineIdName))
                 else:
                     f.write('%s {%+0.2f} ' %(sanMove, posScore))
@@ -216,6 +216,7 @@ class Analyze():
     def WriteMovesWithBookMove(self, side, moveNumber, sanMove, bookMove):
         """ Write moves with book moves in the output file """
         bookComment = 'cerebellum book'
+        assert bookMove is not None
         
         # Write the move and comments
         with open(self.outfn, 'a+') as f:
@@ -235,6 +236,7 @@ class Analyze():
     def WriteMovesWithScoreAndBookMove(self, side, moveNumber, sanMove, bookMove, posScore, engMove, engScore):
         """ Write moves with score and book moves in the output file """
         bookComment = 'cerebellum book'
+        assert bookMove is not None
         engineIdName = self.engIdName
         
         # Write the move and comments
@@ -270,23 +272,36 @@ class Analyze():
 
     def WriteMoves(self, side, fmvn, sanMove, bookMove, posScore, isGameOver, engMove, engScore):
         """ Write moves and comments to the output file """
-        # If game is over [mate, stalemate] just print the move.
-        if isGameOver or (fmvn < self.moveStartOpt and not self.isCereMoveFound):
+        # (0) If game is over [mate, stalemate] just print the move.
+        if isGameOver:
             self.WriteMovesOnly(side, fmvn, sanMove)
             return
 
-        # Write rest of moves and comments.
-        # (1) With score
-        if not self.isCereMoveFound and self.evalOpt != 'none' and fmvn >= self.moveStartOpt:
+        # (1) Write sanMove and posScore only
+        isWriteScore = posScore is not None and\
+                       bookMove is None
+        if isWriteScore:
             self.WriteMovesWithScore(side, fmvn, sanMove, posScore, engMove, engScore)
+            return
 
-        # (2) With book move
-        elif self.isCereMoveFound and (self.evalOpt == 'none' or fmvn < self.moveStartOpt):
+        # (2) Write sanMove and bookMove only
+        isWriteBook = posScore is None and\
+                      bookMove is not None
+        if isWriteBook:
             self.WriteMovesWithBookMove(side, fmvn, sanMove, bookMove)
+            return
 
-        # (3) With score and book move
-        elif self.isCereMoveFound and self.evalOpt != 'none' and fmvn >= self.moveStartOpt:
+        # (3) Write sanMove, posScore and bookMove
+        isWriteScoreAndBook = posScore is not None and\
+                              bookMove is not None
+        if isWriteScoreAndBook:
             self.WriteMovesWithScoreAndBookMove(side, fmvn, sanMove, bookMove, posScore, engMove, engScore)
+            return
+
+        # (4) Write sanMove only
+        if posScore is None and bookMove is None:
+            self.WriteMovesOnly(side, fmvn, sanMove)
+            return            
             
     def MateDistanceToValue(self, d):
         """ Returns value given distance to mate """
@@ -385,7 +400,7 @@ class Analyze():
         if not isInfoDepth:
             # True indicates that the bestMove is from cerebellum book.
             return bestMove, True
-        return bestMove, False
+        return None, False
 
     def GetStaticEvalAfterMove(self, pos):
         """ Returns static eval by running the engine,
@@ -735,13 +750,13 @@ class Analyze():
                         isCereEnd = True
 
                 # (1.1) Don't start the engine analysis when fmvn is below self.moveStartOpt.
-                # But search for cerebellum book even if fmvn is low.
+                # If there is book move.
                 if fmvn < self.moveStartOpt and self.isCereMoveFound:
                     self.WriteMoves(side, fmvn, sanMove, cereBookMove, None, False, None, None)
                     gameNode = nextNode
                     continue 
 
-                # (2) Get the score of the position after a move.
+                # (2) Get the posScore of the position after a move.
                 posScore = None
                 if self.evalOpt == 'static':
                     fenAfterMove = nextNode.board().fen()
@@ -753,7 +768,9 @@ class Analyze():
                     posScore = searchScore
 
                 # (2.1) Search the engine score and move recommendations.
-                engBestMove, engBestScore = self.GetSearchScoreBeforeMove(gameNode.board().fen(), side)
+                engBestMove, engBestScore = None, None
+                if posScore is not None:
+                    engBestMove, engBestScore = self.GetSearchScoreBeforeMove(gameNode.board().fen(), side)
                     
                 # If game is over by checkmate and stalemate after a move              
                 isGameOver = nextNode.board().is_checkmate() or nextNode.board().is_stalemate()
@@ -965,7 +982,7 @@ def main(argv):
     engHashOption = 32 # 32 mb
     engThreadsOption = 1
     moveStartOption = 8
-    jobOption = 'analyze' # ['analyze', 'test']
+    jobOption = 'analyze' # ['none' 'analyze', 'test']
     
     # Evaluate the command line options.
     options = EvaluateOptions(argv)
