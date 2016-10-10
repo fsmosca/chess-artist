@@ -271,21 +271,21 @@ class Analyze():
     def WriteMoves(self, side, fmvn, sanMove, bookMove, posScore, isGameOver, engMove, engScore):
         """ Write moves and comments to the output file """
         # If game is over [mate, stalemate] just print the move.
-        if isGameOver or fmvn < self.moveStartOpt:
+        if isGameOver or (fmvn < self.moveStartOpt and not self.isCereMoveFound):
             self.WriteMovesOnly(side, fmvn, sanMove)
             return
 
         # Write rest of moves and comments.
         # (1) With score
-        if not self.isCereMoveFound and self.evalOpt != 'none':
+        if not self.isCereMoveFound and self.evalOpt != 'none' and fmvn >= self.moveStartOpt:
             self.WriteMovesWithScore(side, fmvn, sanMove, posScore, engMove, engScore)
 
         # (2) With book move
-        elif self.isCereMoveFound and self.evalOpt == 'none':
+        elif self.isCereMoveFound and (self.evalOpt == 'none' or fmvn < self.moveStartOpt):
             self.WriteMovesWithBookMove(side, fmvn, sanMove, bookMove)
 
         # (3) With score and book move
-        elif self.isCereMoveFound and self.evalOpt != 'none':
+        elif self.isCereMoveFound and self.evalOpt != 'none' and fmvn >= self.moveStartOpt:
             self.WriteMovesWithScoreAndBookMove(side, fmvn, sanMove, bookMove, posScore, engMove, engScore)
             
     def MateDistanceToValue(self, d):
@@ -700,7 +700,7 @@ class Analyze():
                     f.write('{Move comments are from engine static evaluation.}\n')
             elif self.evalOpt == 'search':
                 with open(self.outfn, 'a+') as f:
-                    f.write('{Hash %dmb, Threads %d, engine search score @ %0.1fs/pos}\n'\
+                    f.write('{Hash %dmb, Threads %d, @ %0.1fs/pos}\n'\
                             %(self.engHashOpt, self.engThreadsOpt, self.moveTimeOpt/1000.0))
 
             # Save result to be written later as game termination marker.
@@ -714,8 +714,9 @@ class Analyze():
                 nextNode = gameNode.variation(0)                      
                 sanMove = nextNode.san()
 
-                # (0) Don't start the engine analysis when fmvn is below self.moveStartOpt
-                if fmvn < self.moveStartOpt:
+                # (0) Don't start the engine analysis when fmvn is
+                # below self.moveStartOpt and not using a cerebellum book.
+                if fmvn < self.moveStartOpt and self.bookOpt != 'cerebellum':
                     self.isCereMoveFound = False
                     self.WriteMoves(side, fmvn, sanMove, None, None, False, None, None)
                     gameNode = nextNode
@@ -732,6 +733,13 @@ class Analyze():
                     # End trying to find cerebellum book move beyond BOOK_MOVE_LIMIT.
                     if not self.isCereMoveFound and fmvn > BOOK_MOVE_LIMIT:
                         isCereEnd = True
+
+                # (1.1) Don't start the engine analysis when fmvn is below self.moveStartOpt.
+                # But search for cerebellum book even if fmvn is low.
+                if fmvn < self.moveStartOpt and self.isCereMoveFound:
+                    self.WriteMoves(side, fmvn, sanMove, cereBookMove, None, False, None, None)
+                    gameNode = nextNode
+                    continue 
 
                 # (2) Get the score of the position after a move.
                 posScore = None
