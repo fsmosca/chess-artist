@@ -129,6 +129,47 @@ class Analyze():
         """ Prints engine id name """
         print('Engine name: %s' %(self.engIdName))
 
+    def GetMoveNag(self, side, posScore, engScore):
+        """ Returns ??, ?, ?! depending on the player score and analyzing engine score.
+            posScore is the score of the move in the game, in pawn unit.
+            engScore is the score of the move suggested by the engine, in pawn unit.
+            Positive score is better for white and negative score is better for black, (WPOV).
+            Scoring range from white's perspective:
+            Blunder: posScore < -1.50
+            Mistake: posScore >= -1.50 and posScore < -0.75
+            Dubious: posScore >= -0.75 and posScore < -0.15
+            Even   : posScore >= -0.15 and posScore <= +0.15
+            Special condition:
+            1. If engine score is winning but player score is not winning,
+            consider this as a mistake.
+            Mistake: engScore > +1.50 and posScore < +1.50
+        """
+        # Convert the posScore and engScore to side POV
+        # to easier calculate the move NAG = Numeric Annotation Glyphs.
+        if not side:
+            posScore = -1 * posScore
+            engScore = -1 * engScore
+
+        # Set default NAG, GUI will not display this.
+        moveNag = '$0'
+        
+        # Blunder ??
+        if posScore < -1.50 and engScore >= -1.50:
+            moveNag = '$4'
+            
+        # Mistake ?
+        elif posScore < -0.75 and engScore >= -0.75:
+            moveNag = '$2'
+            
+        # Dubious ?!
+        elif posScore < -0.15 and engScore >= -0.15:
+            moveNag = '$6'
+
+        # Mistake ? if engScore is winning and posScore is not winning
+        elif engScore > +1.50 and posScore <= +1.50:
+            moveNag = '$2'
+        return moveNag            
+
     def WriteMovesOnly(self, side, moveNumber, sanMove):
         """ Write moves only in the output file """
         # Write the moves
@@ -147,23 +188,7 @@ class Analyze():
             # If side to move is white
             if side:
                 if sanMove != engMove:
-                    moveNag = '$0'
-
-                    # Blunder ??
-                    if posScore < -1.5 and engScore >= -0.15:
-                        moveNag = '$4'
-
-                    # Mistake ?
-                    elif posScore < -0.75 and engScore >= -0.15:
-                        moveNag = '$2'
-
-                    # Dubious ?!
-                    elif posScore < -0.15 and engScore >= -0.15:
-                        moveNag = '$6'
-
-                    # Mistake ? if engScore is winning and posScore is below winning
-                    elif engScore > +1.50 and posScore <= +0.75:
-                        moveNag = '$2'                        
+                    moveNag = self.GetMoveNag(side, posScore, engScore)                       
 
                     # Write moves and comments
                     f.write('%d. %s %s {%+0.2f} (%d. %s {%+0.2f - %s})' %(moveNumber, sanMove, moveNag, posScore,
@@ -172,23 +197,7 @@ class Analyze():
                     f.write('%d. %s {%+0.2f} ' %(moveNumber, sanMove, posScore))
             else:
                 if sanMove != engMove:
-                    moveNag = '$0'
-
-                    # Blunder ??
-                    if posScore > +1.5 and engScore <= +0.15:
-                        moveNag = '$4'
-
-                    # Mistake ?
-                    elif posScore > +0.75 and engScore <= +0.15:
-                        moveNag = '$2'
-
-                    # Dubious ?!
-                    elif posScore > +0.15 and engScore <= +0.15:
-                        moveNag = '$6'
-
-                    # Mistake ? if engScore is winning and posScore is below winning
-                    elif engScore < -1.50 and posScore >= -0.75:
-                        moveNag = '$2'
+                    moveNag = self.GetMoveNag(side, posScore, engScore)
 
                     # Write moves and comments  
                     f.write('%d... %s %s {%+0.2f} (%d... %s {%+0.2f - %s})' %(moveNumber, sanMove, moveNag, posScore,
@@ -231,23 +240,7 @@ class Analyze():
             # If side to move is white
             if side:
                 if sanMove != engMove:
-                    moveNag = '$0'
-
-                    # Blunder ??
-                    if posScore < -1.5 and engScore >= -0.15:
-                        moveNag = '$4'
-
-                    # Mistake ?
-                    elif posScore < -0.75 and engScore >= -0.15:
-                        moveNag = '$2'
-
-                    # Dubious ?!
-                    elif posScore < -0.15 and engScore >= -0.15:
-                        moveNag = '$6'
-
-                    # Mistake ? if engScore is winning and posScore is below winning
-                    elif engScore > +1.50 and posScore <= +0.75:
-                        moveNag = '$2'    
+                    moveNag = self.GetMoveNag(side, posScore, engScore)   
 
                     # Write moves and comments
                     f.write('%d. %s %s {%+0.2f} (%d. %s {%s}) (%d. %s {%+0.2f - %s}) ' %(moveNumber, sanMove, moveNag, posScore,
@@ -257,23 +250,7 @@ class Analyze():
                     f.write('%d. %s {%+0.2f} (%d. %s {%s}) ' %(moveNumber, sanMove, posScore, moveNumber, bookMove, bookComment))
             else:
                 if sanMove != engMove:
-                    moveNag = '$0'
-
-                    # Blunder ??
-                    if posScore > +1.5 and engScore <= +0.15:
-                        moveNag = '$4'
-
-                    # Mistake ?
-                    elif posScore > +0.75 and engScore <= +0.15:
-                        moveNag = '$2'
-
-                    # Dubious ?!
-                    elif posScore > +0.15 and engScore <= +0.15:
-                        moveNag = '$6'
-
-                    # Mistake ? if engScore is winning and posScore is below winning
-                    elif engScore < -1.50 and posScore >= -0.75:
-                        moveNag = '$2'
+                    moveNag = self.GetMoveNag(side, posScore, engScore)
 
                     # Write moves and comments
                     f.write('%d... %s %s {%+0.2f} (%d... %s {%s}) (%d... %s {%+0.2f - %s}) ' %(moveNumber, sanMove, moveNag, posScore,
@@ -813,6 +790,7 @@ class Analyze():
                 b = chess.Board(fen)
                 isGameOver = b.is_checkmate() or b.is_stalemate()
                 if isGameOver:
+                    print('Warning! epd \"%s\"\nhas no legal move - skipped.\n' %(epd))
                     continue
 
                 # Show progress in console
