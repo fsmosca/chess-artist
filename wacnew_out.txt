@@ -1,8 +1,0 @@
-:: EPD wacnew.epd TEST RESULTS ::
-Engine        : Brainfish 280816 64 POPCNT
-Time/pos (sec): 1.0
-
-Total epd lines       : 300
-Total tested positions: 300
-Total correct         : 287
-Correct percentage    : 95.7
