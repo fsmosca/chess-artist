@@ -854,6 +854,17 @@ class Analyze():
                 break
         return found
 
+    def GetHmvcInEpd(self, epdLine):
+        """ Returns hmvc in an epd line """        
+        if 'hmvc' not in epdLine:
+            return '0'
+        hmvcIndex = epdLine.index('hmvc')
+        hmvcValue = epdLine[hmvcIndex+1]
+
+        # Remove ';' at the end
+        hmvc = hmvcValue[0:-1]
+        return hmvc     
+
     def TestEngineWithEpd(self):
         """ Test engine with epd test suite, results will be in the output file. """
         cntEpd = 0
@@ -871,13 +882,15 @@ class Analyze():
                 # Get only first 4 fields [pieces side castle_flag ep_sq].
                 # In future version it will consider hmvc op code.
                 epdLineSplit = epdLine.split()
-                epd = ' '.join(epdLineSplit[0:4])                
+                epd = ' '.join(epdLineSplit[0:4])
+                hmvc = self.GetHmvcInEpd(epdLineSplit)
 
                 # Add hmvc and fmvn to create a FEN for the engine.
-                fen = epd + ' 0 1'
+                fen = epd + ' ' + hmvc + ' 1'
 
                 # Show progress in console.
-                print('epd %d: %s' %(cntEpd, epdLine))
+                print('EPD %d: %s' %(cntEpd, epdLine))
+                print('FEN %d: %s' %(cntEpd, fen))
 
                 # If this position has no legal move then we skip it.
                 pos = chess.Board(fen)

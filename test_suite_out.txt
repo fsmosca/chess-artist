@@ -1,0 +1,8 @@
+:: EPD test_suite.epd TEST RESULTS ::
+Engine        : Brainfish 280816 64 POPCNT
+Time/pos (sec): 1.0
+
+Total epd lines       : 2
+Total tested positions: 2
+Total correct         : 0
+Correct percentage    : 0.0
