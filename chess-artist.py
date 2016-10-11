@@ -960,9 +960,8 @@ class Analyze():
                     searchScore = self.GetSearchScoreAfterMove(fenAfterMove, side)
                     posScore = searchScore
 
-                # (4) Search the engine score and move recommendations.
                 engBestMove, engBestScore = None, None
-                if self.jobOpt == 'analyze':
+                if abs(posScore) <= WIN_SCORE and self.jobOpt == 'analyze':
                     engBestMove, engBestScore = self.GetSearchScoreBeforeMove(gameNode.board().fen(), side)
                     
                 # (5) If game is over by checkmate and stalemate after a move              
@@ -1226,6 +1225,12 @@ def main(argv):
     # Exit if analyzing epd with -eval none
     if fileType == EPD_FILE and evalOption == 'none' and jobOption != 'test':
         print('Error! -eval was set to none.')
+        sys.exit(1)
+
+    # Exit if input file in pgn and -job is test or none
+    if fileType == PGN_FILE and jobOption != 'analyze':
+        print('Error! -job was not defined with analyze.')
+        print('Use -job analyze')
         sys.exit(1)
         
     # Delete existing output file.
