@@ -132,6 +132,65 @@ c. Annotation output
 27. Kh3 {-4.04} f3 {-3.77} 
 0-1
 
+1.1 Sample game analysis with move annotations ! and !? based on position complexity,
+and ??, ? ?! based on player move score and engine move score.
+
+[Event "Hoogovens A Tournament"]
+[Site "Wijk aan Zee NED"]
+[Date "1999.01.20"]
+[Round "4"]
+[White "Garry Kasparov"]
+[Black "Veselin Topalov"]
+[Result "1-0"]
+[EventDate "?"]
+[ECO "B06"]
+[WhiteElo "2812"]
+[BlackElo "2700"]
+[PlyCount "87"]
+[Annotator "Brainfish 280816 64 POPCNT"]
+
+{Hash 32mb, Threads 1, @ 10.0s/pos}
+1. e4 d6 2. d4 Nf6 
+3. Nc3 g6 4. Be3 Bg7 
+5. Qd2 c6 6. f3 b5 
+7. Nge2 Nbd7 8. Bh6 $0 {+0.06} (8. h4 {+0.12 - Brainfish}) Bxh6 $0 {+0.22} 
+9. Qxh6 $1 {+0.05} 9... Bb7 $6 {+0.24} (9... Qb6 {+0.05 - Brainfish}) 
+10. a3 $0 {+0.10} (10. Nd1 {+0.24 - Brainfish}) 10... e5 $6 {+0.18} (10... a5 {+0.10 - Brainfish}) 
+11. O-O-O $5 {+0.28} (11. dxe5 {+0.18 - Brainfish}) Qe7 $0 {+0.22} 
+12. Kb1 $0 {+0.06} (12. Ng3 {+0.22 - Brainfish}) 12... a6 $6 {+0.42} (12... a5 {+0.06 - Brainfish}) 
+13. Nc1 $5 {+0.55} (13. g4 {+0.42 - Brainfish}) 13... O-O-O $5 {+0.51} (13... exd4 {+0.55 - Brainfish}) 
+14. Nb3 $5 {+0.55} (14. Qe3 {+0.51 - Brainfish}) exd4 $0 {+0.41} 
+15. Rxd4 $5 {+0.42} (15. Nxd4 {+0.41 - Brainfish}) 15... c5 $2 {+0.91} (15... Nc5 {+0.42 - Brainfish}) 
+16. Rd1 $0 {+0.53} (16. Rd2 {+0.91 - Brainfish}) 16... Nb6 $5 {+0.43} (16... Ne5 {+0.53 - Brainfish}) 
+17. g3 $0 {+0.34} (17. Qh4 {+0.43 - Brainfish}) 17... Kb8 $0 {+0.44} (17... d5 {+0.34 - Brainfish}) 
+18. Na5 $0 {+0.00} (18. g4 {+0.44 - Brainfish}) 18... Ba8 $6 {+0.48} (18... d5 {+0.00 - Brainfish}) 
+19. Bh3 $0 {+0.08} (19. Ka1 {+0.48 - Brainfish}) d5 $5 {+0.00} 
+20. Qf4+ $5 {+0.00} (20. Rhe1 {+0.00 - Brainfish}) Ka7 $5 {+0.10} 
+21. Rhe1 $0 {+0.06} d4 $5 {+0.00} 
+22. Nd5 $6 {-0.61} (22. Na2 {+0.00 - Brainfish}) Nbxd5 $0 {-0.63} 
+23. exd5 $5 {-0.57} (23. Nc6+ {-0.63 - Brainfish}) Qd6 $0 {-0.60} 
+24. Rxd4 $5 {-0.50} (24. Nc6+ {-0.60 - Brainfish}) 24... cxd4 $0 {+0.00} (24... Kb6 {-0.50 - Brainfish}) 
+25. Re7+ $0 {+0.00} Kb6 $0 {+0.00} 
+26. Qxd4+ $0 {+0.00} Kxa5 $0 {+0.00} 
+27. b4+ $0 {+0.24} Ka4 $0 {+0.59} 
+28. Qc3 $0 {+0.00} (28. Ra7 {+0.59 - Brainfish}) Qxd5 $0 {+0.00} 
+29. Ra7 $0 {+0.00} Bb7 $0 {+0.00} 
+30. Rxb7 $5 {+0.00} (30. Qc7 {+0.00 - Brainfish}) 30... Qc4 $6 {+0.69} (30... Rhe8 {+0.00 - Brainfish}) 
+31. Qxf6 $0 {+0.55} 31... Kxa3 $4 {+3.94} (31... Rd1+ {+0.55 - Brainfish}) 
+32. Qxa6+ $0 {+3.97} Kxb4 $0 {+3.93} 
+33. c3+ $0 {+4.04} Kxc3 $0 {+4.12} 
+34. Qa1+ $0 {+4.10} Kd2 $0 {+4.98} 
+35. Qb2+ $0 {+4.35} Kd1 $0 {+4.46} 
+36. Bf1 $0 {+4.22} Rd2 $0 {+4.45} 
+37. Rd7 $0 {+4.37} Rxd7 $0 {+4.25} 
+38. Bxc4 $0 {+4.46} bxc4 $0 {+4.35} 
+39. Qxh8 $0 {+4.45} Rd3 $0 {+4.41} 
+40. Qa8 $0 {+4.41} 40... c3 $0 {+4.86} (40... Rb3+ {+4.41 - Brainfish}) 
+41. Qa4+ $0 {+4.46} Ke1 $0 {+4.63} 
+42. f4 $5 {+5.29} (42. Qf4 {+4.63 - Brainfish}) 42... f5 $0 {+5.74} (42... Rd2 {+5.29 - Brainfish}) 
+43. Kc1 {+6.37} Rd2 $0 {+5.85} 
+44. Qa7 {+6.68} 1-0
+
 2. Epd analysis, annotate epd with acd, acs, bm, ce and Ae op codes
 
 a. Command line
