@@ -64,9 +64,9 @@ G. Guide
    negative it is better for black. Example 1. e4 {+0.74} white is ahead
    by 0.74 of a pawn.
    
-H. Examples of annotated games, epd analysis, and engine epd test.
+H. Examples of annotated games, epd analysis, and engine epd test
 
-1. Game analysis with cerebellum book use.
+1. Game analysis with cerebellum book use
 
 a. Command line
 chess-artist -infile a.pgn -outfile out_a.pgn -eng Brainfish.exe -eval search -movetime 200 -movestart 6 -book cerebellum
@@ -80,7 +80,7 @@ b. Command line interpretation
 -movestart 6: Engine analysis starts at move 6, the book annotation is not affected by this.
 -book cerebellum: Will use the cerebellum book file, Cerebellum_Light.bin
 
-c. Annotation output.
+c. Annotation output
 [Event "42nd Olympiad 2016"]
 [Site "Baku AZE"]
 [Date "2016.09.02"]
@@ -135,17 +135,21 @@ c. Annotation output.
 2. Epd analysis, annotate epd with acd, acs, bm, ce and Ae op codes
 
 a. Command line
-chess-artist -infile a.epd -outfile out_a.epd -eng Branfish.exe -enghash 128 -engthreads 1 -movetime 10000
+chess-artist -infile a.epd -outfile out_a.epd -eng Branfish.exe -enghash 128 -engthreads 1 -movetime 10000 -eval search
 
 b. Command line interpretation
--enghash 128: the main memory size in MB used by the uci engine.
--engthreads 1: the nubmer of threads used by the uci engine.
+-enghash 128: The main memory size in MB used by the uci engine, also call Hash in uci engines.
+-engthreads 1: The number of threads used by the uci engine, also called Threads in uci engines.
+-eval search: Will use use the engine to search the position. -eval static, will only use the static eval of the engine.
 
-c. An example epd line in an epd file.
+c. An example epd line in an epd file
 r1bk1b1r/ppp2ppp/2p5/4Pn2/8/5N2/PPP2PPP/RNB2RK1 w - -
 
-c. An example output
+d. An example output using -eval search
 r1bk1b1r/ppp2ppp/2p5/4Pn2/8/5N2/PPP2PPP/RNB2RK1 w - - acd 17; acs 10; bm Nc3; ce 30; Ae "Brainfish 280816 64 POPCNT";
+
+e. An example output using -eval static
+r1bk1b1r/ppp2ppp/2p5/4Pn2/8/5N2/PPP2PPP/RNB2RK1 w - - ce 30; c0 "ce is static eval of engine"; Ae "Brainfish 280816 64 POPCNT";
 
 3. Testing engine on epd test suite.
 
@@ -155,7 +159,7 @@ chess-artist -infile wac.epd -outfile wac_out.txt -eng Bf.exe -enghash 128 -engt
 b. Command line interpretation
 -job test: Tells the script that the engine will be tested on epd file.
 
-c. Output wac_out.txt
+c. Example output wac_out.txt
 :: EPD wac.epd TEST RESULTS ::
 Engine        : Brainfish 280816 64 POPCNT
 Time/pos (sec): 0.3
