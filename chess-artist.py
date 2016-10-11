@@ -116,7 +116,6 @@ class Analyze():
         self.moveStartOpt = opt['-movestart']
         self.jobOpt = opt['-job']
         self.writeCnt = 0
-        self.isCereMoveFound = False
         self.engIdName = self.GetEngineIdName()
 
     def UciToSanMove(self, pos, uciMove):
@@ -171,18 +170,42 @@ class Analyze():
             moveNag = '$2'
         return moveNag            
 
-    def WriteMovesOnly(self, side, moveNumber, sanMove):
+    def WriteSanMove(self, side, moveNumber, sanMove):
         """ Write moves only in the output file """
         # Write the moves
         with open(self.outfn, 'a+') as f:
+            self.writeCnt += 1
             if side:
                 f.write('%d. %s ' %(moveNumber, sanMove))
             else:
                 f.write('%s ' %(sanMove))
 
-    def WriteMovesWithScore(self, side, moveNumber, sanMove, posScore, engMove, engScore):
+                # Format output, don't write movetext in one long line.
+                if self.writeCnt >= 4:
+                    self.writeCnt = 0
+                    f.write('\n')
+
+    def WritePosScore(self, side, moveNumber, sanMove, posScore):
         """ Write moves with score in the output file """
-        engineIdName = self.engIdName
+        
+        # Write the move and comments
+        with open(self.outfn, 'a+') as f:
+            self.writeCnt += 1
+
+            # If side to move is white
+            if side:
+                f.write('%d. %s {%+0.2f} ' %(moveNumber, sanMove, posScore))
+            else:
+                f.write('%s {%+0.2f} ' %(sanMove, posScore))
+
+                # Format output, don't write movetext in one long line.
+                if self.writeCnt >= 4:
+                    self.writeCnt = 0
+                    f.write('\n')
+
+    def WritePosScoreEngMove(self, side, moveNumber, sanMove, posScore, engMove, engScore):
+        """ Write moves with score and engMove in the output file """
+        engShortName = self.engIdName.split()[0]
         
         # Write the move and comments
         with open(self.outfn, 'a+') as f:
@@ -195,7 +218,7 @@ class Analyze():
 
                     # Write moves and comments
                     f.write('%d. %s %s {%+0.2f} (%d. %s {%+0.2f - %s}) ' %(moveNumber, sanMove, moveNag, posScore,
-                                                                          moveNumber, engMove, engScore, engineIdName))
+                                                                          moveNumber, engMove, engScore, engShortName))
                 else:                    
                     f.write('%d. %s {%+0.2f} ' %(moveNumber, sanMove, posScore))
             else:
@@ -204,7 +227,7 @@ class Analyze():
 
                     # Write moves and comments  
                     f.write('%d... %s %s {%+0.2f} (%d... %s {%+0.2f - %s}) ' %(moveNumber, sanMove, moveNag, posScore,
-                                                                           moveNumber, engMove, engScore, engineIdName))
+                                                                           moveNumber, engMove, engScore, engShortName))
                 else:
                     f.write('%s {%+0.2f} ' %(sanMove, posScore))
 
@@ -213,9 +236,9 @@ class Analyze():
                     self.writeCnt = 0
                     f.write('\n')
 
-    def WriteMovesWithBookMove(self, side, moveNumber, sanMove, bookMove):
+    def WriteBookMove(self, side, moveNumber, sanMove, bookMove):
         """ Write moves with book moves in the output file """
-        bookComment = 'cerebellum book'
+        bookComment = 'cerebellum'
         assert bookMove is not None
         
         # Write the move and comments
@@ -233,11 +256,31 @@ class Analyze():
                     self.writeCnt = 0
                     f.write('\n')
 
-    def WriteMovesWithScoreAndBookMove(self, side, moveNumber, sanMove, bookMove, posScore, engMove, engScore):
+    def WritePosScoreBookMove(self, side, moveNumber, sanMove, bookMove, posScore):
         """ Write moves with score and book moves in the output file """
-        bookComment = 'cerebellum book'
+        bookComment = 'cerebellum'
         assert bookMove is not None
-        engineIdName = self.engIdName
+        
+        # Write the move and comments
+        with open(self.outfn, 'a+') as f:
+            self.writeCnt += 1
+
+            # If side to move is white
+            if side:
+                f.write('%d. %s {%+0.2f} (%d. %s {%s}) ' %(moveNumber, sanMove, posScore, moveNumber, bookMove, bookComment))
+            else:
+                f.write('%d... %s {%+0.2f} (%d... %s {%s}) ' %(moveNumber, sanMove, posScore, moveNumber, bookMove, bookComment))
+                
+                # Format output, don't write movetext in one long line.
+                if self.writeCnt >= 2:
+                    self.writeCnt = 0
+                    f.write('\n') 
+
+    def WritePosScoreBookMoveEngMove(self, side, moveNumber, sanMove, bookMove, posScore, engMove, engScore):
+        """ Write moves with score and book moves in the output file """
+        bookComment = 'cerebellum'
+        assert bookMove is not None
+        engShortName = self.engIdName.split()[0]
         
         # Write the move and comments
         with open(self.outfn, 'a+') as f:
@@ -251,7 +294,7 @@ class Analyze():
                     # Write moves and comments
                     f.write('%d. %s %s {%+0.2f} (%d. %s {%s}) (%d. %s {%+0.2f - %s}) ' %(moveNumber, sanMove, moveNag, posScore,
                                                                                       moveNumber, bookMove, bookComment,
-                                                                                      moveNumber, engMove, engScore, engineIdName))
+                                                                                      moveNumber, engMove, engScore, engShortName))
                 else:
                     f.write('%d. %s {%+0.2f} (%d. %s {%s}) ' %(moveNumber, sanMove, posScore, moveNumber, bookMove, bookComment))
             else:
@@ -261,46 +304,141 @@ class Analyze():
                     # Write moves and comments
                     f.write('%d... %s %s {%+0.2f} (%d... %s {%s}) (%d... %s {%+0.2f - %s}) ' %(moveNumber, sanMove, moveNag, posScore,
                                                                                        moveNumber, bookMove, bookComment,
-                                                                                       moveNumber, engMove, engScore, engineIdName))
+                                                                                       moveNumber, engMove, engScore, engShortName))
                 else:
                     f.write('%d... %s {%+0.2f} (%d... %s {%s}) ' %(moveNumber, sanMove, posScore, moveNumber, bookMove, bookComment))
 
                 # Format output, don't write movetext in one long line.
                 if self.writeCnt >= 2:
                     self.writeCnt = 0
-                    f.write('\n')        
+                    f.write('\n')
 
-    def WriteMoves(self, side, fmvn, sanMove, bookMove, posScore, isGameOver, engMove, engScore):
+    def WriteBookMoveEngMove(self, side, moveNumber, sanMove, bookMove, engMove, engScore):
+        """ Write moves with book moves and eng moves in the output file """
+        bookComment = 'cerebellum'
+        assert bookMove is not None
+        engShortName = self.engIdName.split()[0]
+        
+        # Write the move and comments
+        with open(self.outfn, 'a+') as f:
+            self.writeCnt += 1
+
+            # If side to move is white
+            if side:
+                if sanMove != engMove:
+                    # Write moves and comments
+                    f.write('%d. %s (%d. %s {%s}) (%d. %s {%+0.2f - %s}) ' %(moveNumber, sanMove,
+                                                        moveNumber, bookMove, bookComment,
+                                                        moveNumber, engMove, engScore, engShortName))
+                else:
+                    f.write('%d. %s (%d. %s {%s}) ' %(moveNumber, sanMove,
+                                                      moveNumber, bookMove, bookComment))
+            else:
+                if sanMove != engMove:
+                    
+                    # Write moves and comments
+                    f.write('%d... %s (%d... %s {%s}) (%d... %s {%+0.2f - %s}) ' %(moveNumber, sanMove,
+                                                        moveNumber, bookMove, bookComment,
+                                                        moveNumber, engMove, engScore, engShortName))
+                else:
+                    f.write('%d... %s {%+0.2f} (%d... %s {%s}) ' %(moveNumber, sanMove,
+                                                        posScore, moveNumber, bookMove, bookComment))
+
+                # Format output, don't write movetext in one long line.
+                if self.writeCnt >= 2:
+                    self.writeCnt = 0
+                    f.write('\n')
+
+    def WriteEngMove(self, side, moveNumber, sanMove, bookMove, engMove, engScore):
+        """ Write moves with eng moves in the output file """
+        engShortName = self.engIdName.split()[0]
+        
+        # Write the move and comments
+        with open(self.outfn, 'a+') as f:
+
+            # If side to move is white
+            if side:
+                if sanMove != engMove:
+                    # Write moves and comments
+                    f.write('%d. %s (%d. %s {%+0.2f - %s}) ' %(moveNumber, sanMove,
+                                                        moveNumber, engMove, engScore, engShortName))
+                else:
+                    f.write('%d. %s ' %(moveNumber, sanMove))
+            else:
+                if sanMove != engMove:
+                    
+                    # Write moves and comments
+                    f.write('%d... %s (%d... %s {%+0.2f - %s}) ' %(moveNumber, sanMove,
+                                                        moveNumber, engMove, engScore, engShortName))
+                else:
+                    f.write('%d... %s ' %(moveNumber, sanMove))
+
+    def WriteNotation(self, side, fmvn, sanMove, bookMove, posScore, isGameOver, engMove, engScore):
         """ Write moves and comments to the output file """
         # (0) If game is over [mate, stalemate] just print the move.
         if isGameOver:
-            self.WriteMovesOnly(side, fmvn, sanMove)
+            self.WriteSanMove(side, fmvn, sanMove)
             return
 
-        # (1) Write sanMove and posScore only
-        isWriteScore = posScore is not None and\
-                       bookMove is None
-        if isWriteScore:
-            self.WriteMovesWithScore(side, fmvn, sanMove, posScore, engMove, engScore)
+        # (1) Write sanMove, posScore
+        isWritePosScore = posScore is not None and\
+                       bookMove is None and\
+                       engMove is None
+        if isWritePosScore:
+            self.WritePosScore(side, fmvn, sanMove, posScore)
             return
 
-        # (2) Write sanMove and bookMove only
+        # (2) Write sanMove, posScore, bookMove
+        isWritePosScoreBook = posScore is not None and\
+                              bookMove is not None and\
+                              engMove is None
+        if isWritePosScoreBook:
+            self.WritePosScoreBookMove(side, fmvn, sanMove, bookMove, posScore)
+            return
+
+        # (3) Write sanMove, posScore and engMove
+        isWritePosScoreEngMove = posScore is not None and\
+                       bookMove is None and\
+                       engMove is not None
+        if isWritePosScoreEngMove:
+            self.WritePosScoreEngMove(side, fmvn, sanMove, posScore, engMove, engScore)
+            return
+
+        # (4) Write sanMove, posScore, bookMove and engMove
+        isWritePosScoreBookEngMove = posScore is not None and\
+                              bookMove is not None and\
+                              engMove is not None
+        if isWritePosScoreBookEngMove:
+            self.WritePosScoreBookMoveEngMove(side, fmvn, sanMove, bookMove, posScore, engMove, engScore)
+            return
+
+        # (5) Write sanMove, bookMove
         isWriteBook = posScore is None and\
-                      bookMove is not None
+                      bookMove is not None and\
+                      engMove is None
         if isWriteBook:
-            self.WriteMovesWithBookMove(side, fmvn, sanMove, bookMove)
+            self.WriteBookMove(side, fmvn, sanMove, bookMove)
             return
 
-        # (3) Write sanMove, posScore and bookMove
-        isWriteScoreAndBook = posScore is not None and\
-                              bookMove is not None
-        if isWriteScoreAndBook:
-            self.WriteMovesWithScoreAndBookMove(side, fmvn, sanMove, bookMove, posScore, engMove, engScore)
+        # (6) Write sanMove, bookMove and engMove
+        isWriteBookEngMove = posScore is None and\
+                              bookMove is not None and\
+                              engMove is not None
+        if isWriteBookEngMove:
+            self.WriteBookMoveEngMove(side, fmvn, sanMove, bookMove, engMove, engScore)
             return
 
-        # (4) Write sanMove only
+        # (7) Write sanMove, engMove
+        isWriteEngMove = posScore is None and\
+                              bookMove is None and\
+                              engMove is not None
+        if isWriteEngMove:
+            self.WriteEngMove(side, fmvn, sanMove, engMove, engScore)
+            return
+
+        # (8) Write sanMove only
         if posScore is None and bookMove is None:
-            self.WriteMovesOnly(side, fmvn, sanMove)
+            self.WriteSanMove(side, fmvn, sanMove)
             return            
             
     def MateDistanceToValue(self, d):
@@ -393,14 +531,13 @@ class Analyze():
         p.stdin.write('quit\n')
         p.communicate()
 
-        # Convert uci move to san move format.
-        bestMove = self.UciToSanMove(pos, bestMove)
-
-        # If we did not get info depth from engine, then the bestmove is from the book.
+        # If we did not get info depth from the engine
+        # then the bestmove is from the book.
         if not isInfoDepth:
-            # True indicates that the bestMove is from cerebellum book.
-            return bestMove, True
-        return None, False
+            # Convert uci move to san move format.
+            bestMove = self.UciToSanMove(pos, bestMove)
+            return bestMove
+        return None
 
     def GetStaticEvalAfterMove(self, pos):
         """ Returns static eval by running the engine,
@@ -730,33 +867,32 @@ class Analyze():
                 sanMove = nextNode.san()
 
                 # (0) Don't start the engine analysis when fmvn is
-                # below self.moveStartOpt and not using a cerebellum book.
+                # below moveStart and not using a cerebellum book.
                 if fmvn < self.moveStartOpt and self.bookOpt != 'cerebellum':
-                    self.isCereMoveFound = False
-                    self.WriteMoves(side, fmvn, sanMove, None, None, False, None, None)
+                    cereBookMove = None
+                    self.WriteNotation(side, fmvn, sanMove, cereBookMove, None, False, None, None)
                     gameNode = nextNode
                     continue                    
 
                 # (1) Try to get a cerebellum book move.
-                self.isCereMoveFound = False
                 cereBookMove = None
                 if self.bookOpt == 'cerebellum' and not isCereEnd:
                     # Use FEN before a move.
                     fenBeforeMove = gameNode.board().fen()
-                    cereBookMove, self.isCereMoveFound = self.GetCerebellumBookMove(fenBeforeMove)
+                    cereBookMove = self.GetCerebellumBookMove(fenBeforeMove)
 
                     # End trying to find cerebellum book move beyond BOOK_MOVE_LIMIT.
-                    if not self.isCereMoveFound and fmvn > BOOK_MOVE_LIMIT:
+                    if cereBookMove is None and fmvn > BOOK_MOVE_LIMIT:
                         isCereEnd = True
 
-                # (1.1) Don't start the engine analysis when fmvn is below self.moveStartOpt.
-                # If there is book move.
-                if fmvn < self.moveStartOpt and self.isCereMoveFound:
-                    self.WriteMoves(side, fmvn, sanMove, cereBookMove, None, False, None, None)
+                # (2) Don't start the engine analysis when fmvn is below moveStart.
+                if fmvn < self.moveStartOpt and cereBookMove is not None:
+                    self.WriteNotation(side, fmvn, sanMove, cereBookMove, None, False, None, None)
                     gameNode = nextNode
                     continue 
 
-                # (2) Get the posScore of the position after a move.
+                # (3) Get the posScore or the score of the player move.
+                # Can be by static eval of the engine or search score of the engine
                 posScore = None
                 if self.evalOpt == 'static':
                     fenAfterMove = nextNode.board().fen()
@@ -767,16 +903,16 @@ class Analyze():
                     searchScore = self.GetSearchScoreAfterMove(fenAfterMove, side)
                     posScore = searchScore
 
-                # (2.1) Search the engine score and move recommendations.
+                # (4) Search the engine score and move recommendations.
                 engBestMove, engBestScore = None, None
-                if posScore is not None:
+                if self.jobOpt == 'analyze':
                     engBestMove, engBestScore = self.GetSearchScoreBeforeMove(gameNode.board().fen(), side)
                     
-                # If game is over by checkmate and stalemate after a move              
+                # (5) If game is over by checkmate and stalemate after a move              
                 isGameOver = nextNode.board().is_checkmate() or nextNode.board().is_stalemate()
                 
-                # (3) Write moves and comments.
-                self.WriteMoves(side, fmvn, sanMove, cereBookMove, posScore, isGameOver, engBestMove, engBestScore)
+                # (6) Write moves and comments.
+                self.WriteNotation(side, fmvn, sanMove, cereBookMove, posScore, isGameOver, engBestMove, engBestScore)
 
                 # Read the next position.
                 gameNode = nextNode
