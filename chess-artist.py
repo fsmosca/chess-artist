@@ -728,7 +728,7 @@ class Analyze():
         scoreP = float(scoreCp)/100.0
         return scoreP
 
-    def GetEpdAnalysis(self, pos):
+    def GetEpdEngineSearchScore(self, pos):
         """ Returns acd, acs, bm, ce and Ae op codes. """
 
         # Initialize
@@ -803,6 +803,63 @@ class Analyze():
         assert bestMove is not None, 'Error! seach failed to return a move.'
         return depthSearched, self.moveTimeOpt/1000, bestMove, scoreCp
 
+    def GetEpdEngineStaticScore(self, pos):
+        """ Returns ce and Ae op codes. """
+
+        # Initialize
+        scoreP = TEST_SEARCH_SCORE
+
+        # Run the engine.
+        p = subprocess.Popen(self.eng, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
+        # Send command to engine.
+        p.stdin.write("uci\n")
+
+        # Parse engine replies.
+        for eline in iter(p.stdout.readline, ''):
+            line = eline.strip()               
+            if "uciok" in line:
+                break
+                
+        # Send command to engine.
+        p.stdin.write("isready\n")
+        
+        # Parse engine replies.
+        for eline in iter(p.stdout.readline, ''):
+            line = eline.strip()
+            if "readyok" in line:
+                break
+                
+        # Send commands to engine.
+        p.stdin.write("ucinewgame\n")
+        p.stdin.write("position fen " + pos + "\n")
+        p.stdin.write("eval\n")
+
+        # Parse the output and extract the engine search score, depth and bestmove
+        for eline in iter(p.stdout.readline, ''):        
+            line = eline.strip()                  
+
+            # Break search
+            if 'Total Evaluation: ' in line:
+                first = line.split('(')[0]
+                scoreP = float(first.split()[2])
+                break
+                
+        # Quit the engine
+        p.stdin.write('quit\n')
+        p.communicate()
+
+        # Verify values to be returned
+        assert scoreP != TEST_SEARCH_SCORE, 'Error!, engine failed to return its static eval.'
+
+        # Convert to side POV
+        if pos.split()[1] == 'b':
+            scoreP = -1 * scoreP
+
+        # Convert to centipawn
+        scoreCp = int(scoreP * 100.0)
+        return scoreCp
+    
     def AnnotatePgn(self):
         """ Parse the pgn file and annotate the games """
         # Get engine id name for the Annotator tag.
@@ -961,16 +1018,23 @@ class Analyze():
                     continue
 
                 # Get engine analysis.
-                acd, acs, bm, ce = self.GetEpdAnalysis(fen)
+                if self.evalOpt == 'static':
+                    ce = self.GetEpdEngineStaticScore(fen)
+                elif self.evalOpt != 'none':
+                    acd, acs, bm, ce = self.GetEpdEngineSearchScore(fen)
 
                 # Show progress in console.
-                print('bm: %s' %(bm))
+                if self.evalOpt == 'search':
+                    print('bm: %s' %(bm))
                 print('ce: %+d\n' %(ce))
 
                 # Save to output file the epd analysis.
                 with open(self.outfn, 'a') as f1:
-                    f1.write('%s acd %d; acs %d; bm %s; ce %+d; Ae \"%s\";\n'\
-                             %(epd, acd, acs, bm, ce, self.engIdName))
+                    if self.evalOpt == 'static':
+                        f1.write('%s ce %+d; c0 \"%s\"; Ae \"%s\";\n' %(epd, ce, 'ce is static eval of engine', self.engIdName))
+                    elif self.evalOpt != 'none':
+                        f1.write('%s acd %d; acs %d; bm %s; ce %+d; Ae \"%s\";\n'\
+                                 %(epd, acd, acs, bm, ce, self.engIdName))
 
     def GetEpdBm(self, epdLineList):
         """ return the bm in a list format in the epd line.
@@ -1064,7 +1128,7 @@ class Analyze():
                 epdBm = self.GetEpdBm(epdLineSplit)                
 
                 # Get engine analysis, we are only interested on bm.
-                acd, acs, bm, ce = self.GetEpdAnalysis(fen)
+                acd, acs, bm, ce = self.GetEpdEngineSearchScore(fen)
                 
                 # There percentage correct is based on valid epd only
                 cntValidEpd += 1
@@ -1190,6 +1254,11 @@ def main(argv):
 
         # Else (-job value is 'analyze' by default).
         else:
+            if evalOption == 'none':
+                print('Error! -eval was set to none.')
+                sys.exit(1)
+
+            # Only when -eval search or -eval static or blank (default is static)
             g.AnnotateEpd()
         
     # Else if input file is pgn.
