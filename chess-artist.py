@@ -719,7 +719,7 @@ class Analyze():
         return complexityNumber, moveChanges
 
     def GetSearchScoreAfterMove(self, pos, side):
-        """ Returns search bestmove and score from the engine. """
+        """ Returns search's score, complexity number and pv move changes counts. """
         # Initialize
         scoreCp = TEST_SEARCH_SCORE
         searchDepth = 0
@@ -1189,8 +1189,8 @@ class Analyze():
                 # Remove white space at beginning and end of lines.
                 epdLine = lines.strip()
 
-                # Get only first 4 fields [pieces side castle_flag ep_sq].
-                # In future version it will consider hmvc op code.
+                # Get the first 4 fields [pieces side castle_flag ep_sq],
+                # also search the hmvc opcode.
                 epdLineSplit = epdLine.split()
                 epd = ' '.join(epdLineSplit[0:4])
                 hmvc = self.GetHmvcInEpd(epdLineSplit)
