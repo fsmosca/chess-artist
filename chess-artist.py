@@ -47,6 +47,7 @@ TEST_SEARCH_SCORE = 100000
 TEST_SEARCH_DEPTH = 1000
 EPD_FILE = 1
 PGN_FILE = 2
+WIN_SCORE = 6.0
 
 def PrintProgram():
     """ Prints program name and version """
@@ -129,7 +130,43 @@ class Analyze():
         """ Prints engine id name """
         print('Analyzing engine: %s' %(self.engIdName))
 
-    def GetMoveNag(self, side, posScore, engScore):
+    def GetGoodNag(self, side, posScore, engScore, complexityNumber, moveChanges):
+        """ Returns !!, !, !? depending on the player score, analyzing engine score,
+            complexity number and pv move changes.
+        """
+        # Convert the posScore and engScore to side POV
+        # to easier calculate the move NAG = Numeric Annotation Glyphs.
+        if not side:
+            posScore = -1 * posScore
+            engScore = -1 * engScore
+
+        # Set default NAG, GUI will not display this.
+        moveNag = '$0'
+        
+        # Very good !!
+        if posScore > engScore and\
+           moveChanges >= 4 and\
+           complexityNumber >= 45 and\
+           posScore >= +0.75 and\
+           posScore <= +3.0:
+            moveNag = '$3'
+            
+        # Good !
+        elif moveChanges >= 3 and\
+             complexityNumber >= 30 and\
+             posScore >= -0.15 and\
+             posScore <= +3.0:
+            moveNag = '$1'
+            
+        # Interesting !?
+        elif moveChanges >= 2 and\
+             complexityNumber >= 20 and\
+             posScore >= -0.15 and\
+             posScore <= +3.0:
+            moveNag = '$5'
+        return moveNag
+
+    def GetBadNag(self, side, posScore, engScore):
         """ Returns ??, ?, ?! depending on the player score and analyzing engine score.
             posScore is the score of the move in the game, in pawn unit.
             engScore is the score of the move suggested by the engine, in pawn unit.
@@ -168,6 +205,11 @@ class Analyze():
         # Mistake ? if engScore is winning and posScore is not winning
         elif engScore > +1.50 and posScore <= +1.50:
             moveNag = '$2'
+
+        # Special case, when player score is greater than or
+        # equal to engine score, give an interesting symbol !?
+        if posScore >= engScore:
+            moveNag = '$5'
         return moveNag            
 
     def WriteSanMove(self, side, moveNumber, sanMove):
@@ -203,7 +245,8 @@ class Analyze():
                     self.writeCnt = 0
                     f.write('\n')
 
-    def WritePosScoreEngMove(self, side, moveNumber, sanMove, posScore, engMove, engScore):
+    def WritePosScoreEngMove(self, side, moveNumber, sanMove, posScore, engMove, engScore,
+                             complexityNumber, moveChanges):
         """ Write moves with score and engMove in the output file """
         engShortName = self.engIdName.split()[0]
         
@@ -214,22 +257,24 @@ class Analyze():
             # If side to move is white
             if side:
                 if sanMove != engMove:
-                    moveNag = self.GetMoveNag(side, posScore, engScore)                       
+                    moveNag = self.GetBadNag(side, posScore, engScore)                    
 
                     # Write moves and comments
                     f.write('%d. %s %s {%+0.2f} (%d. %s {%+0.2f - %s}) ' %(moveNumber, sanMove, moveNag, posScore,
                                                                           moveNumber, engMove, engScore, engShortName))
-                else:                    
-                    f.write('%d. %s {%+0.2f} ' %(moveNumber, sanMove, posScore))
+                else:
+                    moveNag = self.GetGoodNag(side, posScore, engScore, complexityNumber, moveChanges)
+                    f.write('%d. %s %s {%+0.2f} ' %(moveNumber, sanMove, moveNag, posScore))
             else:
                 if sanMove != engMove:
-                    moveNag = self.GetMoveNag(side, posScore, engScore)
+                    moveNag = self.GetBadNag(side, posScore, engScore)
 
                     # Write moves and comments  
                     f.write('%d... %s %s {%+0.2f} (%d... %s {%+0.2f - %s}) ' %(moveNumber, sanMove, moveNag, posScore,
                                                                            moveNumber, engMove, engScore, engShortName))
                 else:
-                    f.write('%s {%+0.2f} ' %(sanMove, posScore))
+                    moveNag = self.GetGoodNag(side, posScore, engScore, complexityNumber, moveChanges)
+                    f.write('%s %s {%+0.2f} ' %(sanMove, moveNag, posScore))
 
                 # Format output, don't write movetext in one long line.
                 if self.writeCnt >= 2:
@@ -289,7 +334,7 @@ class Analyze():
             # If side to move is white
             if side:
                 if sanMove != engMove:
-                    moveNag = self.GetMoveNag(side, posScore, engScore)   
+                    moveNag = self.GetBadNag(side, posScore, engScore)   
 
                     # Write moves and comments
                     f.write('%d. %s %s {%+0.2f} (%d. %s {%s}) (%d. %s {%+0.2f - %s}) ' %(moveNumber, sanMove, moveNag, posScore,
@@ -299,7 +344,7 @@ class Analyze():
                     f.write('%d. %s {%+0.2f} (%d. %s {%s}) ' %(moveNumber, sanMove, posScore, moveNumber, bookMove, bookComment))
             else:
                 if sanMove != engMove:
-                    moveNag = self.GetMoveNag(side, posScore, engScore)
+                    moveNag = self.GetBadNag(side, posScore, engScore)
 
                     # Write moves and comments
                     f.write('%d... %s %s {%+0.2f} (%d... %s {%s}) (%d... %s {%+0.2f - %s}) ' %(moveNumber, sanMove, moveNag, posScore,
@@ -373,7 +418,9 @@ class Analyze():
                 else:
                     f.write('%d... %s ' %(moveNumber, sanMove))
 
-    def WriteNotation(self, side, fmvn, sanMove, bookMove, posScore, isGameOver, engMove, engScore):
+    def WriteNotation(self, side, fmvn, sanMove, bookMove,
+                      posScore, isGameOver, engMove, engScore,
+                      complexityNumber, moveChanges):
         """ Write moves and comments to the output file """
         # (0) If game is over [mate, stalemate] just print the move.
         if isGameOver:
@@ -401,7 +448,8 @@ class Analyze():
                        bookMove is None and\
                        engMove is not None
         if isWritePosScoreEngMove:
-            self.WritePosScoreEngMove(side, fmvn, sanMove, posScore, engMove, engScore)
+            self.WritePosScoreEngMove(side, fmvn, sanMove, posScore, engMove, engScore,
+                                      complexityNumber, moveChanges)
             return
 
         # (4) Write sanMove, posScore, bookMove and engMove
@@ -543,7 +591,7 @@ class Analyze():
         """ Returns static eval by running the engine,
             setup position pos and send eval command.
         """
-        score = -32000.0
+        score = TEST_SEARCH_SCORE
 
         # Run the engine.
         p = subprocess.Popen(self.eng, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
@@ -582,7 +630,7 @@ class Analyze():
         # Quit the engine
         p.stdin.write('quit\n')
         p.communicate()
-        assert score != -32000.0, 'Error! something is wrong in static eval calculation.'
+        assert score != TEST_SEARCH_SCORE, 'Error! something is wrong in static eval calculation.'
         return score
 
     def GetSearchScoreBeforeMove(self, pos, side):
@@ -657,11 +705,29 @@ class Analyze():
         scoreP = float(scoreCp)/100.0
         return bestMove, scoreP
 
+    def GetComplexityNumber(self, savedMove):
+        """ Returns complexity number and move changes counts """
+        complexityNumber, moveChanges = 0, 0
+        for n in savedMove:
+            depth = n[0]
+            if depth >= 10:
+                if n[1] != lastMove and depth != lastDepth:
+                    complexityNumber += n[0]
+                    moveChanges += 1
+            lastDepth = depth
+            lastMove = n[1]
+        return complexityNumber, moveChanges
+
     def GetSearchScoreAfterMove(self, pos, side):
         """ Returns search bestmove and score from the engine. """
-
         # Initialize
         scoreCp = TEST_SEARCH_SCORE
+        searchDepth = 0
+        savedMove = []
+        complexityNumber = 0
+        moveChanges = 0;
+        isGetComplexityNumber = self.jobOpt == 'analyze' and\
+                                self.moveTimeOpt >= 2000
 
         # Run the engine.
         p = subprocess.Popen(self.eng, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
@@ -696,6 +762,20 @@ class Analyze():
         # Parse the output and extract the engine search score.
         for eline in iter(p.stdout.readline, ''):        
             line = eline.strip()
+
+            # Save pv move per depth
+            if isGetComplexityNumber:
+                if 'info depth ' in line and 'pv ' in line and not\
+                   'upperbound' in line and not 'lowerbound' in line:
+
+                    # Get the depth
+                    splitLine = line.split()
+                    searchDepth = int(splitLine[splitLine.index('depth')+1])
+
+                    # Get the move and save it
+                    pvMove = splitLine[splitLine.index('pv')+1].strip()
+                    savedMove.append([searchDepth, pvMove])
+                
             if 'score cp ' in line:
                 splitStr = line.split()
                 scoreIndex = splitStr.index('score')
@@ -717,6 +797,10 @@ class Analyze():
         p.communicate()        
         assert scoreCp != TEST_SEARCH_SCORE, 'Error, search failed to return a score.'
 
+        # Get complexity number and moveChanges count
+        if isGetComplexityNumber:
+            complexityNumber, moveChanges = self.GetComplexityNumber(savedMove)
+            
         # Invert the score sign because we analyze the position after the move.
         scoreCp = -1 * scoreCp
 
@@ -726,7 +810,7 @@ class Analyze():
 
         # Convert the score to pawn unit in float type
         scoreP = float(scoreCp)/100.0
-        return scoreP
+        return scoreP, complexityNumber, moveChanges
 
     def GetEpdEngineSearchScore(self, pos):
         """ Returns acd, acs, bm, ce and Ae op codes. """
@@ -922,12 +1006,16 @@ class Analyze():
                 fmvn = gameNode.board().fullmove_number             
                 nextNode = gameNode.variation(0)                      
                 sanMove = nextNode.san()
+                complexityNumber = 0
+                moveChanges = 0
 
                 # (0) Don't start the engine analysis when fmvn is
                 # below moveStart and not using a cerebellum book.
                 if fmvn < self.moveStartOpt and self.bookOpt != 'cerebellum':
                     cereBookMove = None
-                    self.WriteNotation(side, fmvn, sanMove, cereBookMove, None, False, None, None)
+                    self.WriteNotation(side, fmvn, sanMove, cereBookMove,
+                                       None, False, None, None,
+                                       complexityNumber, moveChanges)
                     gameNode = nextNode
                     continue                    
 
@@ -944,7 +1032,9 @@ class Analyze():
 
                 # (2) Don't start the engine analysis when fmvn is below moveStart.
                 if fmvn < self.moveStartOpt and cereBookMove is not None:
-                    self.WriteNotation(side, fmvn, sanMove, cereBookMove, None, False, None, None)
+                    self.WriteNotation(side, fmvn, sanMove, cereBookMove,
+                                       None, False, None, None,
+                                       complexityNumber, moveChanges)
                     gameNode = nextNode
                     continue 
 
@@ -957,9 +1047,11 @@ class Analyze():
                     posScore = staticScore
                 elif self.evalOpt == 'search':
                     fenAfterMove = nextNode.board().fen()
-                    searchScore = self.GetSearchScoreAfterMove(fenAfterMove, side)
+                    searchScore, complexityNumber, moveChanges = self.GetSearchScoreAfterMove(fenAfterMove, side)
                     posScore = searchScore
 
+                # (4) Let the engine searches its score and move recommendations only if
+                # posScore is not winning or lossing (more than 6.0 pawns).
                 engBestMove, engBestScore = None, None
                 if abs(posScore) <= WIN_SCORE and self.jobOpt == 'analyze':
                     engBestMove, engBestScore = self.GetSearchScoreBeforeMove(gameNode.board().fen(), side)
@@ -968,7 +1060,9 @@ class Analyze():
                 isGameOver = nextNode.board().is_checkmate() or nextNode.board().is_stalemate()
                 
                 # (6) Write moves and comments.
-                self.WriteNotation(side, fmvn, sanMove, cereBookMove, posScore, isGameOver, engBestMove, engBestScore)
+                self.WriteNotation(side, fmvn, sanMove, cereBookMove,
+                                   posScore, isGameOver, engBestMove, engBestScore,
+                                   complexityNumber, moveChanges)
 
                 # Read the next position.
                 gameNode = nextNode
@@ -1227,7 +1321,7 @@ def main(argv):
         print('Error! -eval was set to none.')
         sys.exit(1)
 
-    # Exit if input file in pgn and -job is test or none
+    # Exit if input file is pgn and -job is test or none
     if fileType == PGN_FILE and jobOption != 'analyze':
         print('Error! -job was not defined with analyze.')
         print('Use -job analyze')
