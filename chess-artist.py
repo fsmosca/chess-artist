@@ -1221,7 +1221,12 @@ def main(argv):
     # Exit if file type is epd and move time is 0.
     if fileType == EPD_FILE and moveTimeOption <= 0:
         print('Error! movetime is zero.')
-        sys.exit(1)        
+        sys.exit(1)
+
+    # Exit if analyzing epd with -eval none
+    if fileType == EPD_FILE and evalOption == 'none' and jobOption != 'test':
+        print('Error! -eval was set to none.')
+        sys.exit(1)
         
     # Delete existing output file.
     DeleteFile(outputFile)
@@ -1246,25 +1251,16 @@ def main(argv):
     # Print engine id name.
     g.PrintEngineIdName()
 
-    # If input file is epd
+    # Process input file depending on the format and options
     if fileType == EPD_FILE:
-        # if -job option has value 'test'.
         if jobOption == 'test':
             g.TestEngineWithEpd()
-
-        # Else (-job value is 'analyze' by default).
         else:
-            if evalOption == 'none':
-                print('Error! -eval was set to none.')
-                sys.exit(1)
-
-            # Only when -eval search or -eval static or blank (default is static)
             g.AnnotateEpd()
-        
-    # Else if input file is pgn.
     elif fileType == PGN_FILE:
         g.AnnotatePgn()
-    # else would not reach here because it is checked under CheckFiles().
+    else:
+        print('Warning! it is not possbile to reach here')
 
     print('Done!!\n')    
 
