@@ -148,21 +148,21 @@ class Analyze():
         # Very good !!
         if posScore > engScore and\
            moveChanges >= 4 and\
-           complexityNumber >= 45 and\
+           complexityNumber >= 50 and\
            posScore >= +0.75 and\
            posScore <= +3.0:
             moveNag = '$3'
             
         # Good !
         elif moveChanges >= 3 and\
-             complexityNumber >= 30 and\
+             complexityNumber >= 40 and\
              posScore >= -0.15 and\
              posScore <= +3.0:
             moveNag = '$1'
             
         # Interesting !?
         elif moveChanges >= 2 and\
-             complexityNumber >= 20 and\
+             complexityNumber >= 30 and\
              posScore >= -0.15 and\
              posScore <= +3.0:
             moveNag = '$5'
@@ -729,7 +729,7 @@ class Analyze():
         complexityNumber = 0
         moveChanges = 0;
         isGetComplexityNumber = self.jobOpt == 'analyze' and\
-                                self.moveTimeOpt >= 2000
+                                self.moveTimeOpt >= 5000
 
         # Run the engine.
         p = subprocess.Popen(self.eng, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
