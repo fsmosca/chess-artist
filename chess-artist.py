@@ -34,6 +34,7 @@ import subprocess
 import os
 import sys
 import time
+import math
 import chess
 from chess import pgn
 
@@ -47,7 +48,7 @@ TEST_SEARCH_SCORE = 100000
 TEST_SEARCH_DEPTH = 1000
 EPD_FILE = 1
 PGN_FILE = 2
-WIN_SCORE = 6.0
+WINNING_SCORE = 4.0
 
 def PrintProgram():
     """ Prints program name and version """
@@ -118,6 +119,7 @@ class Analyze():
         self.jobOpt = opt['-job']
         self.writeCnt = 0
         self.engIdName = self.GetEngineIdName()
+        self.engineRating = 2800
 
     def UciToSanMove(self, pos, uciMove):
         """ Returns san move given uci move """
@@ -943,6 +945,38 @@ class Analyze():
         # Convert to centipawn
         scoreCp = int(scoreP * 100.0)
         return scoreCp
+
+    def WriteTerminationMarker(self, wcnt, bcnt, werr, berr, rdiff, res):
+        """ Write termination marker and average errror """
+        if wcnt and bcnt:
+            with open(self.outfn, 'a') as f:
+                f.write('{[WhiteAveError=%0.2f, BlackAveError=%0.2f] [ratingDiff=%d]} %s\n\n' %(werr, berr, rdiff, res))
+        else:
+            with open(self.outfn, 'a') as f:
+                f.write('%s\n\n' %(res)) 
+
+    def WinPercentage(self, pa):
+        """ Returns win percentage given pawn advantage, pa """
+        y = -pa/4.0
+        wp = 1.0/(1.0 + (10**y))
+        return wp
+
+    def GetRatingDiff(self, averageError):
+        """ Returns rating difference,
+            wp = 1/(1+10**m)
+            wp x (1+10**m) = 1
+            wp + wp x 10**m = 1
+            10**m = (1-wp)/wp
+            m x log(10) = log((1-wp)/wp)
+            log(10) = 1
+            m = log((1-wp)/wp)
+            m = ratingDiff/400
+            ratingDiff = 400 x m
+        """
+        wp = self.WinPercentage(-averageError)
+        m = math.log((1.0 - wp)/wp)
+        ratingDiff = 400 * m
+        return int(ratingDiff)
     
     def AnnotatePgn(self):
         """ Parse the pgn file and annotate the games """
@@ -967,6 +1001,10 @@ class Analyze():
         # Loop thru the games.
         while game:
             gameCnt += 1
+
+            # Initialize move error calculation
+            moveError = {'white':0.0, 'black':0.0}
+            moveCnt = {'white':0, 'black':0}
 
             # Used for formatting the output.
             self.writeCnt = 0
@@ -1050,26 +1088,46 @@ class Analyze():
                     searchScore, complexityNumber, moveChanges = self.GetSearchScoreAfterMove(fenAfterMove, side)
                     posScore = searchScore
 
-                # (4) Let the engine searches its score and move recommendations only if
-                # posScore is not winning or lossing (more than 6.0 pawns).
+                # (4) Analyze the position with the engine. Only do this
+                # if posScore is not winning or lossing (more than 4.0 pawns).
                 engBestMove, engBestScore = None, None
-                if abs(posScore) <= WIN_SCORE and self.jobOpt == 'analyze':
+                if abs(posScore) < WINNING_SCORE and self.jobOpt == 'analyze':
                     engBestMove, engBestScore = self.GetSearchScoreBeforeMove(gameNode.board().fen(), side)
+
+                    # Calculate total move errors incrementally and get the average later
+                    if fmvn >= 12 and self.evalOpt == 'search' and sanMove != engBestMove:
+                        if side:
+                            scoreError = engBestScore - posScore
+                            moveError['white'] += scoreError
+                            moveCnt['white'] += 1
+                        else:
+                            scoreError = -1 * (engBestScore - posScore)
+                            moveError['black'] += scoreError
+                            moveCnt['black'] += 1
                     
                 # (5) If game is over by checkmate and stalemate after a move              
                 isGameOver = nextNode.board().is_checkmate() or nextNode.board().is_stalemate()
                 
                 # (6) Write moves and comments.
-                self.WriteNotation(side, fmvn, sanMove, cereBookMove,
-                                   posScore, isGameOver, engBestMove, engBestScore,
-                                   complexityNumber, moveChanges)
+                self.WriteNotation(side, fmvn, sanMove, cereBookMove, posScore, isGameOver,
+                                   engBestMove, engBestScore, complexityNumber, moveChanges)
 
                 # Read the next position.
                 gameNode = nextNode
 
-            # Write the result and a space between games.
-            with open(self.outfn, 'a') as f:
-                f.write('%s\n\n' %(res))
+            # All moves are parsed in this game, calculate average errors and rating difference
+            averageError = {'white':0.0, 'black':0.0}
+            ratingDiff = {'white':0, 'black':0}                
+            if moveCnt['white']:
+                averageError['white'] = moveError['white']/moveCnt['white']                
+                ratingDiff['white'] = self.GetRatingDiff(averageError['white'])
+            if moveCnt['black']:
+                averageError['black'] = moveError['black']/moveCnt['black']            
+                ratingDiff['black'] = self.GetRatingDiff(averageError['black'])
+            
+            # Write errors, rating difference and game termination marker to output file
+            self.WriteTerminationMarker(moveCnt['white'], moveCnt['black'], averageError['white'], averageError['black'],
+                                                          abs(ratingDiff['white'] - ratingDiff['black']), res)               
 
             # Read the next game.
             game = chess.pgn.read_game(pgnHandle)
