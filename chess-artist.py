@@ -1093,8 +1093,8 @@ class Analyze():
                 fmvn = gameNode.board().fullmove_number             
                 nextNode = gameNode.variation(0)                      
                 sanMove = nextNode.san()
-                complexityNumber = 0
-                moveChanges = 0
+                complexityNumber, moveChanges = 0, 0
+                complexityNumberBeforeMove, moveChangesBeforeMove = 0, 0
 
                 # (0) Don't start the engine analysis when fmvn is
                 # below moveStart and not using a cerebellum book.
@@ -1136,7 +1136,7 @@ class Analyze():
                     posScore = searchScore
 
                 # (4) Analyze the position with the engine. Only do this
-                # if posScore is not winning or lossing (more than 4.0 pawns).
+                # if posScore is not winning or lossing (more than 3.0 pawns).
                 engBestMove, engBestScore, pvLine = None, None, None
                 if abs(posScore) < WINNING_SCORE and self.jobOpt == 'analyze':
                     engBestMove, engBestScore, complexityNumberBeforeMove, moveChangesBeforeMove, pvLine = self.GetSearchScoreBeforeMove(gameNode.board().fen(), side)
@@ -1425,12 +1425,6 @@ def main(argv):
     # Exit if analyzing epd with -eval none
     if fileType == EPD_FILE and evalOption == 'none' and jobOption != 'test':
         print('Error! -eval was set to none.')
-        sys.exit(1)
-
-    # Exit if input file is pgn and -job is test or none
-    if fileType == PGN_FILE and jobOption != 'analyze':
-        print('Error! -job was not defined with analyze.')
-        print('Use -job analyze')
         sys.exit(1)
         
     # Delete existing output file.
