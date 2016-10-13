@@ -1418,7 +1418,7 @@ def main(argv):
         sys.exit(1)
 
     # Exit if file type is epd and move time is 0.
-    if fileType == EPD_FILE and moveTimeOption <= 0:
+    if fileType == EPD_FILE and moveTimeOption <= 0 and evalOption != 'static':
         print('Error! movetime is zero.')
         sys.exit(1)
 
