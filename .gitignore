@@ -3,6 +3,7 @@
 *.epd
 *.bat
 *.exe
+*.log
 
 # Ignore execurable generator script
 setup.py
