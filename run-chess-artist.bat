@@ -1,5 +1,9 @@
 :: (1) Analyze a game
+<<<<<<< HEAD
 :: chess-artist -infile kasparov_topalov_1999.pgn -outfile out_kasparov_topalov_1999.pgn -eng Bf.exe -eval search -movetime 5000 -movestart 8
+=======
+chess-artist -infile kasparov_topalov_1999.pgn -outfile out_kasparov_topalov_1999.pgn -eng Bf.exe -eval search -movetime 5000 -movestart 8
+>>>>>>> origin/master
 
 :: chess-artist -infile anderssen_dufresne_1852.pgn -outfile out_anderssen_dufresne_1852.pgn -eng Bf.exe -eval search -movetime 3000 -movestart 12
 
