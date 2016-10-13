@@ -48,21 +48,22 @@ G. Guide
    following command line using the -book option and Brainfish engine. The book Cerebellum_Light.bin
    should be in the same directory with the Brainfish engine and the script chess-artist.py.
    chess-artist -infile myg.pgn -outfile myg_cere.pgn -eng Brainfish.exe -book cerebellum -eval none
-6. If you want the game to be annotated with moves from Cerebellum_Light.bin book and with static eval
-   use the following command line. The book Cerebellum_Light.bin should be in the same directory with
-   the Brainfish engine and the script chess-artist.py.
+6. If you want the game to be annotated with moves from Cerebellum_Light.bin book and with static eval.
    chess-artist -infile myg.pgn -outfile myg_cere_se.pgn -eng Brainfish.exe -book cerebellum -eval static
 7. If you want the game to be annotated with engine search score, at movetime of 1 second per position,
-   engine Hash of 128 and Threads of 1, use the following command line.
-   chess-artist -infile myg.pgn -outfile myg_es.pgn -eng stockfish.exe -enghash 128 -engthreads 1 -eval search -movetime 1000
-8. If you want to annotate an epd file with bm, ce and other op codes at 10s per position. See example output in section H below.
-   chess-artist -infile myepd.epd -outfile myepd_out.epd -eng Branfish.exe -enghash 128 -engthreads 1 -movetime 10000
+   engine Hash of 128 MB and Threads of 1.
+   chess-artist -infile myg.pgn -outfile myg_es.pgn -eng Sf.exe -enghash 128 -engthreads 1 -eval search -movetime 1000
+7.1. If you want to annotate a game in pgn file with !!, ! and !?, ??, ? and ?! movetime should be 5s or more.
+   chess-artist -infile a.pgn -outfile out_a.pgn -eng Sf.exe -eval search -movetime 5000
+8. If you want to annotate an epd file with bm, ce and other op codes at 10s per position. The ce is from side POV.
+   See example output in section H below.
+   chess-artist -infile myepd.epd -outfile myepd_out.epd -eng Sf.exe -enghash 128 -engthreads 1 -movetime 10000
+8.1 If you want to annotate the epd file with ce whose value is from static eval of the engine instead of the search.
+   chess-artist -infile kasparov.epd -outfile out_kasparov.epd -eng Sf.exe -eval static
 9. If you want to test a uci engine on epd test suite to see how many best moves it could find, add the -job test option value.
    chess-artist -infile wacnew.epd -outfile wacnew_out.txt -eng Sf.exe -enghash 128 -engthreads 1 -movetime 500 -job test
-10. In the annotated game the value in the comment is from the point of
-   view of white, if it is positive, it is better for white, and if
-   negative it is better for black. Example 1. e4 {+0.74} white is ahead
-   by 0.74 of a pawn.
+10. In the annotated game the value in the comment is in pawn unit and is from the point of
+   view of white, if it is positive, it is better for white, and if negative it is better for black.
    
 H. Examples of annotated games, epd analysis, and engine epd test
 
