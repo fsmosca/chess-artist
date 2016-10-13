@@ -12,9 +12,10 @@ setup.py
 build/*
 dist/*
 
-# Ignore files inside pgn and epd dirs
+# Ignore files inside tools, pgn and epd dirs
 pgn/*
 epd/*
+tools/*
 
 # Ignore opening books such as cerebellum and polyglot
 *.bin
