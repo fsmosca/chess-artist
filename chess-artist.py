@@ -48,9 +48,10 @@ TEST_SEARCH_SCORE = 100000
 TEST_SEARCH_DEPTH = 1000
 EPD_FILE = 1
 PGN_FILE = 2
-WINNING_SCORE = +3.0
-MIN_DRAW_SCORE = -0.15
-MAX_DRAW_SCORE = +0.15
+DRAW_SCORE = +0.15
+SLIGHT_SCORE = +0.75
+MODERATE_SCORE = +1.50
+DECISIVE_SCORE = +3.0
 
 def PrintProgram():
     """ Prints program name and version """
@@ -148,15 +149,13 @@ class Analyze():
         moveNag = '$0'
 
         # (0) Position score after a move should not be winning
-        # WINNING_SCORE = +3.0
-        if posScore >= WINNING_SCORE:
+        if posScore >= DECISIVE_SCORE:
             return moveNag
 
         # (0.1) Position score after a move should also not be inferior
-        # MIN_DRAW_SCORE = -0.15
-        if posScore < MIN_DRAW_SCORE:
+        if posScore < -SLIGHT_SCORE:
             return moveNag
-        
+
         # (1) Very good !!
         if moveChanges >= 3 and complexityNumber >= 35:
             moveNag = '$3'
@@ -205,31 +204,31 @@ class Analyze():
         moveNag = '$0'
         
         # Blunder ??
-        if posScore < -1.50 and engScore >= -1.50:
+        if posScore < -MODERATE_SCORE and engScore >= -MODERATE_SCORE:
             moveNag = '$4'
             
         # Mistake ?
-        elif posScore < -0.75 and engScore >= -0.75:
+        elif posScore < -SLIGHT_SCORE and engScore >= -SLIGHT_SCORE:
             moveNag = '$2'
             
         # Dubious ?!
-        elif posScore < -0.15 and engScore >= -0.15:
+        elif posScore < -DRAW_SCORE and engScore >= -DRAW_SCORE:
             moveNag = '$6'
 
         # Mistake ? if engScore is winning and posScore is not winning
-        elif engScore > +1.50 and posScore <= +1.50:
+        elif engScore > MODERATE_SCORE and posScore <= MODERATE_SCORE:
             moveNag = '$2'
 
         # Mistake ? if posScore is too far from engScore by 0.50 or more
-        elif engScore >= -1.50 and engScore - posScore >= +0.50:
+        elif engScore >= -MODERATE_SCORE and engScore - posScore >= +0.50:
             moveNag = '$2'
 
         # Exception, add ! if posScore > engScore
-        if posScore >= -0.15 and posScore > engScore:
+        if posScore >= -DRAW_SCORE and posScore > engScore:
             moveNag = '$1'
 
         # Exception, add !? if posScore == engScore
-        elif posScore >= -0.15 and posScore == engScore:
+        elif posScore >= -DRAW_SCORE and posScore == engScore:
             moveNag = '$5'
         return moveNag
 
@@ -239,9 +238,9 @@ class Analyze():
             engScore = -1 * engScore
             posScore = -1 * posScore
         varComment = ''
-        if engScore - posScore > 5*MAX_DRAW_SCORE:
+        if engScore - posScore > 5 * DRAW_SCORE:
             varComment = 'Excellent is'
-        elif engScore - posScore > MAX_DRAW_SCORE:
+        elif engScore - posScore > DRAW_SCORE:
             varComment = 'Better is'
         return varComment
 
@@ -1147,7 +1146,7 @@ class Analyze():
                 # (4) Analyze the position with the engine. Only do this
                 # if posScore is not winning or lossing (more than 3.0 pawns).
                 engBestMove, engBestScore, pvLine = None, None, None
-                if (posScore is None or abs(posScore) < WINNING_SCORE) and self.jobOpt == 'analyze':
+                if (posScore is None or abs(posScore) < DECISIVE_SCORE) and self.jobOpt == 'analyze':
                     engBestMove, engBestScore, complexityNumber, moveChanges, pvLine = self.GetSearchScoreBeforeMove(gameNode.board().fen(), side)
 
                     # Calculate total move errors incrementally and get the average later
