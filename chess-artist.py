@@ -48,8 +48,9 @@ TEST_SEARCH_SCORE = 100000
 TEST_SEARCH_DEPTH = 1000
 EPD_FILE = 1
 PGN_FILE = 2
-WINNING_SCORE = 3.0
+WINNING_SCORE = +3.0
 MIN_DRAW_SCORE = -0.15
+MAX_DRAW_SCORE = +0.15
 
 def PrintProgram():
     """ Prints program name and version """
@@ -276,11 +277,16 @@ class Analyze():
             # If side to move is white
             if side:
                 if sanMove != engMove:
-                    moveNag = self.GetBadNag(side, posScore, engScore)                    
+                    moveNag = self.GetBadNag(side, posScore, engScore)
+
+                    # Add better is symbol before the engine variation
+                    betterIs = ''
+                    if engScore - posScore > MAX_DRAW_SCORE:
+                        betterIs = 'Better is'
 
                     # Write moves and comments
-                    f.write('%d. %s %s {%+0.2f} (%s {%+0.2f - %s}) ' %(moveNumber, sanMove, moveNag, posScore,
-                                                                          pvLine, engScore, engShortName))
+                    f.write('%d. %s %s {%+0.2f} ({%s} %s {%+0.2f - %s}) ' %(moveNumber, sanMove, moveNag, posScore,
+                                                                          betterIs, pvLine, engScore, engShortName))
                 else:
                     moveNag = self.GetGoodNag(side, posScore, engScore, complexityNumber, moveChanges)
                     f.write('%d. %s %s {%+0.2f} ' %(moveNumber, sanMove, moveNag, posScore))
@@ -288,9 +294,14 @@ class Analyze():
                 if sanMove != engMove:
                     moveNag = self.GetBadNag(side, posScore, engScore)
 
+                    # Add better is symbol before the engine variation
+                    betterIs = ''
+                    if engScore - posScore > MAX_DRAW_SCORE:
+                        betterIs = 'Better is'
+
                     # Write moves and comments  
-                    f.write('%d... %s %s {%+0.2f} (%s {%+0.2f - %s}) ' %(moveNumber, sanMove, moveNag, posScore,
-                                                                           pvLine, engScore, engShortName))
+                    f.write('%d... %s %s {%+0.2f} ({%s} %s {%+0.2f - %s}) ' %(moveNumber, sanMove, moveNag, posScore,
+                                                                           betterIs, pvLine, engScore, engShortName))
                 else:
                     moveNag = self.GetGoodNag(side, posScore, engScore, complexityNumber, moveChanges)
                     f.write('%s %s {%+0.2f} ' %(sanMove, moveNag, posScore))
@@ -353,12 +364,17 @@ class Analyze():
             # If side to move is white
             if side:
                 if sanMove != engMove:
-                    moveNag = self.GetBadNag(side, posScore, engScore)   
+                    moveNag = self.GetBadNag(side, posScore, engScore)
+
+                    # Add better is symbol before the engine variation
+                    betterIs = ''
+                    if engScore - posScore > MAX_DRAW_SCORE:
+                        betterIs = 'Better is'
 
                     # Write moves and comments
-                    f.write('%d. %s %s {%+0.2f} (%d. %s {%s}) (%s {%+0.2f - %s}) ' %(moveNumber, sanMove, moveNag, posScore,
+                    f.write('%d. %s %s {%+0.2f} (%d. %s {%s}) ({%s} %s {%+0.2f - %s}) ' %(moveNumber, sanMove, moveNag, posScore,
                                                                                       moveNumber, bookMove, bookComment,
-                                                                                      pvLine, engScore, engShortName))
+                                                                                      betterIs, pvLine, engScore, engShortName))
                 else:
                     moveNag = self.GetGoodNag(side, posScore, engScore, complexityNumber, moveChanges)
                     f.write('%d. %s {%+0.2f} (%d. %s {%s}) ' %(moveNumber, sanMove, posScore, moveNumber, bookMove, bookComment))
@@ -366,10 +382,15 @@ class Analyze():
                 if sanMove != engMove:
                     moveNag = self.GetBadNag(side, posScore, engScore)
 
+                    # Add better is symbol before the engine variation
+                    betterIs = ''
+                    if engScore - posScore > MAX_DRAW_SCORE:
+                        betterIs = 'Better is'
+
                     # Write moves and comments
-                    f.write('%d... %s %s {%+0.2f} (%d... %s {%s}) (%s {%+0.2f - %s}) ' %(moveNumber, sanMove, moveNag, posScore,
+                    f.write('%d... %s %s {%+0.2f} (%d... %s {%s}) ({%s} %s {%+0.2f - %s}) ' %(moveNumber, sanMove, moveNag, posScore,
                                                                                        moveNumber, bookMove, bookComment,
-                                                                                       pvLine, engScore, engShortName))
+                                                                                       betterIs, pvLine, engScore, engShortName))
                 else:
                     moveNag = self.GetGoodNag(side, posScore, engScore, complexityNumber, moveChanges)
                     f.write('%d... %s {%+0.2f} (%d... %s {%s}) ' %(moveNumber, sanMove, posScore, moveNumber, bookMove, bookComment))
