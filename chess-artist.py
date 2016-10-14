@@ -397,15 +397,15 @@ class Analyze():
                                                         moveNumber, bookMove, bookComment,
                                                         pvLine, engScore, engShortName))
                 else:
-                    f.write('%d... %s {%+0.2f} (%d... %s {%s}) ' %(moveNumber, sanMove,
-                                                        posScore, moveNumber, bookMove, bookComment))
+                    f.write('%d... %s (%d... %s {%s}) ' %(moveNumber, sanMove,
+                                                        moveNumber, bookMove, bookComment))
 
                 # Format output, don't write movetext in one long line.
                 if self.writeCnt >= 2:
                     self.writeCnt = 0
                     f.write('\n')
 
-    def WriteEngMove(self, side, moveNumber, sanMove, bookMove, engMove, engScore, pvLine):
+    def WriteEngMove(self, side, moveNumber, sanMove, engMove, engScore, pvLine):
         """ Write moves with eng moves in the output file """
         engShortName = self.engIdName.split()[0]
         
@@ -1138,7 +1138,7 @@ class Analyze():
                 # (4) Analyze the position with the engine. Only do this
                 # if posScore is not winning or lossing (more than 3.0 pawns).
                 engBestMove, engBestScore, pvLine = None, None, None
-                if abs(posScore) < WINNING_SCORE and self.jobOpt == 'analyze':
+                if (posScore is None or abs(posScore) < WINNING_SCORE) and self.jobOpt == 'analyze':
                     engBestMove, engBestScore, complexityNumberBeforeMove, moveChangesBeforeMove, pvLine = self.GetSearchScoreBeforeMove(gameNode.board().fen(), side)
 
                     # Calculate total move errors incrementally and get the average later
@@ -1413,7 +1413,7 @@ def main(argv):
         fileType = PGN_FILE
     
     # Exit if book and eval options are none and file type is pgn.
-    if bookOption == 'none' and evalOption == 'none' and fileType == PGN_FILE:
+    if bookOption == 'none' and evalOption == 'none' and fileType == PGN_FILE and jobOption == 'none':
         print('Error! options were not defined. Nothing has been processed.')
         sys.exit(1)
 
