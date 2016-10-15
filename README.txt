@@ -43,25 +43,27 @@ G. Guide
    and Brainfish with Cerebellum_Light.bin book here,
    http://www.zipproth.de/#Brainfish_download
 4. If you want the game to be annotated with engine static eval use the following command line.
-   chess-artist -infile mygames.pgn -outfile mygames_se.pgn -eng stockfish.exe -eval static
+   chess-artist -infile myg.pgn -outfile out_myg.pgn -eng Sf.exe -eval static -job none
 5. If you want the game to be annotated with moves from Cerebellum_Light.bin book use the
    following command line using the -book option and Brainfish engine. The book Cerebellum_Light.bin
    should be in the same directory with the Brainfish engine and the script chess-artist.py.
-   chess-artist -infile myg.pgn -outfile myg_cere.pgn -eng Brainfish.exe -book cerebellum -eval none
+   chess-artist -infile myg.pgn -outfile out_myg.pgn -eng Bf.exe -book cerebellum -eval none -job none
 6. If you want the game to be annotated with moves from Cerebellum_Light.bin book and with static eval.
-   chess-artist -infile myg.pgn -outfile myg_cere_se.pgn -eng Brainfish.exe -book cerebellum -eval static
+   chess-artist -infile myg.pgn -outfile out_myg.pgn -eng Bf.exe -book cerebellum -eval static -job none
 7. If you want the game to be annotated with engine search score, at movetime of 1 second per position,
    engine Hash of 128 MB and Threads of 1.
-   chess-artist -infile myg.pgn -outfile myg_es.pgn -eng Sf.exe -enghash 128 -engthreads 1 -eval search -movetime 1000
-7.1. If you want to annotate a game in pgn file with !!, ! and !?, ??, ? and ?! movetime should be 5s or more.
-   chess-artist -infile a.pgn -outfile out_a.pgn -eng Sf.exe -eval search -movetime 5000
+   chess-artist -infile myg.pgn -outfile out_myg.pgn -eng Sf.exe -enghash 128 -engthreads 1 -eval search -movetime 1000 -job none
+7.1. If you want to annotate a game in pgn file with !!, ! and !?, ??, ? and ?! movetime should be 2s or more.
+   chess-artist -infile a.pgn -outfile out_a.pgn -eng Sf.exe -eval search -movetime 2000.
+7.2. If you want to annotate a game in pgn file with move annotation symbols, book and engine search score and bestmove.
+   chess-artist -infile a.pgn -outfile out_a.pgn -eng Sf.exe -eval search -book cerebellum --movetime 2000
 8. If you want to annotate an epd file with bm, ce and other op codes at 10s per position. The ce is from side POV.
    See example output in section H below.
-   chess-artist -infile myepd.epd -outfile myepd_out.epd -eng Sf.exe -enghash 128 -engthreads 1 -movetime 10000
+   chess-artist -infile myepd.epd -outfile out_myepd.epd -eng Sf.exe -enghash 128 -engthreads 1 -movetime 10000
 8.1 If you want to annotate the epd file with ce whose value is from static eval of the engine instead of the search.
-   chess-artist -infile kasparov.epd -outfile out_kasparov.epd -eng Sf.exe -eval static
+   chess-artist -infile carlsen.epd -outfile out_carlsen.epd -eng Sf.exe -eval static
 9. If you want to test a uci engine on epd test suite to see how many best moves it could find, add the -job test option value.
-   chess-artist -infile wacnew.epd -outfile wacnew_out.txt -eng Sf.exe -enghash 128 -engthreads 1 -movetime 500 -job test
+   chess-artist -infile wacnew.epd -outfile out_wacnew.txt -eng Sf.exe -enghash 128 -engthreads 1 -movetime 1000 -job test
 10. In the annotated game the value in the comment is in pawn unit and is from the point of
    view of white, if it is positive, it is better for white, and if negative it is better for black.
    
