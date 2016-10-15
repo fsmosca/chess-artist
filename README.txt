@@ -67,7 +67,20 @@ G. Guide
 10. In the annotated game the value in the comment is in pawn unit and is from the point of
    view of white, if it is positive, it is better for white, and if negative it is better for black.
    
-H. Examples of annotated games, epd analysis, and engine epd test
+H. Options
+-infile <input filename> : Default is src.pgn
+-outfile <output filename> : Default is out_src.pgn
+-eng <engine filename> : Default is engine.exe
+-enghash <value in mb> : Default is 32, memory or Hash for uci engines
+-engthreads <integer value> : Default is 1, number of threads to be used by engine.
+-book <none | cerebellum> : Default is none, used to add book moves to the game annotation when value is cerebellum.
+-eval <none | static | search> : Default is static, it is used to calculate the score of the move of the player in the game.
+-job <none | search | test> : Default is search, when the infile is pgn and value is search, the engine will search for bestmove
+   and bestscore of the position, it will be compared to the score of the move of the player to get move annotation symbols,
+   and generate comments. If the infile is epd and the value is search, it will annotate an epd file with acd, acs, bm and other
+   opcodes. If the infile is epd and the value is test, it will test the engine of the epd test suite.
+   
+I. Examples of annotated games, epd analysis, and engine epd test
 
 1. Game analysis with cerebellum book use
 
