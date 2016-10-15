@@ -82,6 +82,8 @@ H. Options
     and generate comments. If the infile is epd and the value is search, it will annotate an epd file with acd, acs, bm and other
     opcodes. If the infile is epd and the value is test, it will test the engine of the epd test suite.
 -movetime <integer value> : Default is 0, this is the time in millisec for engine search time for engine solving the epd test suite.
+-movestart <move number> : Default is 8, it is the number that the engine will start analyzing a pgn file. The -book setting
+    will not be affected by this.
    
 I. Examples of annotated games, epd analysis, and engine epd test
 
