@@ -151,46 +151,44 @@ and ??, ? ?! based on player move score and engine move score.
 [Annotator "Brainfish 280816 64 POPCNT"]
 
 {Hash 32mb, Threads 1, @ 10.0s/pos}
-1. e4 d6 2. d4 Nf6 
-3. Nc3 g6 4. Be3 Bg7 
-5. Qd2 c6 6. f3 b5 
-7. Nge2 Nbd7 8. Bh6 $0 {+0.06} (8. h4 {+0.12 - Brainfish}) Bxh6 $0 {+0.22} 
-9. Qxh6 $1 {+0.05} 9... Bb7 $6 {+0.24} (9... Qb6 {+0.05 - Brainfish}) 
-10. a3 $0 {+0.10} (10. Nd1 {+0.24 - Brainfish}) 10... e5 $6 {+0.18} (10... a5 {+0.10 - Brainfish}) 
-11. O-O-O $5 {+0.28} (11. dxe5 {+0.18 - Brainfish}) Qe7 $0 {+0.22} 
-12. Kb1 $0 {+0.06} (12. Ng3 {+0.22 - Brainfish}) 12... a6 $6 {+0.42} (12... a5 {+0.06 - Brainfish}) 
-13. Nc1 $5 {+0.55} (13. g4 {+0.42 - Brainfish}) 13... O-O-O $5 {+0.51} (13... exd4 {+0.55 - Brainfish}) 
-14. Nb3 $5 {+0.55} (14. Qe3 {+0.51 - Brainfish}) exd4 $0 {+0.41} 
-15. Rxd4 $5 {+0.42} (15. Nxd4 {+0.41 - Brainfish}) 15... c5 $2 {+0.91} (15... Nc5 {+0.42 - Brainfish}) 
-16. Rd1 $0 {+0.53} (16. Rd2 {+0.91 - Brainfish}) 16... Nb6 $5 {+0.43} (16... Ne5 {+0.53 - Brainfish}) 
-17. g3 $0 {+0.34} (17. Qh4 {+0.43 - Brainfish}) 17... Kb8 $0 {+0.44} (17... d5 {+0.34 - Brainfish}) 
-18. Na5 $0 {+0.00} (18. g4 {+0.44 - Brainfish}) 18... Ba8 $6 {+0.48} (18... d5 {+0.00 - Brainfish}) 
-19. Bh3 $0 {+0.08} (19. Ka1 {+0.48 - Brainfish}) d5 $5 {+0.00} 
-20. Qf4+ $5 {+0.00} (20. Rhe1 {+0.00 - Brainfish}) Ka7 $5 {+0.10} 
-21. Rhe1 $0 {+0.06} d4 $5 {+0.00} 
-22. Nd5 $6 {-0.61} (22. Na2 {+0.00 - Brainfish}) Nbxd5 $0 {-0.63} 
-23. exd5 $5 {-0.57} (23. Nc6+ {-0.63 - Brainfish}) Qd6 $0 {-0.60} 
-24. Rxd4 $5 {-0.50} (24. Nc6+ {-0.60 - Brainfish}) 24... cxd4 $0 {+0.00} (24... Kb6 {-0.50 - Brainfish}) 
-25. Re7+ $0 {+0.00} Kb6 $0 {+0.00} 
-26. Qxd4+ $0 {+0.00} Kxa5 $0 {+0.00} 
-27. b4+ $0 {+0.24} Ka4 $0 {+0.59} 
-28. Qc3 $0 {+0.00} (28. Ra7 {+0.59 - Brainfish}) Qxd5 $0 {+0.00} 
-29. Ra7 $0 {+0.00} Bb7 $0 {+0.00} 
-30. Rxb7 $5 {+0.00} (30. Qc7 {+0.00 - Brainfish}) 30... Qc4 $6 {+0.69} (30... Rhe8 {+0.00 - Brainfish}) 
-31. Qxf6 $0 {+0.55} 31... Kxa3 $4 {+3.94} (31... Rd1+ {+0.55 - Brainfish}) 
-32. Qxa6+ $0 {+3.97} Kxb4 $0 {+3.93} 
-33. c3+ $0 {+4.04} Kxc3 $0 {+4.12} 
-34. Qa1+ $0 {+4.10} Kd2 $0 {+4.98} 
-35. Qb2+ $0 {+4.35} Kd1 $0 {+4.46} 
-36. Bf1 $0 {+4.22} Rd2 $0 {+4.45} 
-37. Rd7 $0 {+4.37} Rxd7 $0 {+4.25} 
-38. Bxc4 $0 {+4.46} bxc4 $0 {+4.35} 
-39. Qxh8 $0 {+4.45} Rd3 $0 {+4.41} 
-40. Qa8 $0 {+4.41} 40... c3 $0 {+4.86} (40... Rb3+ {+4.41 - Brainfish}) 
-41. Qa4+ $0 {+4.46} Ke1 $0 {+4.63} 
-42. f4 $5 {+5.29} (42. Qf4 {+4.63 - Brainfish}) 42... f5 $0 {+5.74} (42... Rd2 {+5.29 - Brainfish}) 
-43. Kc1 {+6.37} Rd2 $0 {+5.85} 
-44. Qa7 {+6.68} 1-0
+1. e4 (1. e4 {cerebellum}) 1... d6 (1... e5 {cerebellum}) 
+2. d4 (2. d4 {cerebellum}) 2... Nf6 (2... g6 {cerebellum}) 
+3. Nc3 (3. Nc3 {cerebellum}) 3... g6 (3... g6 {cerebellum}) 
+4. Be3 (4. Be3 {cerebellum}) 4... Bg7 (4... c6 {cerebellum}) 
+5. Qd2 (5. Qd2 {cerebellum}) 5... c6 (5... O-O {cerebellum}) 
+6. f3 (6. Bh6 {cerebellum}) 6... b5 (6... b5 {cerebellum}) 
+7. Nge2 (7. O-O-O {cerebellum}) 7... Nbd7 (7... O-O {cerebellum}) 
+8. Bh6 $0 {+0.06} (8. g4 {cerebellum}) ({} 8. a3 Bb7 9. g4 Nb6 10. b3 {+0.17 - Brainfish}) 8... Bxh6 {+0.03} (8... Bxh6 {cerebellum}) 
+9. Qxh6 {+0.03} (9. Qxh6 {cerebellum}) 9... Bb7 $6 {+0.19} (9... Qb6 {cerebellum}) ({} 9...b4 {+0.10 - Brainfish}) 
+10. a3 $0 {+0.07} (10. a4 {cerebellum}) ({Better is} 10. Nd1 Ba6 11. a3 Qb6 12. c3 {+0.26 - Brainfish}) 10... e5 $6 {+0.30} (10... a5 {cerebellum}) ({Better is} 10...a5 11. Ng3 b4 12. Na4 Nb6 {+0.07 - Brainfish}) 
+11. O-O-O {+0.13} (11. dxe5 {cerebellum}) 11... Qe7 {+0.12} (11... a5 {cerebellum}) 
+12. Kb1 $0 {-0.02} (12. Kb1 {cerebellum}) ({} 12. Ng3 O-O-O 13. Kb1 Kb8 14. Be2 {+0.12 - Brainfish}) 12... a6 $6 {+0.46} (12... a5 {cerebellum}) ({Better is} 12...a5 13. dxe5 dxe5 14. g4 b4 {-0.02 - Brainfish}) 
+13. Nc1 $0 {+0.43} (13. Nc1 {cerebellum}) ({} 13. g4 a5 14. g5 Nh5 15. Bh3 {+0.46 - Brainfish}) 13... O-O-O $0 {+0.53} (13... O-O-O {cerebellum}) ({} 13...exd4 14. Rxd4 O-O-O 15. Rd2 Ne5 {+0.43 - Brainfish}) 
+14. Nb3 $1 {+0.58} (14. Nb3 {cerebellum}) ({} 14. dxe5 dxe5 15. g3 Kb8 16. Qe3 {+0.53 - Brainfish}) 14... exd4 {+0.53} (14... exd4 {cerebellum}) 
+15. Rxd4 $0 {+0.36} (15. Rxd4 {cerebellum}) ({Better is} 15. Nxd4 Kb8 16. Be2 Rhe8 17. Rd2 {+0.53 - Brainfish}) 15... c5 $0 {+0.71} (15... c5 {cerebellum}) ({Better is} 15...Nc5 16. Nxc5 dxc5 17. Rxd8+ Rxd8 {+0.36 - Brainfish}) 
+16. Rd1 $0 {+0.56} (16. Rd1 {cerebellum}) ({} 16. Rd2 Ne5 17. Qe3 Nfd7 18. Be2 {+0.71 - Brainfish}) 16... Nb6 $1 {+0.47} (16... Nb6 {cerebellum}) ({} 16...Ne5 17. Na5 Rhe8 18. Nxb7 Kxb7 {+0.56 - Brainfish}) 
+17. g3 $0 {+0.43} (17. Qe3 {cerebellum}) ({} 17. Qe3 Kb8 18. Qf2 Rhe8 19. Na5 {+0.47 - Brainfish}) 17... Kb8 $1 {+0.40} (17... Kb8 {cerebellum}) ({} 17...d5 18. Bh3+ Kb8 19. e5 Nfd7 {+0.43 - Brainfish}) 
+18. Na5 $0 {+0.13} (18. Bg2 {cerebellum}) ({Better is} 18. g4 d5 19. Qf4+ Ka8 20. Nxc5 {+0.40 - Brainfish}) 18... Ba8 $6 {+0.42} (18... Ba8 {cerebellum}) ({Better is} 18...d5 19. Qf4+ Ka7 20. Bxb5 axb5 {+0.13 - Brainfish}) 
+19. Bh3 $0 {+0.00} (19. Bh3 {cerebellum}) ({Better is} 19. g4 Nfd7 20. Bg2 Ne5 21. Rhe1 {+0.49 - Brainfish}) 19... d5 {+0.00} (19... d5 {cerebellum}) 
+20. Qf4+ $0 {-0.07} (20. Rhe1 {cerebellum}) ({} 20. Rhe1 d4 21. Qf4+ Ka7 22. Na2 {+0.00 - Brainfish}) 20... Ka7 {+0.12} (20... Ka7 {cerebellum}) 
+21. Rhe1 {+0.03} (21. Rhe1 {cerebellum}) 21... d4 {-0.06} (21... d4 {cerebellum}) 
+22. Nd5 $6 {-0.68} (22. Na2 {cerebellum}) ({Better is} 22. Na2 Nh5 23. Qd2 Qc7 24. Qf2 {-0.06 - Brainfish}) 22... Nbxd5 {-0.57} (22... Nbxd5 {cerebellum}) 
+23. exd5 $0 {-0.65} (23. exd5 {cerebellum}) ({} 23. Nc6+ Bxc6 24. exd5 Qd6 25. Qxd6 {-0.57 - Brainfish}) 23... Qd6 {-0.52} (23... Qd6 {cerebellum}) 
+24. Rxd4 $5 {-0.52} (24. Rxd4 {cerebellum}) ({} 24. Nc6+ Bxc6 25. Qxd6 Rxd6 26. dxc6 {-0.52 - Brainfish}) 24... cxd4 $0 {+0.00} (24... Kb6 {cerebellum}) ({Better is} 24...Kb6 25. b4 Qxf4 26. Rxf4 Nxd5 {-0.45 - Brainfish}) 
+25. Re7+ {+0.00} (25. Re7+ {cerebellum}) 25... Kb6 {+0.00} (25... Kb8 {cerebellum}) 
+26. Qxd4+ {+0.00} (26. Qxd4+ {cerebellum}) 26... Kxa5 {+0.00} (26... Qc5 {cerebellum}) 
+27. b4+ {+1.68} (27. b4+ {cerebellum}) 27... Ka4 {+3.05} (27... Ka4 {cerebellum}) 
+28. Qc3 $2 {+0.06} (28. Ra7 {cerebellum}) ({Excellent is} 28. Ra7 {+3.05 - Brainfish}) 28... Qxd5 {+0.24} (28... Qxd5 {cerebellum}) 
+29. Ra7 {+0.00} (29. Ra7 {cerebellum}) 29... Bb7 {+0.00} (29... Bb7 {cerebellum}) 
+30. Rxb7 $1 {+0.30} (30. Rxb7 {cerebellum}) ({} 30. Qc7 Qd1+ 31. Ka2 Bd5+ 32. Kb2 {+0.00 - Brainfish}) 30... Qc4 $0 {+0.39} (30... Qc4 {cerebellum}) ({} 30...Rhe8 31. Rb6 Ra8 32. Rc6 Re2 {+0.30 - Brainfish}) 
+31. Qxf6 {+0.51} (31. Qxf6 {cerebellum}) 31... Kxa3 {+4.25} (31... Rd1+ {cerebellum}) 
+32. Qxa6+ {+3.97} (32. Qxa6+ {cerebellum}) Kxb4 {+4.17} 33. c3+ {+4.32} Kxc3 {+4.26} 
+34. Qa1+ {+4.17} Kd2 {+5.07} 35. Qb2+ {+4.46} Kd1 {+4.74} 
+36. Bf1 {+4.59} Rd2 {+4.69} 37. Rd7 {+4.51} Rxd7 {+4.29} 
+38. Bxc4 {+4.81} bxc4 {+4.45} 39. Qxh8 {+4.45} Rd3 {+5.01} 
+40. Qa8 {+4.48} c3 {+5.02} 41. Qa4+ {+4.86} Ke1 {+4.81} 
+42. f4 {+5.44} f5 {+5.88} 43. Kc1 {+6.72} Rd2 {+6.17} 
+44. Qa7 {+6.90} {[WhiteAveError=0.34, BlackAveError=0.21] [ratingDiff=30]} 1-0
 
 2. Epd analysis, annotate epd with acd, acs, bm, ce and Ae op codes
 
