@@ -122,7 +122,6 @@ class Analyze():
         self.jobOpt = opt['-job']
         self.writeCnt = 0
         self.engIdName = self.GetEngineIdName()
-        self.engineRating = 2800
 
     def UciToSanMove(self, pos, uciMove):
         """ Returns san move given uci move """
@@ -224,11 +223,11 @@ class Analyze():
             moveNag = '$2'
 
         # Exception, add ! if posScore > engScore
-        if posScore >= -DRAW_SCORE and posScore > engScore:
+        if posScore >= -SLIGHT_SCORE and posScore > engScore:
             moveNag = '$1'
 
         # Exception, add !? if posScore == engScore
-        elif posScore >= -DRAW_SCORE and posScore == engScore:
+        elif posScore >= -SLIGHT_SCORE and posScore == engScore:
             moveNag = '$5'
         return moveNag
 
