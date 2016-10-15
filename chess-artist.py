@@ -52,6 +52,7 @@ DRAW_SCORE = +0.15
 SLIGHT_SCORE = +0.75
 MODERATE_SCORE = +1.50
 DECISIVE_SCORE = +3.0
+COMPLEXITY_MINIMUM_TIME = 2000
 
 def PrintProgram():
     """ Prints program name and version """
@@ -687,7 +688,7 @@ class Analyze():
         complexityNumber = 0
         moveChanges = 0;
         isGetComplexityNumber = self.jobOpt == 'analyze' and\
-                                self.moveTimeOpt >= 5000
+                                self.moveTimeOpt >= COMPLEXITY_MINIMUM_TIME
 
         # Run the engine.
         p = subprocess.Popen(self.eng, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
@@ -765,13 +766,20 @@ class Analyze():
         p.communicate()        
         assert scoreCp != TEST_SEARCH_SCORE, 'Error, search failed to return a score.'
 
+        # Get the first move of the pvLine, make sure the this move
+        # is the same with the bestMove, if not then set bestMove as pvLine
+        firstPvMove = pvLine[0].strip()
+        if firstPvMove != bestMove:
+            pvLine = []
+            pvLine.append(bestMove)
+
         # Convert pv line to SAN
-        board = chess.Board(pos)
-        pvLineSan = None
         try:
+            board = chess.Board(pos)
             pvLineSan = board.variation_san([chess.Move.from_uci(m) for m in pvLine])
         except:
-            print('Warning, pv line is missing.')
+            print('Warning, there is error in pvLine')
+            print('pvLine: %s' %(pvLine))
 
         # Get complexity number and moveChanges count
         if isGetComplexityNumber:
