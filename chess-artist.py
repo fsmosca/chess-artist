@@ -40,7 +40,7 @@ from chess import pgn
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = '0.1.0'
+APP_VERSION = '0.2.0'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -53,6 +53,8 @@ SLIGHT_SCORE = +0.75
 MODERATE_SCORE = +1.50
 DECISIVE_SCORE = +3.0
 COMPLEXITY_MINIMUM_TIME = 2000
+DEFAULT_HASH = 32
+DEFAULT_THREADS = 1
 
 def PrintProgram():
     """ Prints program name and version """
@@ -117,10 +119,9 @@ class Analyze():
         self.bookOpt = opt['-book']
         self.evalOpt = opt['-eval']
         self.moveTimeOpt = opt['-movetime']
-        self.engHashOpt = opt['-enghash']
-        self.engThreadsOpt = opt['-engthreads']
         self.moveStartOpt = opt['-movestart']
         self.jobOpt = opt['-job']
+        self.engOpt = opt['-engoptions']
         self.writeCnt = 0
         self.engIdName = self.GetEngineIdName()
 
@@ -135,7 +136,8 @@ class Analyze():
         """ Prints engine id name """
         print('Analyzing engine: %s' %(self.engIdName))
 
-    def GetGoodNag(self, side, posScore, engScore, complexityNumber, moveChanges):
+    def GetGoodNag(self, side, posScore, engScore,
+                   complexityNumber, moveChanges):
         """ Returns !!, !, !? depending on the player score, analyzing
             engine score, complexity number and pv move changes.
         """
@@ -172,9 +174,10 @@ class Analyze():
         elif moveChanges >= 2:
             moveNag = '$5'
 
-        # (3.1) Interesting !?, low pv move changes but has high complexity number
-        # meaning the engine changes its best move once but at higher depths.
-        # The value 18 is applied with stockfish engine in mind.
+        # (3.1) Interesting !?, low pv move changes but has high
+        # complexity number, meaning the engine changes its best move once
+        # but at higher depths. The value 18 is applied with
+        # stockfish engine in mind.
         elif moveChanges >= 1 and complexityNumber >= 18:
             moveNag = '$5'
         return moveNag
@@ -277,7 +280,9 @@ class Analyze():
                     self.writeCnt = 0
                     f.write('\n')
 
-    def WritePosScoreEngMove(self, side, moveNumber, sanMove, posScore, engMove, engScore, complexityNumber, moveChanges, pvLine):
+    def WritePosScoreEngMove(self, side, moveNumber,
+                             sanMove, posScore, engMove,
+                             engScore, complexityNumber, moveChanges, pvLine):
         """ Write moves with score and engMove in the output file """
         engShortName = self.engIdName.split()[0]
         
@@ -294,11 +299,14 @@ class Analyze():
                     varComment = self.PreComment(side, engScore, posScore)
 
                     # Write moves and comments
-                    f.write('%d. %s %s {%+0.2f} ({%s} %s {%+0.2f - %s}) ' %(moveNumber, sanMove, moveNag, posScore,
-                                                                          varComment, pvLine, engScore, engShortName))
+                    f.write('%d. %s %s {%+0.2f} ({%s} %s {%+0.2f - %s}) '\
+                            %(moveNumber, sanMove, moveNag, posScore,
+                              varComment, pvLine, engScore, engShortName))
                 else:
-                    moveNag = self.GetGoodNag(side, posScore, engScore, complexityNumber, moveChanges)
-                    f.write('%d. %s %s {%+0.2f} ' %(moveNumber, sanMove, moveNag, posScore))
+                    moveNag = self.GetGoodNag(side, posScore, engScore,
+                                              complexityNumber, moveChanges)
+                    f.write('%d. %s %s {%+0.2f} ' %(moveNumber, sanMove,
+                                                    moveNag, posScore))
             else:
                 if sanMove != engMove:
                     moveNag = self.GetBadNag(side, posScore, engScore)
@@ -307,10 +315,12 @@ class Analyze():
                     varComment = self.PreComment(side, engScore, posScore)
 
                     # Write moves and comments  
-                    f.write('%d... %s %s {%+0.2f} ({%s} %s {%+0.2f - %s}) ' %(moveNumber, sanMove, moveNag, posScore,
-                                                                           varComment, pvLine, engScore, engShortName))
+                    f.write('%d... %s %s {%+0.2f} ({%s} %s {%+0.2f - %s}) '\
+                            %(moveNumber, sanMove, moveNag, posScore,
+                              varComment, pvLine, engScore, engShortName))
                 else:
-                    moveNag = self.GetGoodNag(side, posScore, engScore, complexityNumber, moveChanges)
+                    moveNag = self.GetGoodNag(side, posScore, engScore,
+                                              complexityNumber, moveChanges)
                     f.write('%s %s {%+0.2f} ' %(sanMove, moveNag, posScore))
 
                 # Format output, don't write movetext in one long line.
@@ -329,16 +339,21 @@ class Analyze():
 
             # If side to move is white
             if side:
-                f.write('%d. %s (%d. %s {%s}) ' %(moveNumber, sanMove, moveNumber, bookMove, bookComment))
+                f.write('%d. %s (%d. %s {%s}) ' %(moveNumber, sanMove,
+                                                  moveNumber, bookMove,
+                                                  bookComment))
             else:
-                f.write('%d... %s (%d... %s {%s}) ' %(moveNumber, sanMove, moveNumber, bookMove, bookComment))
+                f.write('%d... %s (%d... %s {%s}) ' %(moveNumber, sanMove,
+                                                      moveNumber, bookMove,
+                                                      bookComment))
 
                 # Format output, don't write movetext in one long line.
                 if self.writeCnt >= 2:
                     self.writeCnt = 0
                     f.write('\n')
 
-    def WritePosScoreBookMove(self, side, moveNumber, sanMove, bookMove, posScore):
+    def WritePosScoreBookMove(self, side, moveNumber, sanMove,
+                              bookMove, posScore):
         """ Write moves with score and book moves in the output file """
         bookComment = 'cerebellum'
         assert bookMove is not None
@@ -349,16 +364,23 @@ class Analyze():
 
             # If side to move is white
             if side:
-                f.write('%d. %s {%+0.2f} (%d. %s {%s}) ' %(moveNumber, sanMove, posScore, moveNumber, bookMove, bookComment))
+                f.write('%d. %s {%+0.2f} (%d. %s {%s}) ' %(moveNumber, sanMove,
+                                                        posScore, moveNumber,
+                                                        bookMove, bookComment))
             else:
-                f.write('%d... %s {%+0.2f} (%d... %s {%s}) ' %(moveNumber, sanMove, posScore, moveNumber, bookMove, bookComment))
+                f.write('%d... %s {%+0.2f} (%d... %s {%s}) ' %(moveNumber,
+                                                        sanMove,
+                                                        posScore, moveNumber,
+                                                        bookMove, bookComment))
                 
                 # Format output, don't write movetext in one long line.
                 if self.writeCnt >= 2:
                     self.writeCnt = 0
                     f.write('\n') 
 
-    def WritePosScoreBookMoveEngMove(self, side, moveNumber, sanMove, bookMove, posScore, engMove, engScore, complexityNumber, moveChanges, pvLine):
+    def WritePosScoreBookMoveEngMove(self, side, moveNumber, sanMove, bookMove,
+                                     posScore, engMove, engScore,
+                                     complexityNumber, moveChanges, pvLine):
         """ Write moves with score and book moves in the output file """
         bookComment = 'cerebellum'
         assert bookMove is not None
@@ -377,12 +399,16 @@ class Analyze():
                     varComment = self.PreComment(side, engScore, posScore)
 
                     # Write moves and comments
-                    f.write('%d. %s %s {%+0.2f} (%d. %s {%s}) ({%s} %s {%+0.2f - %s}) ' %(moveNumber, sanMove, moveNag, posScore,
-                                                                                      moveNumber, bookMove, bookComment,
-                                                                                      varComment, pvLine, engScore, engShortName))
+                    f.write('%d. %s %s {%+0.2f} (%d. %s {%s}) ({%s} %s {%+0.2f - %s}) '\
+                            %(moveNumber, sanMove, moveNag, posScore,
+                              moveNumber, bookMove, bookComment,
+                              varComment, pvLine, engScore, engShortName))
                 else:
-                    moveNag = self.GetGoodNag(side, posScore, engScore, complexityNumber, moveChanges)
-                    f.write('%d. %s {%+0.2f} (%d. %s {%s}) ' %(moveNumber, sanMove, posScore, moveNumber, bookMove, bookComment))
+                    moveNag = self.GetGoodNag(side, posScore, engScore,
+                                              complexityNumber, moveChanges)
+                    f.write('%d. %s {%+0.2f} (%d. %s {%s}) ' %(moveNumber,
+                                                sanMove, posScore, moveNumber,
+                                                bookMove, bookComment))
             else:
                 if sanMove != engMove:
                     moveNag = self.GetBadNag(side, posScore, engScore)
@@ -391,19 +417,23 @@ class Analyze():
                     varComment = self.PreComment(side, engScore, posScore)
 
                     # Write moves and comments
-                    f.write('%d... %s %s {%+0.2f} (%d... %s {%s}) ({%s} %s {%+0.2f - %s}) ' %(moveNumber, sanMove, moveNag, posScore,
-                                                                                       moveNumber, bookMove, bookComment,
-                                                                                       varComment, pvLine, engScore, engShortName))
+                    f.write('%d... %s %s {%+0.2f} (%d... %s {%s}) ({%s} %s {%+0.2f - %s}) '\
+                            %(moveNumber, sanMove, moveNag, posScore,
+                              moveNumber, bookMove, bookComment,
+                              varComment, pvLine, engScore, engShortName))
                 else:
-                    moveNag = self.GetGoodNag(side, posScore, engScore, complexityNumber, moveChanges)
-                    f.write('%d... %s {%+0.2f} (%d... %s {%s}) ' %(moveNumber, sanMove, posScore, moveNumber, bookMove, bookComment))
+                    moveNag = self.GetGoodNag(side, posScore, engScore,
+                                              complexityNumber, moveChanges)
+                    f.write('%d... %s {%+0.2f} (%d... %s {%s}) ' %(moveNumber,
+                        sanMove, posScore, moveNumber, bookMove, bookComment))
 
                 # Format output, don't write movetext in one long line.
                 if self.writeCnt >= 2:
                     self.writeCnt = 0
                     f.write('\n')
 
-    def WriteBookMoveEngMove(self, side, moveNumber, sanMove, bookMove, engMove, engScore, pvLine):
+    def WriteBookMoveEngMove(self, side, moveNumber, sanMove, bookMove,
+                                            engMove, engScore, pvLine):
         """ Write moves with book moves and eng moves in the output file """
         bookComment = 'cerebellum'
         assert bookMove is not None
@@ -417,22 +447,25 @@ class Analyze():
             if side:
                 if sanMove != engMove:
                     # Write moves and comments
-                    f.write('%d. %s (%d. %s {%s}) (%s {%+0.2f - %s}) ' %(moveNumber, sanMove,
-                                                        moveNumber, bookMove, bookComment,
-                                                        pvLine, engScore, engShortName))
+                    f.write('%d. %s (%d. %s {%s}) (%s {%+0.2f - %s}) '\
+                            %(moveNumber, sanMove, moveNumber, bookMove,
+                              bookComment, pvLine, engScore, engShortName))
                 else:
-                    f.write('%d. %s (%d. %s {%s}) ' %(moveNumber, sanMove,
-                                                      moveNumber, bookMove, bookComment))
+                    f.write('%d. %s (%d. %s {%s}) '\
+                            %(moveNumber, sanMove,
+                              moveNumber, bookMove, bookComment))
             else:
                 if sanMove != engMove:
                     
                     # Write moves and comments
-                    f.write('%d... %s (%d... %s {%s}) (%s {%+0.2f - %s}) ' %(moveNumber, sanMove,
-                                                        moveNumber, bookMove, bookComment,
-                                                        pvLine, engScore, engShortName))
+                    f.write('%d... %s (%d... %s {%s}) (%s {%+0.2f - %s}) '\
+                            %(moveNumber, sanMove, moveNumber,
+                              bookMove, bookComment, pvLine,
+                              engScore, engShortName))
                 else:
-                    f.write('%d... %s (%d... %s {%s}) ' %(moveNumber, sanMove,
-                                                        moveNumber, bookMove, bookComment))
+                    f.write('%d... %s (%d... %s {%s}) '\
+                            %(moveNumber, sanMove,
+                              moveNumber, bookMove, bookComment))
 
                 # Format output, don't write movetext in one long line.
                 if self.writeCnt >= 2:
@@ -451,20 +484,22 @@ class Analyze():
                 if sanMove != engMove:
                     # Write moves and comments
                     f.write('%d. %s (%s {%+0.2f - %s}) ' %(moveNumber, sanMove,
-                                                        pvLine, engScore, engShortName))
+                                            pvLine, engScore, engShortName))
                 else:
                     f.write('%d. %s ' %(moveNumber, sanMove))
             else:
                 if sanMove != engMove:
                     
                     # Write moves and comments
-                    f.write('%d... %s (%s {%+0.2f - %s}) ' %(moveNumber, sanMove,
-                                                        pvLine, engScore, engShortName))
+                    f.write('%d... %s (%s {%+0.2f - %s}) ' %(moveNumber,
+                                                sanMove, pvLine, engScore,
+                                                engShortName))
                 else:
                     f.write('%d... %s ' %(moveNumber, sanMove))
 
     def WriteNotation(self, side, fmvn, sanMove, bookMove, posScore,
-                      isGameOver, engMove, engScore, complexityNumber, moveChanges, pvLine):
+                      isGameOver, engMove, engScore, complexityNumber,
+                      moveChanges, pvLine):
         """ Write moves and comments to the output file """
         # (0) If game is over [mate, stalemate] just print the move.
         if isGameOver:
@@ -492,7 +527,9 @@ class Analyze():
                        bookMove is None and\
                        engMove is not None
         if isWritePosScoreEngMove:
-            self.WritePosScoreEngMove(side, fmvn, sanMove, posScore, engMove, engScore, complexityNumber, moveChanges, pvLine)
+            self.WritePosScoreEngMove(side, fmvn, sanMove, posScore, engMove,
+                                      engScore, complexityNumber,
+                                      moveChanges, pvLine)
             return
 
         # (4) Write sanMove, posScore, bookMove and engMove
@@ -500,7 +537,10 @@ class Analyze():
                               bookMove is not None and\
                               engMove is not None
         if isWritePosScoreBookEngMove:
-            self.WritePosScoreBookMoveEngMove(side, fmvn, sanMove, bookMove, posScore, engMove, engScore, complexityNumber, moveChanges, pvLine)
+            self.WritePosScoreBookMoveEngMove(side, fmvn, sanMove, bookMove,
+                                              posScore, engMove, engScore,
+                                              complexityNumber, moveChanges,
+                                              pvLine)
             return
 
         # (5) Write sanMove, bookMove
@@ -516,7 +556,8 @@ class Analyze():
                               bookMove is not None and\
                               engMove is not None
         if isWriteBookEngMove:
-            self.WriteBookMoveEngMove(side, fmvn, sanMove, bookMove, engMove, engScore, pvLine)
+            self.WriteBookMoveEngMove(side, fmvn, sanMove, bookMove, engMove,
+                                      engScore, pvLine)
             return
 
         # (7) Write sanMove, engMove
@@ -546,7 +587,8 @@ class Analyze():
         engineIdName = self.eng[0:-4]
 
         # Run the engine
-        p = subprocess.Popen(self.eng, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        p = subprocess.Popen(self.eng, stdin=subprocess.PIPE,
+                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
         # Send command to engine.
         p.stdin.write("uci\n")
@@ -572,7 +614,8 @@ class Analyze():
         isInfoDepth = False
         
         # Run the engine.
-        p = subprocess.Popen(self.eng, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        p = subprocess.Popen(self.eng, stdin=subprocess.PIPE,
+                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
         # Send command to engine.
         p.stdin.write("uci\n")
@@ -583,11 +626,11 @@ class Analyze():
             if "uciok" in line:
                 break
 
-        # Set the path of Brainfish cerebellum book. Make sure the Brainfish engine,
-        # the script and the cerebellum book are on the same directory.
+        # Set the path of Brainfish cerebellum book. Make sure the Brainfish
+        # engine, the script and the cerebellum book are on the same directory.
         p.stdin.write("setoption name BookPath value Cerebellum_Light.bin\n")
 
-        # Set threads to 1 just in case the default threads is changed in the future.
+        # Set threads to 1.
         p.stdin.write("setoption name Threads value 1\n")
                 
         # Send command to engine.
@@ -630,6 +673,56 @@ class Analyze():
             return bestMove
         return None
 
+    def GetEngineOptionValue(self, optionName):
+        """ Returns value str of option given option name """
+        engOptionValue = self.engOpt
+        if engOptionValue == 'none':
+            # Return defaults
+            if 'Hash' in optionName:
+                return str(DEFAULT_HASH)
+            elif 'Threads' in optionName:
+                return str(DEFAULT_THREADS)
+
+        # If there are more than 1 options defined
+        if ',' in engOptionValue:
+            engOptionValueList = engOptionValue.split(',')
+            for n in engOptionValueList:
+                value = n.strip()
+                if optionName in value:
+                    return value.split()[2]
+        else:
+            value = engOptionValue.strip()
+            return value.split()[2]
+
+    def SetEngineOptions(self, p, engOptionValue):
+        """ Set engine options for uci engines """
+        # If nothing is defined, means that the user relies on the default
+        if engOptionValue == 'none':
+            return            
+        
+        # Convert engOptionValue to list
+        if ',' in engOptionValue:
+            engOptionValueList = engOptionValue.split(',')
+            for n in engOptionValueList:
+                value = n.strip()
+
+                # Verify threads is 1 or more
+                if 'Threads ' in value:
+                    assert int(value.split()[2]) >= 1,\
+                    'Error! option Threads was set below 1'
+
+                # Verify Hash is 1 or more and not more than 32 GB
+                if 'Hash ' in value:
+                    hashValue = int(value.split()[2])
+                    assert hashValue >= 1 and hashValue <= 32000,\
+                    'Error! option Hash was set improperly'
+
+                # Set the value
+                p.stdin.write("setoption name %s\n" %(value))
+        else:
+            value = engOptionValue.strip()
+            p.stdin.write("setoption name %s\n" %(value))
+
     def GetStaticEvalAfterMove(self, pos):
         """ Returns static eval by running the engine,
             setup position pos and send eval command.
@@ -637,7 +730,8 @@ class Analyze():
         score = TEST_SEARCH_SCORE
 
         # Run the engine.
-        p = subprocess.Popen(self.eng, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        p = subprocess.Popen(self.eng, stdin=subprocess.PIPE,
+                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
         # Send command to engine.
         p.stdin.write("uci\n")
@@ -647,6 +741,9 @@ class Analyze():
             line = eline.strip()
             if "uciok" in line:
                 break
+
+        # Set engine options
+        self.SetEngineOptions(p, self.engOpt)
                 
         # Send command to engine.
         p.stdin.write("isready\n")
@@ -673,7 +770,8 @@ class Analyze():
         # Quit the engine
         p.stdin.write('quit\n')
         p.communicate()
-        assert score != TEST_SEARCH_SCORE, 'Error! something is wrong in static eval calculation.'
+        assert score != TEST_SEARCH_SCORE,\
+               'Error! something is wrong in static eval calculation.'
         return score
 
     def GetSearchScoreBeforeMove(self, pos, side):
@@ -691,7 +789,8 @@ class Analyze():
                                 self.moveTimeOpt >= COMPLEXITY_MINIMUM_TIME
 
         # Run the engine.
-        p = subprocess.Popen(self.eng, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        p = subprocess.Popen(self.eng, stdin=subprocess.PIPE,
+                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
         # Send command to engine.
         p.stdin.write("uci\n")
@@ -702,9 +801,8 @@ class Analyze():
             if "uciok" in line:
                 break
 
-        # Set Hash and Threads options to uci engine
-        p.stdin.write("setoption name Hash value %d\n" %(self.engHashOpt))
-        p.stdin.write("setoption name Threads value %d\n" %(self.engThreadsOpt))
+        # Set engine options
+        self.SetEngineOptions(p, self.engOpt)
                 
         # Send command to engine.
         p.stdin.write("isready\n")
@@ -810,12 +908,15 @@ class Analyze():
         return complexityNumber, moveChanges
 
     def GetSearchScoreAfterMove(self, pos, side):
-        """ Returns search's score, complexity number and pv move changes counts. """
+        """ Returns search's score, complexity number and
+            pv move changes counts.
+        """
         # Initialize
         scoreCp = TEST_SEARCH_SCORE
 
         # Run the engine.
-        p = subprocess.Popen(self.eng, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        p = subprocess.Popen(self.eng, stdin=subprocess.PIPE,
+                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
         # Send command to engine.
         p.stdin.write("uci\n")
@@ -826,9 +927,8 @@ class Analyze():
             if "uciok" in line:
                 break
 
-        # Set Hash and Threads options to uci engine
-        p.stdin.write("setoption name Hash value %d\n" %(self.engHashOpt))
-        p.stdin.write("setoption name Threads value %d\n" %(self.engThreadsOpt))
+        # Set engine options
+        self.SetEngineOptions(p, self.engOpt)
                 
         # Send command to engine.
         p.stdin.write("isready\n")
@@ -888,7 +988,8 @@ class Analyze():
         depthSearched = TEST_SEARCH_DEPTH
 
         # Run the engine.
-        p = subprocess.Popen(self.eng, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        p = subprocess.Popen(self.eng, stdin=subprocess.PIPE,
+                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
         # Send command to engine.
         p.stdin.write("uci\n")
@@ -899,9 +1000,8 @@ class Analyze():
             if "uciok" in line:
                 break
 
-        # Set Hash and Threads options to uci engine
-        p.stdin.write("setoption name Hash value %d\n" %(self.engHashOpt))
-        p.stdin.write("setoption name Threads value %d\n" %(self.engThreadsOpt))
+        # Set engine options
+        self.SetEngineOptions(p, self.engOpt)
                 
         # Send command to engine.
         p.stdin.write("isready\n")
@@ -917,7 +1017,7 @@ class Analyze():
         p.stdin.write("position fen " + pos + "\n")
         p.stdin.write("go movetime %d\n" %(self.moveTimeOpt))
 
-        # Parse the output and extract the engine search score, depth and bestmove
+        # Parse the output and extract the engine search, depth and bestmove
         for eline in iter(p.stdout.readline, ''):        
             line = eline.strip()
             if 'score cp ' in line:
@@ -961,7 +1061,8 @@ class Analyze():
         scoreP = TEST_SEARCH_SCORE
 
         # Run the engine.
-        p = subprocess.Popen(self.eng, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        p = subprocess.Popen(self.eng, stdin=subprocess.PIPE,
+                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
         # Send command to engine.
         p.stdin.write("uci\n")
@@ -971,6 +1072,9 @@ class Analyze():
             line = eline.strip()               
             if "uciok" in line:
                 break
+
+        # Set engine options
+        self.SetEngineOptions(p, self.engOpt)
                 
         # Send command to engine.
         p.stdin.write("isready\n")
@@ -1001,7 +1105,8 @@ class Analyze():
         p.communicate()
 
         # Verify values to be returned
-        assert scoreP != TEST_SEARCH_SCORE, 'Error!, engine failed to return its static eval.'
+        assert scoreP != TEST_SEARCH_SCORE,\
+               'Error!, engine failed to return its static eval.'
 
         # Convert to side POV
         if pos.split()[1] == 'b':
@@ -1015,7 +1120,8 @@ class Analyze():
         """ Write termination marker and average errror """
         if wcnt and bcnt:
             with open(self.outfn, 'a') as f:
-                f.write('{[WhiteAveError=%0.2f, BlackAveError=%0.2f] [ratingDiff=%d]} %s\n\n' %(werr, berr, rdiff, res))
+                f.write('{[WhiteAveError=%0.2f, BlackAveError=%0.2f] [ratingDiff=%d]} %s\n\n'\
+                        %(werr, berr, rdiff, res))
         else:
             with open(self.outfn, 'a') as f:
                 f.write('%s\n\n' %(res)) 
@@ -1096,8 +1202,10 @@ class Analyze():
                     f.write('{Move comments are from engine static evaluation.}\n')
             elif self.evalOpt == 'search':
                 with open(self.outfn, 'a+') as f:
-                    f.write('{Hash %dmb, Threads %d, @ %0.1fs/pos}\n'\
-                            %(self.engHashOpt, self.engThreadsOpt, self.moveTimeOpt/1000.0))
+                    hashValue = self.GetEngineOptionValue('Hash')
+                    threadsValue = self.GetEngineOptionValue('Threads')
+                    f.write('{Hash %smb, Threads %s, @ %0.1fs/pos}\n'\
+                            %(hashValue, threadsValue, self.moveTimeOpt/1000.0))
 
             # Save result to be written later as game termination marker.
             res = game.headers['Result']
@@ -1153,11 +1261,16 @@ class Analyze():
                 # (4) Analyze the position with the engine. Only do this
                 # if posScore is not winning or lossing (more than 3.0 pawns).
                 engBestMove, engBestScore, pvLine = None, None, None
-                if (posScore is None or abs(posScore) < DECISIVE_SCORE) and self.jobOpt == 'analyze':
-                    engBestMove, engBestScore, complexityNumber, moveChanges, pvLine = self.GetSearchScoreBeforeMove(gameNode.board().fen(), side)
+                if (posScore is None or abs(posScore) < DECISIVE_SCORE)\
+                   and self.jobOpt == 'analyze':
+                    engBestMove, engBestScore, complexityNumber,\
+                                 moveChanges, pvLine =\
+                        self.GetSearchScoreBeforeMove(gameNode.board().fen(),
+                                                      side)
 
                     # Calculate total move errors incrementally and get the average later
-                    if fmvn >= 12 and self.evalOpt == 'search' and sanMove != engBestMove:
+                    if fmvn >= 12 and self.evalOpt == 'search' and\
+                       sanMove != engBestMove:
                         if side:
                             scoreError = engBestScore - posScore
                             moveError['white'] += scoreError
@@ -1168,16 +1281,20 @@ class Analyze():
                             moveCnt['black'] += 1
                     
                 # (5) If game is over by checkmate and stalemate after a move              
-                isGameOver = nextNode.board().is_checkmate() or nextNode.board().is_stalemate()
+                isGameOver = nextNode.board().is_checkmate() or\
+                             nextNode.board().is_stalemate()
                 
                 # (6) Write moves and comments.
-                self.WriteNotation(side, fmvn, sanMove, cereBookMove, posScore, isGameOver,
-                                   engBestMove, engBestScore, complexityNumber, moveChanges, pvLine)
+                self.WriteNotation(side, fmvn, sanMove, cereBookMove,
+                                   posScore, isGameOver,
+                                   engBestMove, engBestScore,
+                                   complexityNumber, moveChanges, pvLine)
 
                 # Read the next position.
                 gameNode = nextNode
 
-            # All moves are parsed in this game, calculate average errors and rating difference
+            # All moves are parsed in this game, calculate average
+            # errors and rating difference.
             averageError = {'white':0.0, 'black':0.0}
             ratingDiff = {'white':0, 'black':0}                
             if moveCnt['white']:
@@ -1187,9 +1304,14 @@ class Analyze():
                 averageError['black'] = moveError['black']/moveCnt['black']            
                 ratingDiff['black'] = self.GetRatingDiff(averageError['black'])
             
-            # Write errors, rating difference and game termination marker to output file
-            self.WriteTerminationMarker(moveCnt['white'], moveCnt['black'], averageError['white'], averageError['black'],
-                                                          abs(ratingDiff['white'] - ratingDiff['black']), res)               
+            # Write errors, rating difference and game termination
+            # marker to output file.
+            ratingDifference = abs(ratingDiff['white'] - ratingDiff['black'])
+            self.WriteTerminationMarker(moveCnt['white'],
+                                        moveCnt['black'],
+                                        averageError['white'],
+                                        averageError['black'],
+                                        ratingDifference, res)               
 
             # Read the next game.
             game = chess.pgn.read_game(pgnHandle)
@@ -1244,7 +1366,10 @@ class Analyze():
                 # Save to output file the epd analysis.
                 with open(self.outfn, 'a') as f1:
                     if self.evalOpt == 'static':
-                        f1.write('%s ce %+d; c0 \"%s\"; Ae \"%s\";\n' %(epd, ce, 'ce is static eval of engine', self.engIdName))
+                        f1.write('%s ce %+d; c0 \"%s\"; Ae \"%s\";\n'\
+                                 %(epd, ce,
+                                   'ce is static eval of engine',
+                                   self.engIdName))
                     elif self.evalOpt != 'none':
                         f1.write('%s acd %d; acs %d; bm %s; ce %+d; Ae \"%s\";\n'\
                                  %(epd, acd, acs, bm, ce, self.engIdName))
@@ -1296,7 +1421,9 @@ class Analyze():
         return hmvc     
 
     def TestEngineWithEpd(self):
-        """ Test engine with epd test suite, results will be in the output file. """
+        """ Test engine with epd test suite, results will
+            be in the output file.
+        """
         cntEpd = 0
         cntCorrect = 0
         cntValidEpd = 0
@@ -1392,10 +1519,9 @@ def main(argv):
     evalOption = 'static' # ['none', 'static', 'search']
     cereBookFile = 'Cerebellum_Light.bin'
     moveTimeOption = 0
-    engHashOption = 32 # 32 mb
-    engThreadsOption = 1
     moveStartOption = 8
     jobOption = 'analyze' # ['none' 'analyze', 'test']
+    engOption = 'none'
     
     # Evaluate the command line options.
     options = EvaluateOptions(argv)
@@ -1406,10 +1532,9 @@ def main(argv):
         bookOption = GetOptionValue(options, '-book', bookOption)
         evalOption = GetOptionValue(options, '-eval', evalOption)
         moveTimeOption = GetOptionValue(options, '-movetime', moveTimeOption)
-        engHashOption = GetOptionValue(options, '-enghash', engHashOption)
-        engThreadsOption = GetOptionValue(options, '-engthreads', engThreadsOption)
         moveStartOption = GetOptionValue(options, '-movestart', moveStartOption)
         jobOption = GetOptionValue(options, '-job', jobOption)
+        engOption = GetOptionValue(options, '-engoptions', engOption)
 
     # Check input, output and engine files.
     CheckFiles(inputFile, outputFile, engineName)
@@ -1427,7 +1552,8 @@ def main(argv):
         fileType = PGN_FILE
     
     # Exit if book and eval options are none and file type is pgn.
-    if bookOption == 'none' and evalOption == 'none' and fileType == PGN_FILE and jobOption == 'none':
+    if bookOption == 'none' and evalOption == 'none'\
+       and fileType == PGN_FILE and jobOption == 'none':
         print('Error! options were not defined. Nothing has been processed.')
         sys.exit(1)
 
@@ -1443,19 +1569,14 @@ def main(argv):
         
     # Delete existing output file.
     DeleteFile(outputFile)
-
-    # Check Limits.
-    if engThreadsOption <= 0:
-        engThreadsOption = 1
         
     # Convert options to dict.
     options = {'-book': bookOption,
                '-eval': evalOption,
                '-movetime': moveTimeOption,
-               '-enghash': engHashOption,
-               '-engthreads': engThreadsOption,
                '-movestart': moveStartOption,
-               '-job': jobOption
+               '-job': jobOption,
+               '-engoptions': engOption
                }
 
     # Create an object of class Analyze.
