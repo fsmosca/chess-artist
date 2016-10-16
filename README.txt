@@ -52,18 +52,18 @@ G. Guide
    chess-artist -infile myg.pgn -outfile out_myg.pgn -eng Bf.exe -book cerebellum -eval static -job none
 7. If you want the game to be annotated with engine search score, at movetime of 1 second per position,
    engine Hash of 128 MB and Threads of 1.
-   chess-artist -infile myg.pgn -outfile out_myg.pgn -eng Sf.exe -enghash 128 -engthreads 1 -eval search -movetime 1000 -job none
+   chess-artist -infile myg.pgn -outfile out_myg.pgn -eng Sf.exe -engoptions "Hash value 128, Threads value 1" -eval search -movetime 1000 -job none
 7.1. If you want to annotate a game in pgn file with !!, ! and !?, ??, ? and ?! movetime should be 2s or more.
    chess-artist -infile a.pgn -outfile out_a.pgn -eng Sf.exe -eval search -movetime 2000.
 7.2. If you want to annotate a game in pgn file with move annotation symbols, book and engine search score and bestmove.
    chess-artist -infile a.pgn -outfile out_a.pgn -eng Sf.exe -eval search -book cerebellum --movetime 2000
 8. If you want to annotate an epd file with bm, ce and other op codes at 10s per position. The ce is from side POV.
    See example output in section H below.
-   chess-artist -infile myepd.epd -outfile out_myepd.epd -eng Sf.exe -enghash 128 -engthreads 1 -movetime 10000
+   chess-artist -infile myepd.epd -outfile out_myepd.epd -eng Sf.exe -engoptions "Hash value 128, Threads value 1" -movetime 10000
 8.1 If you want to annotate the epd file with ce whose value is from static eval of the engine instead of the search.
    chess-artist -infile carlsen.epd -outfile out_carlsen.epd -eng Sf.exe -eval static
 9. If you want to test a uci engine on epd test suite to see how many best moves it could find, add the -job test option value.
-   chess-artist -infile wacnew.epd -outfile out_wacnew.txt -eng Sf.exe -enghash 128 -engthreads 1 -movetime 1000 -job test
+   chess-artist -infile wacnew.epd -outfile out_wacnew.txt -eng Sf.exe -engoptions "Hash value 128, Threads value 1" -movetime 1000 -job test
 10. In the annotated game the value in the comment is in pawn unit and is from the point of
    view of white, if it is positive, it is better for white, and if negative it is better for black.
    
@@ -71,8 +71,7 @@ H. Options
 -infile <input filename> : Default is src.pgn
 -outfile <output filename> : Default is out_src.pgn
 -eng <engine filename> : Default is engine.exe
--enghash <value in mb> : Default is 32, memory or Hash for uci engines
--engthreads <integer value> : Default is 1, number of threads to be used by engine.
+-engoptions <options> : Example, -engoptions "Hash value 64, Threads value 1, SyzygyPath value C:\chess\egtb\syzygy"
 -book <none | cerebellum> : Default is none, used to add book moves to the game annotation when value is cerebellum.
 -eval <none | static | search> : Default is static, it is used to calculate the score of the move of the player in the game. If the
     value is static, it will call the eval command of Stockfish engine to get its static eval. If the value is search, it will
@@ -213,7 +212,7 @@ and ??, ? ?! based on player move score and engine move score.
 2. Epd analysis, annotate epd with acd, acs, bm, ce and Ae op codes
 
 a. Command line
-chess-artist -infile a.epd -outfile out_a.epd -eng Branfish.exe -enghash 128 -engthreads 1 -movetime 10000 -eval search
+chess-artist -infile a.epd -outfile out_a.epd -eng Branfish.exe -engoptions "Hash value 128, Threads value 1" -movetime 10000 -eval search
 
 b. Command line interpretation
 -enghash 128: The main memory size in MB used by the uci engine, also call Hash in uci engines.
@@ -232,7 +231,7 @@ r1bk1b1r/ppp2ppp/2p5/4Pn2/8/5N2/PPP2PPP/RNB2RK1 w - - ce 30; c0 "ce is static ev
 3. Testing engine on epd test suite.
 
 a. Command line
-chess-artist -infile wac.epd -outfile wac_out.txt -eng Bf.exe -enghash 128 -engthreads 1 -movetime 300 -job test
+chess-artist -infile wac.epd -outfile wac_out.txt -eng Bf.exe -engoptions "Hash value 128, Threads value 1" -movetime 300 -job test
 
 b. Command line interpretation
 -job test: Tells the script that the engine will be tested on epd file.
