@@ -159,15 +159,15 @@ class Analyze():
             return moveNag
 
         # (1) Very good !!
-        if moveChanges >= 3 and complexityNumber >= 35:
+        if moveChanges >= 4 and complexityNumber >= 45:
             moveNag = '$3'
 
         # (1.1) Very good !!, also for very high move changes
-        elif moveChanges >= 4:
+        elif moveChanges >= 5:
             moveNag = '$3'
             
         # (2) Good !
-        elif moveChanges >= 2 and complexityNumber >= 25:
+        elif moveChanges >= 3 and complexityNumber >= 35:
             moveNag = '$1'
             
         # (3) Interesting !?
@@ -582,6 +582,35 @@ class Analyze():
             value = MAX_SCORE - 2*d + 1
         return value
 
+    def GetMaterialInfo(self, fen):
+        """ Returns number of queens, pawns and white and
+            black material. Material is calculated based
+            on q=9, r=5, b=3, n=3
+        """
+        # Get piece field of fen
+        pieces = fen.split()[0]
+
+        # Count pieces
+        Q = pieces.count('Q')
+        q = pieces.count('q')
+        R = pieces.count('R')
+        r = pieces.count('r')
+        B = pieces.count('B')
+        b = pieces.count('b')
+        N = pieces.count('N')
+        n = pieces.count('n')
+        P = pieces.count('P')
+        p = pieces.count('p')
+
+        # Get piece values except pawns
+        wmat = Q*9 + R*5 + B*3 + N*3
+        bmat = q*9 + r*5 + b*3 + b*3
+
+        # Get queen and pawn counts
+        queens = Q+q
+        pawns = P+p
+        return wmat, bmat, queens, pawns
+    
     def GetEngineIdName(self):
         """ Returns the engine id name """
         engineIdName = self.eng[0:-4]
@@ -820,7 +849,7 @@ class Analyze():
 
         # Parse the output and extract the engine search score.
         for eline in iter(p.stdout.readline, ''):        
-            line = eline.strip()
+            line = eline.strip()                
 
             # Save pv move per depth
             if isGetComplexityNumber:
@@ -881,7 +910,7 @@ class Analyze():
 
         # Get complexity number and moveChanges count
         if isGetComplexityNumber:
-            complexityNumber, moveChanges = self.GetComplexityNumber(savedMove)
+            complexityNumber, moveChanges = self.GetComplexityNumber(savedMove, pos)
 
         # Convert uci move to san move format.
         bestMove = self.UciToSanMove(pos, bestMove)
@@ -894,7 +923,7 @@ class Analyze():
         scoreP = float(scoreCp)/100.0
         return bestMove, scoreP, complexityNumber, moveChanges, pvLineSan
 
-    def GetComplexityNumber(self, savedMove):
+    def GetComplexityNumber(self, savedMove, fen):
         """ Returns complexity number and move changes counts """
         complexityNumber, moveChanges = 0, 0
         for n in savedMove:
@@ -905,6 +934,14 @@ class Analyze():
                     moveChanges += 1
             lastDepth = depth
             lastMove = n[1]
+
+        # Increase complexityNumber when there are queens, and high mat values
+        if complexityNumber:
+            wmat, bmat, queens, pawns = self.GetMaterialInfo(fen)
+            if queens > 0:
+                complexityNumber += 5
+            if wmat + bmat >= 46 and pawns <= 14:
+                complexityNumber += 5            
         return complexityNumber, moveChanges
 
     def GetSearchScoreAfterMove(self, pos, side):
@@ -1120,7 +1157,7 @@ class Analyze():
         """ Write termination marker and average errror """
         if wcnt and bcnt:
             with open(self.outfn, 'a') as f:
-                f.write('{[WhiteAveError=%0.2f, BlackAveError=%0.2f] [ratingDiff=%d]} %s\n\n'\
+                f.write('(-- {WhiteAveError=%0.2f, BlackAveError=%0.2f, ratingDiff=%d}) %s\n\n'\
                         %(werr, berr, rdiff, res))
         else:
             with open(self.outfn, 'a') as f:
