@@ -3,10 +3,11 @@ Chess Artist
 
 B. Program description
 A python script that can annotate chess games in pgn file with
-static evaluation or search score of an engine, can annotate games
+static evaluation or search score of an engine along with move
+annotation symbols such as !!, !, !?, ?!, ? and ??, can annotate games
 with cerebellum book moves using the Brainfish engine with its
 Cerebellum_Light.bin book file, can annotate an epd file with acd,
-acs, bm, and ce op codes and can test engine with epd test suite.
+acs, bm, and ce opcodes and can test engine with epd test suite.
 
 C. License notice
 This program is free software, you can redistribute it and/or modify
@@ -81,7 +82,7 @@ H. Options
     and generate comments. If the infile is epd and the value is search, it will annotate an epd file with acd, acs, bm and other
     opcodes. If the infile is epd and the value is test, it will test the engine of the epd test suite.
 -movetime <integer value> : Default is 0, this is the time in millisec for engine search time for engine solving the epd test suite.
--movestart <move number> : Default is 8, it is the number that the engine will start analyzing a pgn file. The -book setting
+-movestart <move number> : Default is 8, it is the move number that the engine will start analyzing a pgn file. The -book setting
     will not be affected by this.
    
 I. Examples of annotated games, epd analysis, and engine epd test
@@ -209,15 +210,16 @@ and ??, ? ?! based on player move score and engine move score.
 42. f4 {+5.44} f5 {+5.88} 43. Kc1 {+6.72} Rd2 {+6.17} 
 44. Qa7 {+6.90} {[WhiteAveError=0.34, BlackAveError=0.21] [ratingDiff=30]} 1-0
 
-2. Epd analysis, annotate epd with acd, acs, bm, ce and Ae op codes
+2. Epd analysis, annotate epd with acd, acs, bm, ce and Ae opcodes
 
 a. Command line
 chess-artist -infile a.epd -outfile out_a.epd -eng Branfish.exe -engoptions "Hash value 128, Threads value 1" -movetime 10000 -eval search
 
 b. Command line interpretation
--enghash 128: The main memory size in MB used by the uci engine, also call Hash in uci engines.
--engthreads 1: The number of threads used by the uci engine, also called Threads in uci engines.
--eval search: Will use use the engine to search the position. -eval static, will only use the static eval of the engine.
+-engoptions "Hash value 128, Threads value 1": The main memory size in Hash value is in MB used by the uci engine. Threads value 1
+    means the engine will only 1 thread.
+-eval search: Will use use the engine to search the position. -eval static, will only use the static eval of the engine. Only stockfish
+   engine is supported, usig its eval command.
 
 c. An example epd line in an epd file
 r1bk1b1r/ppp2ppp/2p5/4Pn2/8/5N2/PPP2PPP/RNB2RK1 w - -
