@@ -1017,7 +1017,7 @@ class Analyze():
         return scoreP
 
     def GetEpdEngineSearchScore(self, pos):
-        """ Returns acd, acs, bm, ce and Ae op codes. """
+        """ Returns acd, acs, bm, ce and Ae opcodes. """
 
         # Initialize
         bestMove = None
@@ -1092,7 +1092,7 @@ class Analyze():
         return depthSearched, self.moveTimeOpt/1000, bestMove, scoreCp
 
     def GetEpdEngineStaticScore(self, pos):
-        """ Returns ce and Ae op codes. """
+        """ Returns ce and Ae opcodes. """
 
         # Initialize
         scoreP = TEST_SEARCH_SCORE
@@ -1357,8 +1357,8 @@ class Analyze():
         pgnHandle.close()
 
     def AnnotateEpd(self):
-        """ Annotate epd file with bm, ce, acs, acd, and Ae op codes
-            Ae - analyzing engine, a special op code for this script.
+        """ Annotate epd file with bm, ce, acs, acd, and Ae opcodes
+            Ae - analyzing engine, a special opcode for this script.
         """
         cntEpd = 0
         
@@ -1372,10 +1372,11 @@ class Analyze():
 
                 # Get only first 4 fields [pieces side castle_flag ep_sq].
                 epdLineSplit = epdLine.split()
-                epd = ' '.join(epdLineSplit[0:4])                
+                epd = ' '.join(epdLineSplit[0:4])
+                hmvc = self.GetHmvcInEpd(epdLine)
 
                 # Add hmvc and fmvn to create a FEN for the engine.
-                fen = epd + ' 0 1'
+                fen = epd + ' ' + hmvc + ' 1'
 
                 # Show progress in console.
                 print('epd %d: %s' %(cntEpd, epd))
@@ -1450,8 +1451,9 @@ class Analyze():
         """ Returns hmvc in an epd line """        
         if 'hmvc' not in epdLine:
             return '0'
-        hmvcIndex = epdLine.index('hmvc')
-        hmvcValue = epdLine[hmvcIndex+1]
+        epdLineSplit = epdLine.split()
+        hmvcIndex = epdLineSplit.index('hmvc')
+        hmvcValue = epdLineSplit[hmvcIndex+1]
 
         # Remove ';' at the end
         hmvc = hmvcValue[0:-1]
@@ -1477,7 +1479,7 @@ class Analyze():
                 # also search the hmvc opcode.
                 epdLineSplit = epdLine.split()
                 epd = ' '.join(epdLineSplit[0:4])
-                hmvc = self.GetHmvcInEpd(epdLineSplit)
+                hmvc = self.GetHmvcInEpd(epdLine)
 
                 # Add hmvc and fmvn to create a FEN for the engine.
                 fen = epd + ' ' + hmvc + ' 1'
@@ -1498,16 +1500,16 @@ class Analyze():
                 # If the epd line has no bm then we just skip it.
                 if 'bm ' not in epdLine:
                     print('Warning!! epd \"%s\"')
-                    print('has no bm op code - skipped.\n')
+                    print('has no bm opcode - skipped.\n')
                     continue
 
                 # Get the bm(s) move in the epd line, epdBm is a list.
                 epdBm = self.GetEpdBm(epdLineSplit)                
 
                 # Get engine analysis, we are only interested on bm.
-                acd, acs, bm, ce = self.GetEpdEngineSearchScore(fen)
+                _, _, bm, _ = self.GetEpdEngineSearchScore(fen)
                 
-                # There percentage correct is based on valid epd only
+                # The percentage correct is based on valid epd only
                 cntValidEpd += 1
 
                 # Show progress in console.
@@ -1538,7 +1540,6 @@ class Analyze():
             f.write(':: EPD %s TEST RESULTS ::\n' %(self.infn))
             f.write('Engine        : %s\n' %(self.engIdName))
             f.write('Time/pos (sec): %0.1f\n\n' %(self.moveTimeOpt/1000.0))
-            
             f.write('Total epd lines       : %d\n' %(cntEpd))
             f.write('Total tested positions: %d\n' %(cntValidEpd))
             f.write('Total correct         : %d\n' %(cntCorrect))
