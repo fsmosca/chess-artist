@@ -3,7 +3,7 @@ Chess Artist
 
 B. Program description
 A python script that can annotate chess games in pgn file with
-static evaluation or search score of an engine along with move
+static evaluation and/or search score of an engine along with move
 annotation symbols such as !!, !, !?, ?!, ? and ??, can annotate games
 with cerebellum book moves using the Brainfish engine with its
 Cerebellum_Light.bin book file, can annotate an epd file with acd,
@@ -66,7 +66,7 @@ G. Guide
 9. If you want to test a uci engine on epd test suite to see how many best moves it could find, add the -job test option value.
    chess-artist -infile wacnew.epd -outfile out_wacnew.txt -eng Sf.exe -engoptions "Hash value 128, Threads value 1" -movetime 1000 -job test
 10. In the annotated game the value in the comment is in pawn unit and is from the point of
-   view of white, if it is positive, it is better for white, and if negative it is better for black.
+   view of white that is if it is positive, it is better for white, and if negative it is better for black.
    
 H. Options
 -infile <input filename> : Default is src.pgn
@@ -95,13 +95,14 @@ chess-artist -infile a.pgn -outfile out_a.pgn -eng Brainfish.exe -eval search -m
 b. Command line interpretation
 -infile a.pgn: The input file option.
 -outfile out_a.pgn: The output file option.
--eng brainfish.exe: Engine that evaluates positions, this engine is used when cerebellum book is used too.
+-eng Brainfish.exe: Engine that evaluates positions.
 -eval search: The move of the player is evaluated by engine search score.
 -movetime 200: Engine analysis time per position is 200 milliseconds or 0.2 second.
 -movestart 6: Engine analysis starts at move 6, the book annotation is not affected by this.
--book cerebellum: Will use the cerebellum book file, Cerebellum_Light.bin
+-book cerebellum: Will use the cerebellum book file, Cerebellum_Light.bin, Brainfish engine shall be used.
 
 c. Annotation output
+
 [Event "42nd Olympiad 2016"]
 [Site "Baku AZE"]
 [Date "2016.09.02"]
@@ -209,6 +210,105 @@ and ??, ? ?! based on player move score and engine move score.
 40. Qa8 {+4.48} c3 {+5.02} 41. Qa4+ {+4.86} Ke1 {+4.81} 
 42. f4 {+5.44} f5 {+5.88} 43. Kc1 {+6.72} Rd2 {+6.17} 
 44. Qa7 {+6.90} {[WhiteAveError=0.34, BlackAveError=0.21] [ratingDiff=30]} 1-0
+
+1.2 Game analysis with annotation symbols based on version 0.2.0
+
+Command line used:
+chess-artist.py -infile Carlsen-Karjakin-R10.pgn -outfile out_Carlsen-Karjakin-R10.pgn -eng Bf.exe -engoptions "Hash value 128" -eval search -book cerebellum -movetime 3000 -movestart 10
+
+[Event "WCh 2016"]
+[Site "New York USA"]
+[Date "2016.11.24"]
+[Round "10"]
+[White "Carlsen, Magnus"]
+[Black "Karjakin, Sergey"]
+[Result "1-0"]
+[WhiteTitle "GM"]
+[BlackTitle "GM"]
+[WhiteElo "2853"]
+[BlackElo "2772"]
+[ECO "C65"]
+[Opening "Ruy Lopez"]
+[Variation "Berlin defence"]
+[WhiteFideId "1503014"]
+[BlackFideId "14109603"]
+[EventDate "2016.11.11"]
+[Annotator "Brainfish 191116 64 POPCNT"]
+
+{Hash 128mb, Threads 128, @ 3.0s/pos}
+1. e4 (1. e4 {cerebellum}) 1... e5 (1... e5 {cerebellum}) 
+2. Nf3 (2. Nf3 {cerebellum}) 2... Nc6 (2... Nc6 {cerebellum}) 
+3. Bb5 (3. Bc4 {cerebellum}) 3... Nf6 (3... Nf6 {cerebellum}) 
+4. d3 (4. O-O {cerebellum}) 4... Bc5 (4... Bc5 {cerebellum}) 
+5. c3 (5. Nbd2 {cerebellum}) 5... O-O (5... O-O {cerebellum}) 
+6. Bg5 (6. Nbd2 {cerebellum}) 6... h6 (6... h6 {cerebellum}) 
+7. Bh4 (7. Bh4 {cerebellum}) 7... Be7 (7... d6 {cerebellum}) 
+8. O-O (8. O-O {cerebellum}) 8... d6 (8... d6 {cerebellum}) 
+9. Nbd2 (9. Nbd2 {cerebellum}) 9... Nh5 (9... Nh5 {cerebellum}) 
+10. Bxe7 {+0.10} (10. Bxe7 {cerebellum}) 10... Qxe7 {+0.15} (10... Qxe7 {cerebellum}) 
+11. Nc4 {+0.18} (11. Nc4 {cerebellum}) Nf4 $0 {+0.22} 
+12. Ne3 $0 {+0.08} 12... Qf6 $0 {+0.09} ({} 12...f5 {+0.01 - Brainfish}) 
+13. g3 $1 {-0.01} Nh3+ $0 {+0.19} 
+14. Kh1 $1 {+0.25} ({} 14. Kg2 a6 15. Ba4 Bd7 16. Ng1 {+0.19 - Brainfish}) 14... Ne7 $1 {-0.02} ({} 14...Rb8 {+0.16 - Brainfish}) 
+15. Bc4 $6 {-0.17} ({Better is} 15. d4 exd4 16. cxd4 d5 17. exd5 {-0.02 - Brainfish}) 15... c6 $0 {+0.01} ({Better is} 15...b5 16. Bb3 a5 17. a4 b4 {-0.17 - Brainfish}) 
+16. Bb3 $1 {+0.08} ({} 16. Qe2 b5 17. Bb3 a5 18. a4 {+0.01 - Brainfish}) 16... Ng6 $6 {+0.25} ({} 16...b5 17. Qe2 {+0.11 - Brainfish}) 
+17. Qe2 $5 {+0.19} a5 $1 {+0.24} 
+18. a4 $1 {+0.26} ({} 18. d4 a4 {+0.24 - Brainfish}) Be6 $0 {+0.22} 
+19. Bxe6 $0 {+0.00} ({} 19. Nd2 Bxb3 {+0.11 - Brainfish}) fxe6 $0 {+0.00} 
+20. Nd2 $0 {+0.00} 20... d5 $0 {+0.12} ({} 20...Nxf2+ 21. Kg2 Nh4+ 22. Kg1 Nh3+ {+0.00 - Brainfish}) 
+21. Qh5 $0 {+0.00} ({Better is} 21. f3 {+0.20 - Brainfish}) 21... Ng5 $6 {+0.45} ({Better is} 21...Nxf2+ 22. Kg2 Qf7 23. Kg1 Qf6 {+0.00 - Brainfish}) 
+22. h4 $0 {+0.37} ({} 22. Rae1 Nf3 23. Ng4 Qg5 24. Qxg5 {+0.45 - Brainfish}) Nf3 $0 {+0.34} 
+23. Nxf3 $0 {+0.44} Qxf3+ $0 {+0.44} 
+24. Qxf3 $0 {+0.35} Rxf3 $0 {+0.37} 
+25. Kg2 $0 {+0.50} Rf7 $0 {+0.29} 
+26. Rfe1 $0 {+0.31} ({} 26. Rae1 h5 27. Nc2 c5 28. Na3 {+0.36 - Brainfish}) h5 $5 {+0.41} 
+27. Nf1 $0 {+0.40} ({} 27. Nc2 Rd8 28. Re2 Rdf8 29. Rf1 {+0.41 - Brainfish}) 27... Kf8 $0 {+0.73} ({Better is} 27...Raf8 28. Re2 {+0.40 - Brainfish}) 
+28. Nd2 $0 {+0.68} Ke7 $1 {+0.64} 
+29. Re2 $1 {+0.86} ({} 29. Rab1 Kd6 30. b4 Nf8 31. d4 {+0.64 - Brainfish}) Kd6 $0 {+0.80} 
+30. Nf3 $0 {+0.92} 30... Raf8 $0 {+0.90} ({} 30...b6 31. Rb1 Re7 32. Ng5 Kc7 {+0.92 - Brainfish}) 
+31. Ng5 $0 {+0.80} Re7 $0 {+0.70} 
+32. Rae1 $1 {+0.76} ({} 32. b4 Ra8 {+0.72 - Brainfish}) 32... Rfe8 $0 {+0.80} ({} 32...b6 33. Rb1 {+0.76 - Brainfish}) 
+33. Nf3 $0 {+0.74} ({} 33. b4 axb4 {+0.80 - Brainfish}) 33... Nh8 $2 {+0.76} ({} 33...b6 {+0.74 - Brainfish}) 
+34. d4 $0 {+0.45} ({Better is} 34. b4 axb4 35. cxb4 Nf7 36. a5 {+0.76 - Brainfish}) exd4 $0 {+0.62} 
+35. Nxd4 $0 {+0.53} g6 $3 {+0.57} 
+36. Re3 $0 {+0.43} ({} 36. e5+ Kd7 37. b4 Ra8 38. Nb3 {+0.50 - Brainfish}) Nf7 $0 {+0.68} 
+37. e5+ $0 {+0.55} Kd7 $0 {+0.53} 
+38. Rf3 $1 {+0.56} ({} 38. b4 Nh6 {+0.53 - Brainfish}) 38... Nh6 $0 {+0.70} ({} 38...c5 {+0.56 - Brainfish}) 
+39. Rf6 $0 {+0.54} Rg7 $1 {+0.71} 
+40. b4 $0 {+0.61} ({} 40. c4 {+0.71 - Brainfish}) axb4 $0 {+0.64} 
+41. cxb4 $0 {+0.79} 41... Ng8 $0 {+0.85} ({} 41...Ng4 42. Rf4 {+0.79 - Brainfish}) 
+42. Rf3 $0 {+0.71} Nh6 $0 {+0.79} 
+43. a5 $1 {+0.73} 43... Nf5 $2 {+0.87} ({} 43...Rf7 {+0.73 - Brainfish}) 
+44. Nb3 $0 {+0.77} 44... Kc7 $0 {+0.82} ({} 44...Ke7 {+0.84 - Brainfish}) 
+45. Nc5 $5 {+0.89} 45... Kb8 $0 {+0.85} ({} 45...Rge7 46. Ra3 {+0.89 - Brainfish}) 
+46. Rb1 $1 {+0.83} 46... Ka7 $0 {+0.84} ({} 46...Rge7 47. Rfb3 Rc8 48. Rd3 Ka7 {+0.83 - Brainfish}) 
+47. Rd3 $1 {+0.85} ({} 47. Ra3 Ree7 48. f4 Re8 49. Rc1 {+0.84 - Brainfish}) 47... Rc7 $0 {+0.81} ({} 47...Rge7 48. Rd2 Rf8 49. Ra1 Rff7 {+0.85 - Brainfish}) 
+48. Ra3 $1 {+0.90} ({} 48. Rd2 Rce7 49. Rdb2 Nd4 50. Rd1 {+0.81 - Brainfish}) 48... Nd4 $0 {+0.82} ({} 48...Rg7 49. f4 Rc7 50. Raa1 Rh7 {+0.90 - Brainfish}) 
+49. Rd1 $1 {+1.17} ({} 49. Rd3 Nf5 50. Rdd1 Nh6 51. Nd3 {+0.71 - Brainfish}) Nf5 $0 {+0.95} 
+50. Kh3 $1 {+0.89} ({} 50. Rb3 Nh6 {+0.87 - Brainfish}) Nh6 $0 {+0.70} 
+51. f3 $0 {+0.60} ({} 51. Rb1 Ng4 52. f4 Nh6 53. Rc1 {+0.63 - Brainfish}) 51... Rf7 $0 {+0.73} ({} 51...Rg7 52. Rb1 Nf5 53. g4 Nd4 {+0.63 - Brainfish}) 
+52. Rd4 $1 {+0.85} ({} 52. Rb3 Nf5 {+0.73 - Brainfish}) Nf5 $0 {+0.78} 
+53. Rd2 $5 {+0.78} ({} 53. Rd1 Rh7 {+0.78 - Brainfish}) 53... Rh7 $2 {+0.88} ({Better is} 53...Ree7 {+0.71 - Brainfish}) 
+54. Rb3 $1 {+0.87} 54... Ree7 $0 {+1.08} ({Better is} 54...Rf7 {+0.80 - Brainfish}) 
+55. Rdd3 $0 {+0.83} ({Better is} 55. b5 {+1.10 - Brainfish}) Rh8 $5 {+0.65} 
+56. Rb1 $3 {+0.75} 56... Rhh7 $4 {+1.94} ({Excellent is} 56...Ka8 57. b5 cxb5 58. Rxb5 Rc8 {+0.82 - Brainfish}) 
+57. b5 $0 {+1.89} cxb5 $0 {+1.77} 
+58. Rxb5 $0 {+2.00} d4 $0 {+1.60} 
+59. Rb6 $5 {+1.68} Rc7 $0 {+1.97} 
+60. Nxe6 $0 {+1.76} Rc3 $0 {+1.72} 
+61. Nf4 $0 {+1.95} 61... Rhc7 $0 {+2.65} ({Better is} 61...Rg7 62. Rb3 {+1.95 - Brainfish}) 
+62. Nd5 $2 {+1.16} ({Excellent is} 62. Rxg6 Rxd3 63. Nxd3 Rc3 64. Rf6 {+2.65 - Brainfish}) Rxd3 $0 {+1.55} 
+63. Nxc7 $0 {+1.34} Kb8 $0 {+1.19} 
+64. Nb5 $0 {+1.47} Kc8 $0 {+1.20} 
+65. Rxg6 $5 {+1.28} Rxf3 $0 {+1.35} 
+66. Kg2 $0 {+1.44} Rb3 $0 {+1.18} 
+67. Nd6+ $0 {+1.20} Nxd6 $0 {+1.36} 
+68. Rxd6 $0 {+1.28} 68... Re3 $0 {+2.20} ({Better is} 68...Kc7 69. Rxd4 Rb5 70. e6 Rxa5 {+1.54 - Brainfish}) 
+69. e6 $0 {+2.39} Kc7 $0 {+2.47} 
+70. Rxd4 $0 {+2.45} 70... Rxe6 $0 {+2.75} ({Better is} 70...Kc6 71. Rb4 Re5 72. Rb6+ Kc7 {+2.45 - Brainfish}) 
+71. Rd5 $0 {+2.32} Rh6 $0 {+2.44} 
+72. Kf3 $1 {+2.88} ({} 72. Rc5+ Kd6 73. Rf5 Rh7 74. Kf3 {+2.44 - Brainfish}) Kb8 {+5.03} 73. Kf4 {+4.05} Ka7 {+6.15} 
+74. Kg5 {+4.12} Rh8 {+4.08} 75. Kf6 {+4.08} (-- {WhiteAveError=0.05, BlackAveError=0.19, ratingDiff=31}) 1-0
 
 2. Epd analysis, annotate epd with acd, acs, bm, ce and Ae opcodes
 
