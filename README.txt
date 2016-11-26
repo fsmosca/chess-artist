@@ -31,7 +31,7 @@ https://www.python.org/
 
 F. Tests
 1. This is tested under Windows 7 OS, with python 2.7.11
-   and python-chess 0.14.1 installed.
+   and python-chess v0.15.3 installed.
 
 G. Guide
 1. You need to install python 2.7 version (or 3.5 not tested)
