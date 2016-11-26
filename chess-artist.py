@@ -729,7 +729,10 @@ class Analyze():
                     return value.split()[2]
         else:
             value = engOptionValue.strip()
-            return value.split()[2]
+            if optionName in value:
+                return value.split()[2]
+
+        return None
 
     def SetEngineOptions(self, p, engOptionValue):
         """ Set engine options for uci engines """
@@ -1314,7 +1317,11 @@ class Analyze():
             elif self.evalOpt == 'search':
                 with open(self.outfn, 'a+') as f:
                     hashValue = self.GetEngineOptionValue('Hash')
+                    if hashValue is None:
+                        hashValue = str(DEFAULT_HASH)
                     threadsValue = self.GetEngineOptionValue('Threads')
+                    if threadsValue is None:
+                        threadsValue = str(DEFAULT_THREADS)
                     f.write('{Hash %smb, Threads %s, @ %0.1fs/pos}\n'\
                             %(hashValue, threadsValue, self.moveTimeOpt/1000.0))
 
