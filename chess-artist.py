@@ -812,7 +812,8 @@ class Analyze():
         return score
 
     def GetSearchScoreBeforeMove(self, pos, side):
-        """ Returns bestmove, pv and score from the engine. """
+        """ Returns bestmove, pv, score complexity number of the position
+            and root move changes. """
 
         # Initialize
         scoreCp = TEST_SEARCH_SCORE
@@ -911,14 +912,16 @@ class Analyze():
         # Convert pv line to SAN
         try:
             board = chess.Board(pos)
-            pvLineSan = board.variation_san([chess.Move.from_uci(m) for m in pvLine])
+            pvLineSan = \
+                board.variation_san([chess.Move.from_uci(m) for m in pvLine])
         except:
             print('Warning, there is error in pvLine')
             print('pvLine: %s' %(pvLine))
 
         # Get complexity number and moveChanges count
         if isGetComplexityNumber:
-            complexityNumber, moveChanges = self.GetComplexityNumber(savedMove, pos)
+            complexityNumber, moveChanges =\
+                              self.GetComplexityNumber(savedMove, pos)
 
         # Convert uci move to san move format.
         bestMove = self.UciToSanMove(pos, bestMove)
@@ -949,8 +952,71 @@ class Analyze():
             if queens > 0:
                 complexityNumber += 5
             if wmat + bmat >= 46 and pawns <= 14:
-                complexityNumber += 5            
+                complexityNumber += 5
+
+        # Reduce complexity number when center is closed
+        if self.IsCenterClosed(fen):
+            complexityNumber -= 10
+            if complexityNumber < 0:
+                complexityNumber = 0
+                
         return complexityNumber, moveChanges
+
+    def IsCenterClosed(self, fen):
+        """ Given fen check if center is closed. Center is closed
+            when there are white pawns at d4 and e5, and there are
+            black pawns at e6 and d5 or there are white pawns in
+            e4 and d5 and there are black pawns at d6 and e5. """
+        bb = chess.BaseBoard(fen.split()[0])
+
+        # Case 1: wpawn at e5/d4 and bpawn at d5/e6 pattern
+        
+        # Find wpawn at e5/d4
+        e5Found, d4Found = False, False
+        wpSqList = bb.pieces(chess.PAWN, chess.WHITE)
+        if chess.E5 in wpSqList:
+            e5Found = True
+        if chess.D4 in wpSqList:
+            d4Found = True
+
+        # We only check the black pattern when we found the white pattern
+        # Find bpawn at d5/e6
+        if e5Found and d4Found:
+            d5Found, e6Found = False, False
+            bpSqList = bb.pieces(chess.PAWN, chess.BLACK)
+            if chess.D5 in bpSqList:
+                d5Found = True
+            if chess.E6 in bpSqList:
+                e6Found = True
+
+            # Return early if we found a pattern
+            if d5Found and e6Found:
+                return True
+
+        # Case 2: wpawn at d5/e4 and bpawn at d6/e5 pattern
+
+        # Find wpawn at d5/e4
+        d5Found, e4Found = False, False
+        wpSqList = bb.pieces(chess.PAWN, chess.WHITE)
+        if chess.D5 in wpSqList:
+            d5Found = True
+        if chess.E4 in wpSqList:
+            e4Found = True
+
+        # We only check the black pattern when we found the white pattern
+        # Find bpawn at d6/e5
+        if d5Found and e4Found:
+            d6Found, e5Found = False, False
+            bpSqList = bb.pieces(chess.PAWN, chess.BLACK)
+            if chess.D6 in bpSqList:
+                d6Found = True
+            if chess.E5 in bpSqList:
+                e5Found = True
+
+            if d6Found and e5Found:
+                return True
+                
+        return False
 
     def GetSearchScoreAfterMove(self, pos, side):
         """ Returns search's score, complexity number and
