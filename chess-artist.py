@@ -150,6 +150,13 @@ class Analyze():
         # Set default NAG, GUI will not display this.
         moveNag = '$0'
 
+        # Adjust !! move changes threshold
+        veryGoodMoveChangesThreshold = 4
+        if self.moveTimeOpt >= 180000:
+            veryGoodMoveChangesThreshold += 2
+        elif self.moveTimeOpt >= 60000:
+            veryGoodMoveChangesThreshold += 1
+
         # (0) Position score after a move should not be winning
         if posScore >= DECISIVE_SCORE:
             return moveNag
@@ -159,11 +166,12 @@ class Analyze():
             return moveNag
 
         # (1) Very good !!
-        if moveChanges >= 4 and complexityNumber >= 45:
+        if moveChanges >= veryGoodMoveChangesThreshold\
+                and complexityNumber >= 15 * veryGoodMoveChangesThreshold:
             moveNag = '$3'
 
         # (1.1) Very good !!, also for very high move changes
-        elif moveChanges >= 5:
+        elif moveChanges >= veryGoodMoveChangesThreshold + 2:
             moveNag = '$3'
             
         # (2) Good !
