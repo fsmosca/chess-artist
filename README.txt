@@ -235,7 +235,7 @@ chess-artist.py -infile Carlsen-Karjakin-R10.pgn -outfile out_Carlsen-Karjakin-R
 [EventDate "2016.11.11"]
 [Annotator "Brainfish 191116 64 POPCNT"]
 
-{Hash 128mb, Threads 128, @ 3.0s/pos}
+{Hash 128mb, Threads 1, @ 3.0s/pos}
 1. e4 (1. e4 {cerebellum}) 1... e5 (1... e5 {cerebellum}) 
 2. Nf3 (2. Nf3 {cerebellum}) 2... Nc6 (2... Nc6 {cerebellum}) 
 3. Bb5 (3. Bc4 {cerebellum}) 3... Nf6 (3... Nf6 {cerebellum}) 
