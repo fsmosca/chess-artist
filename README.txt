@@ -71,7 +71,7 @@ G. Guide
 H. Options
 -infile <input filename> : Default is src.pgn
 -outfile <output filename> : Default is out_src.pgn
--eng <engine filename> : Default is engine.exe
+-eng <engine filename> : Default is engine.exe, an engine with path is also possible for example in windows, if your engine is located in c:\chess\engines\Stockfish and your engine is Sf.exe, you can use, -eng "c:\chess\engines\stockfish\Sf8.exe"
 -engoptions <options> : Example, -engoptions "Hash value 64, Threads value 1, SyzygyPath value C:\chess\egtb\syzygy"
 -book <none | cerebellum> : Default is none, used to add book moves to the game annotation when value is cerebellum.
 -eval <none | static | search> : Default is static, it is used to calculate the score of the move of the player in the game. If the
