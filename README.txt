@@ -30,16 +30,16 @@ E. Programming language
 https://www.python.org/
 
 F. Tests
-1. This is tested under Windows 7 OS, with python 2.7.11
-   and python-chess v0.15.3 installed.
+1. This is tested under Windows 7 OS, with python 2.7.11 and python-chess v0.17.0 installed.
 
 G. Guide
-1. You need to install python 2.7 version (or 3.5 not tested)
-   on your computer.
-2. You need to install also python-chess on your computer, see section E.
-3. Location or directory of input pgn file, engine file and this script chess-artist.py
-   should be the same. Only Stockfish and Brainfish engine are supported so far. You can
-   download the stockfish engine from here,
+1. You need to install python 2.7 version (or 3.5 not tested) on your computer if you want to run the python script.
+2. You need to install also python-chess modules on your computer, see section E, if you want to run the python script.
+3. Location or directory of input pgn file, engine file and this script chess-artist.py should be the same. However you can
+   also specify the path for engine and input pgn. Only Stockfish and Brainfish engines are supported so far if you want the
+   moves to be annotated with static scores. If you want to use the cerebellum book only Brainfish is supported.
+   For other analysis like search score and without using the cerebellum book, you can use other uci engines that supports
+   movetime command. You can download the stockfish engine from here,
    https://stockfishchess.org/
    and Brainfish with Cerebellum_Light.bin book here,
    http://www.zipproth.de/#Brainfish_download
