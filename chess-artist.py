@@ -637,7 +637,7 @@ class Analyze():
 
         # Run the engine
         p = subprocess.Popen(self.eng, stdin=subprocess.PIPE,
-                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=1)
 
         # Send command to engine.
         p.stdin.write("uci\n")
@@ -664,7 +664,7 @@ class Analyze():
         
         # Run the engine.
         p = subprocess.Popen(self.eng, stdin=subprocess.PIPE,
-                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=1)
 
         # Send command to engine.
         p.stdin.write("uci\n")
@@ -692,7 +692,6 @@ class Analyze():
                 break
                 
         # Send commands to engine.
-        p.stdin.write("ucinewgame\n")
         p.stdin.write("position fen " + pos + "\n")
         p.stdin.write("go movetime %d\n" %(BOOK_SEARCH_TIME))
 
@@ -783,7 +782,7 @@ class Analyze():
 
         # Run the engine.
         p = subprocess.Popen(self.eng, stdin=subprocess.PIPE,
-                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=1)
 
         # Send command to engine.
         p.stdin.write("uci\n")
@@ -807,7 +806,6 @@ class Analyze():
                 break
                 
         # Send commands to engine.
-        p.stdin.write("ucinewgame\n")
         p.stdin.write("position fen " + pos + "\n")
         p.stdin.write("eval\n")
 
@@ -836,7 +834,7 @@ class Analyze():
 
         # Run the engine.
         p = subprocess.Popen(self.eng, stdin=subprocess.PIPE,
-                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=1)
 
         # Send command to engine.
         p.stdin.write("uci\n")
@@ -865,7 +863,6 @@ class Analyze():
         newPos = b.fen()
         
         # Send commands to engine.
-        p.stdin.write("ucinewgame\n")
         p.stdin.write("position fen " + newPos + "\n")
         p.stdin.write("go movetime %d\n" %(self.moveTimeOpt))
 
@@ -903,7 +900,7 @@ class Analyze():
 
         # Run the engine.
         p = subprocess.Popen(self.eng, stdin=subprocess.PIPE,
-                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=1)
 
         # Send command to engine.
         p.stdin.write("uci\n")
@@ -927,7 +924,6 @@ class Analyze():
                 break
                 
         # Send commands to engine.
-        p.stdin.write("ucinewgame\n")
         p.stdin.write("position fen " + pos + "\n")
         p.stdin.write("go movetime %d\n" %(self.moveTimeOpt))
 
@@ -1102,7 +1098,7 @@ class Analyze():
 
         # Run the engine.
         p = subprocess.Popen(self.eng, stdin=subprocess.PIPE,
-                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=1)
 
         # Send command to engine.
         p.stdin.write("uci\n")
@@ -1126,7 +1122,6 @@ class Analyze():
                 break
                 
         # Send commands to engine.
-        p.stdin.write("ucinewgame\n")
         p.stdin.write("position fen " + pos + "\n")
         p.stdin.write("go movetime %d\n" %(self.moveTimeOpt))
 
@@ -1175,7 +1170,7 @@ class Analyze():
 
         # Run the engine.
         p = subprocess.Popen(self.eng, stdin=subprocess.PIPE,
-                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=1)
 
         # Send command to engine.
         p.stdin.write("uci\n")
@@ -1199,7 +1194,6 @@ class Analyze():
                 break
                 
         # Send commands to engine.
-        p.stdin.write("ucinewgame\n")
         p.stdin.write("position fen " + pos + "\n")
         p.stdin.write("go movetime %d\n" %(self.moveTimeOpt))
 
@@ -1248,7 +1242,7 @@ class Analyze():
 
         # Run the engine.
         p = subprocess.Popen(self.eng, stdin=subprocess.PIPE,
-                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=1)
 
         # Send command to engine.
         p.stdin.write("uci\n")
@@ -1272,7 +1266,6 @@ class Analyze():
                 break
                 
         # Send commands to engine.
-        p.stdin.write("ucinewgame\n")
         p.stdin.write("position fen " + pos + "\n")
         p.stdin.write("eval\n")
 
