@@ -1,0 +1,31 @@
+[Event "chess.com IoM Masters"]
+[Site "Douglas ENG"]
+[Date "2018.10.23"]
+[Round "4.65"]
+[White "Rahul, Srivatshav P"]
+[Black "Leutwyler, Martin"]
+[Result "1-0"]
+[BlackElo "2142"]
+[BlackFideId "1301969"]
+[ECO "D00"]
+[EventDate "2018.10.20"]
+[Opening "Queen's pawn, Mason variation"]
+[WhiteElo "2395"]
+[WhiteFideId "25059653"]
+[WhiteTitle "IM"]
+[Annotator "Lc0 v0.18.1"]
+
+{Threads 2, @ 30.0s/pos}
+1. d4 d5 2. Bf4 Nf6 
+3. e3 c5 4. c3 Nc6 
+5. Nd2 cxd4 6. exd4 $0 {+0.18} 6... Bg4 $0 {+0.45} ({Better is} 6...a6 7. Bd3 Bg4 8. Qb3 Na5 {+0.18}) 
+7. Qb3 $0 {+0.28} ({Better is} 7. Ngf3 e6 8. Qb3 Qc8 9. Bd3 {+0.45}) 7... Qc8 $0 {+0.50} ({Better is} 7...Bf5 8. Ngf3 Qc8 9. Nh4 Bd7 {+0.28}) 
+8. Ngf3 $0 {+0.24} ({Better is} 8. Bd3 e6 9. Ngf3 Bh5 10. O-O {+0.50}) 8... e6 $0 {+0.34} ({} 8...Bf5 9. Ne5 e6 10. Bd3 Bxd3 {+0.25}) 
+9. Bb5 $0 {+0.14} 9... a6 $6 {+0.37} ({Better is} 9...Bf5 10. Nh4 Be4 11. Nhf3 Bf5 {+0.14}) 
+10. Bxc6+ $0 {+0.07} ({Better is} 10. Bd3 Nh5 11. Be3 Nf6 12. Bf4 {+0.36}) bxc6 $0 {+0.25} 
+11. Ne5 $0 {+0.00} ({Better is} 11. c4 Bxf3 12. Nxf3 dxc4 13. Qxc4 {+0.22}) 11... Bd6 $2 {+1.36} ({Excellent is} 11...Bf5 12. O-O Nd7 13. c4 Nxe5 {+0.00}) 
+12. f3 $0 {+1.04} Rb8 {-3.71} 13. Qa4 $1 {+1.78} ({} 13. Ndc4 dxc4 14. Qxc4 Nd5 15. Bc1 {-3.81}) Bf5 $0 {+2.46} 
+14. g4 $0 {+1.69} Bxe5 {+3.86} 15. Bxe5 $2 {+1.37} ({Excellent is} 15. dxe5 Nxg4 16. fxg4 Bg6 17. Qa3 {+3.86}) Rxb2 {+6.49} 
+16. gxf5 {+5.25} exf5 {+11.08} 17. Bxf6 {+7.26} gxf6 {+8.79} 
+18. O-O-O {+17.28} 1-0
+
