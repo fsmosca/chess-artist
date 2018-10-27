@@ -33,7 +33,6 @@ F. Other
 import subprocess
 import os
 import sys
-import time
 import math
 import chess
 from chess import pgn
@@ -191,10 +190,13 @@ class Analyze():
         return moveNag
 
     def GetBadNag(self, side, posScore, engScore):
-        """ Returns ??, ?, ?! depending on the player score and analyzing engine score.
+        """ Returns ??, ?, ?! depending on the player score and analyzing
+            engine score. 
             posScore is the score of the move in the game, in pawn unit.
-            engScore is the score of the move suggested by the engine, in pawn unit.
-            Positive score is better for white and negative score is better for black, (WPOV).
+            engScore is the score of the move suggested by the engine,
+            in pawn unit.
+            Positive score is better for white and negative score is better
+            for black, (WPOV).
             Scoring range from white's perspective:
             Blunder: posScore < -1.50
             Mistake: posScore >= -1.50 and posScore < -0.75
@@ -317,8 +319,8 @@ class Analyze():
                         f.write('%d. %s %s {%+0.2f} ' %(moveNumber, sanMove,
                                                     moveNag, posScore))
                     else :
-                        f.write('{, with the idea of %s} %d. %s %s {%+0.2f} ' %(threatMove,
-                                        moveNumber, sanMove, moveNag, posScore))
+                        f.write('{, with the idea of %s} %d. %s %s {%+0.2f} '\
+                        %(threatMove, moveNumber, sanMove, moveNag, posScore))
             else:
                 if sanMove != engMove:
                     moveNag = self.GetBadNag(side, posScore, engScore)
@@ -334,9 +336,12 @@ class Analyze():
                     moveNag = self.GetGoodNag(side, posScore, engScore,
                                               complexityNumber, moveChanges)
                     if threatMove is None:
-                        f.write('%s %s {%+0.2f} ' %(sanMove, moveNag, posScore))
+                        f.write('%s %s {%+0.2f} ' %(sanMove,
+                                                    moveNag,
+                                                    posScore))
                     else:
-                        f.write('{, with the idea of %s} %s %s {%+0.2f} ' %(threatMove, sanMove, moveNag, posScore))
+                        f.write('{, with the idea of %s} %s %s {%+0.2f} '\
+                                %(threatMove, sanMove, moveNag, posScore))
 
                 # Format output, don't write movetext in one long line.
                 if self.writeCnt >= 2:
@@ -422,8 +427,9 @@ class Analyze():
                     moveNag = self.GetGoodNag(side, posScore, engScore,
                                               complexityNumber, moveChanges)
                     if threatMove is not None:
-                        f.write('{, with the idea of %s} %d. %s {%+0.2f} (%d. %s {%s}) ' %(threatMove,
-                                        moveNumber, sanMove, posScore, moveNumber, bookMove, bookComment))
+                        f.write('{, with the idea of %s} %d. %s {%+0.2f} (%d. %s {%s}) '\
+                                %(threatMove, moveNumber, sanMove, posScore,
+                                  moveNumber, bookMove, bookComment))
                     else:
                         f.write('%d. %s {%+0.2f} (%d. %s {%s}) ' %(moveNumber,
                                                 sanMove, posScore, moveNumber,
@@ -444,11 +450,13 @@ class Analyze():
                     moveNag = self.GetGoodNag(side, posScore, engScore,
                                               complexityNumber, moveChanges)
                     if threatMove is not None:
-                        f.write('{, with the idea of %s} %d... %s {%+0.2f} (%d... %s {%s}) ' %(threatMove,
-                                        moveNumber, sanMove, posScore, moveNumber, bookMove, bookComment))
+                        f.write('{, with the idea of %s} %d... %s {%+0.2f} (%d... %s {%s}) '\
+                                %(threatMove, moveNumber, sanMove, posScore,
+                                  moveNumber, bookMove, bookComment))
                     else:
-                        f.write('%d... %s {%+0.2f} (%d... %s {%s}) ' %(moveNumber,
-                                        sanMove, posScore, moveNumber, bookMove, bookComment))
+                        f.write('%d... %s {%+0.2f} (%d... %s {%s}) '\
+                                %(moveNumber, sanMove, posScore, moveNumber,
+                                  bookMove, bookComment))
 
                 # Format output, don't write movetext in one long line.
                 if self.writeCnt >= 2:
@@ -494,7 +502,8 @@ class Analyze():
                     self.writeCnt = 0
                     f.write('\n')
 
-    def WriteEngMove(self, side, moveNumber, sanMove, engMove, engScore, pvLine):
+    def WriteEngMove(self, side, moveNumber, sanMove, engMove,
+                     engScore, pvLine):
         """ Write moves with eng moves in the output file """
         
         # Write the move and comments
@@ -1394,8 +1403,17 @@ class Analyze():
                     threadsValue = self.GetEngineOptionValue('Threads')
                     if threadsValue is None:
                         threadsValue = str(DEFAULT_THREADS)
-                    f.write('{Hash %smb, Threads %s, @ %0.1fs/pos}\n'\
-                            %(hashValue, threadsValue, self.moveTimeOpt/1000.0))
+                    
+                    # Don't write Hash in the comment if the analyzing engine
+                    # is Lc0 or Leela Chess Zero
+                    if 'lc0' in engineIdName.lower() or\
+                        'leela chess zero' in engineIdName.lower():
+                        f.write('{Threads %s, @ %0.1fs/pos}\n'\
+                            %(threadsValue, self.moveTimeOpt/1000.0))
+                    else:
+                        f.write('{Hash %smb, Threads %s, @ %0.1fs/pos}\n'\
+                            %(hashValue, threadsValue,
+                              self.moveTimeOpt/1000.0))
 
             # Save result to be written later as game termination marker.
             res = game.headers['Result']
@@ -1448,7 +1466,8 @@ class Analyze():
                     posScore = staticScore
                 elif self.evalOpt == 'search':
                     fenAfterMove = nextNode.board().fen()
-                    searchScore = self.GetSearchScoreAfterMove(fenAfterMove, side)
+                    searchScore = self.GetSearchScoreAfterMove(fenAfterMove,
+                                                               side)
                     posScore = searchScore
 
                 # (4) Analyze the position with the engine. Only do this
@@ -1481,7 +1500,8 @@ class Analyze():
                 # move is the same and the position is complex and the engine
                 # score is not winning or lossing
                 if moveChanges >= 3 and sanMove == engBestMove\
-                        and not gameNode.board().is_check() and abs(engBestScore) <= 2.0:
+                        and not gameNode.board().is_check()\
+                        and abs(engBestScore) <= 2.0:
                     threatMove = self.GetThreatMove(gameNode.board().fen())
                     assert threatMove is not None
                 
@@ -1784,8 +1804,6 @@ def main(argv):
 
     # Create an object of class Analyze.
     g = Analyze(inputFile, outputFile, engineName, **options)
-
-    # Print engine id name.
     g.PrintEngineIdName()
 
     # Process input file depending on the format and options
