@@ -33,8 +33,9 @@ F. Tests
 1. This is tested under Windows 7 OS, with python 2.7.11 and python-chess v0.17.0 installed.
 
 G. Guide
-1. You need to install python 2.7 version (or 3.5 not tested) on your computer if you want to run the python script.
-2. You need to install also python-chess modules on your computer, see section E, if you want to run the python script.
+1. You need to install python 2.7.xx on your computer if you want to run the python script.
+2. You need to install also python-chess modules on your computer, see section E, if you want to run the python script. It is also possible
+   not to install python 2.7xx and python-chess if you will use the released exe file.
 3. Location or directory of input pgn file, engine file and this script chess-artist.py should be the same. However you can
    also specify the path for engine and input pgn. Only Stockfish and Brainfish engines are supported so far if you want the
    moves to be annotated with static scores. If you want to use the cerebellum book only Brainfish is supported.
