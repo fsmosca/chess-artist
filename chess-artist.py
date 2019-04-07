@@ -823,7 +823,7 @@ class Analyze():
         # Parse the output and extract the engine static eval.
         for eline in iter(p.stdout.readline, ''):        
             line = eline.strip()
-            if 'Total evaluation: ' in line:
+            if 'total evaluation' in line.lower():
                 first = line.split('(')[0]
                 score = float(first.split()[2])
                 break
