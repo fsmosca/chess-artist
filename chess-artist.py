@@ -30,9 +30,11 @@ F. Other
 1. See also the README.txt for some useful informations.
 """
 
-import subprocess
+
 import os
 import sys
+import subprocess
+import argparse
 import math
 import chess
 from chess import pgn
@@ -40,7 +42,7 @@ from chess import pgn
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = '0.2.1'
+APP_VERSION = '0.3.0'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -55,69 +57,12 @@ DECISIVE_SCORE = +3.0
 COMPLEXITY_MINIMUM_TIME = 2000
 DEFAULT_HASH = 32
 DEFAULT_THREADS = 1
-
-
-def PrintProgram():
-    """ Prints program name and version """
-    print('%s %s\n' %(APP_NAME, APP_VERSION))
     
 
 def DeleteFile(fn):
     """ Delete fn file """
     if os.path.isfile(fn):
         os.remove(fn)
-
-
-def IsValidInputFiles(infn, outfn, engfn):
-    """ Quit program if infn is missing.
-        Quit program if infn and outfn is the same.
-        Quit program if engfn is missing.
-        Quit program if input file type is not epd or pgn
-    """
-    isValidInput = True
-    
-    # input file is missing
-    if not os.path.isfile(infn):
-        print('Error! %s is missing' %(infn))
-        isValidInput = False
-
-    # input file and output file is the same.
-    if infn == outfn:
-        print('Error! input filename and output filename is the same')
-        isValidInput = False
-
-    # engine file is missing.
-    if not os.path.isfile(engfn):
-        print('Error! %s is missing' %(engfn))
-        isValidInput = False
-
-    # If file is not epd or pgn
-    if not infn.endswith('.epd') and not infn.endswith('.pgn'):
-        print('Error! %s is not an epd or pgn file' %(infn))
-        isValidInput = False
-        
-    return isValidInput
-
-
-def EvaluateOptions(opt):
-    """ Convert opt list to dict and returns it """
-    return dict([(k, v) for k, v in zip(opt[::2], opt[1::2])])
-
-
-def GetOptionValue(opt, optName, var):
-    """ Returns value of opt dict given the key """
-    if optName in opt:
-        var = opt.get(optName)
-        if optName == '-movetime':
-            var = int(var)
-        elif optName == '-enghash':
-            var = int(var)
-        elif optName == '-engthreads':
-            var = int(var)
-        elif optName == '-movestart':
-            var = int(var)
-
-    return var
 
 
 class Analyze():
@@ -127,12 +72,13 @@ class Analyze():
         self.infn = infn
         self.outfn = outfn
         self.eng = eng
-        self.bookOpt = opt['-book']
-        self.evalOpt = opt['-eval']
-        self.moveTimeOpt = opt['-movetime']
-        self.moveStartOpt = opt['-movestart']
-        self.jobOpt = opt['-job']
-        self.engOpt = opt['-engoptions']
+        self.bookType = opt['-booktype']
+        self.evalType = opt['-eval']
+        self.moveTime = opt['-movetime']
+        self.analysisMoveStart = opt['-movestart']
+        self.jobType = opt['-job']
+        self.engineOptions = opt['-engineoptions']
+        self.bookFile = opt['-bookfile']
         self.writeCnt = 0
         self.engIdName = self.GetEngineIdName()
 
@@ -163,9 +109,9 @@ class Analyze():
 
         # Adjust !! move changes threshold
         veryGoodMoveChangesThreshold = 4
-        if self.moveTimeOpt >= 180000:
+        if self.moveTime >= 180000:
             veryGoodMoveChangesThreshold += 2
-        elif self.moveTimeOpt >= 60000:
+        elif self.moveTime >= 60000:
             veryGoodMoveChangesThreshold += 1
 
         # (0) Position score after a move should not be winning
@@ -698,7 +644,7 @@ class Analyze():
 
         # Set the path of Brainfish cerebellum book. Make sure the Brainfish
         # engine, the script and the cerebellum book are on the same directory.
-        p.stdin.write("setoption name BookPath value Cerebellum_Light.bin\n")
+        p.stdin.write("setoption name BookPath value %s\n" % (self.bookFile))
 
         # Set threads to 1.
         p.stdin.write("setoption name Threads value 1\n")
@@ -745,7 +691,7 @@ class Analyze():
 
     def GetEngineOptionValue(self, optionName):
         """ Returns value str of option given option name """
-        engOptionValue = self.engOpt
+        engOptionValue = self.engineOptions
         if engOptionValue == 'none':
             # Return defaults
             if 'Hash' in optionName:
@@ -816,7 +762,7 @@ class Analyze():
                 break
 
         # Set engine options
-        self.SetEngineOptions(p, self.engOpt)
+        self.SetEngineOptions(p, self.engineOptions)
                 
         # Send command to engine.
         p.stdin.write("isready\n")
@@ -869,7 +815,7 @@ class Analyze():
                 break
 
         # Set engine options
-        self.SetEngineOptions(p, self.engOpt)
+        self.SetEngineOptions(p, self.engineOptions)
                 
         # Send command to engine.
         p.stdin.write("isready\n")
@@ -888,7 +834,7 @@ class Analyze():
         # Send commands to engine.
         p.stdin.write("ucinewgame\n")
         p.stdin.write("position fen " + newPos + "\n")
-        p.stdin.write("go movetime %d\n" %(self.moveTimeOpt))
+        p.stdin.write("go movetime %d\n" %(self.moveTime))
 
         # Parse the output and extract the engine search score.
         for eline in iter(p.stdout.readline, ''):        
@@ -919,8 +865,8 @@ class Analyze():
         savedMove = []
         complexityNumber = 0
         moveChanges = 0;
-        isGetComplexityNumber = self.jobOpt == 'analyze' and\
-                                self.moveTimeOpt >= COMPLEXITY_MINIMUM_TIME
+        isGetComplexityNumber = self.jobType == 'analyze' and\
+                                self.moveTime >= COMPLEXITY_MINIMUM_TIME
 
         # Run the engine.
         p = subprocess.Popen(self.eng, stdin=subprocess.PIPE,
@@ -936,7 +882,7 @@ class Analyze():
                 break
 
         # Set engine options
-        self.SetEngineOptions(p, self.engOpt)
+        self.SetEngineOptions(p, self.engineOptions)
                 
         # Send command to engine.
         p.stdin.write("isready\n")
@@ -950,7 +896,7 @@ class Analyze():
         # Send commands to engine.
         p.stdin.write("ucinewgame\n")
         p.stdin.write("position fen " + pos + "\n")
-        p.stdin.write("go movetime %d\n" %(self.moveTimeOpt))
+        p.stdin.write("go movetime %d\n" %(self.moveTime))
 
         # Parse the output and extract the engine search score.
         for eline in iter(p.stdout.readline, ''):        
@@ -1135,7 +1081,7 @@ class Analyze():
                 break
 
         # Set engine options
-        self.SetEngineOptions(p, self.engOpt)
+        self.SetEngineOptions(p, self.engineOptions)
                 
         # Send command to engine.
         p.stdin.write("isready\n")
@@ -1149,7 +1095,7 @@ class Analyze():
         # Send commands to engine.
         p.stdin.write("ucinewgame\n")
         p.stdin.write("position fen " + pos + "\n")
-        p.stdin.write("go movetime %d\n" %(self.moveTimeOpt))
+        p.stdin.write("go movetime %d\n" %(self.moveTime))
 
         # Parse the output and extract the engine search score.
         for eline in iter(p.stdout.readline, ''):        
@@ -1208,7 +1154,7 @@ class Analyze():
                 break
 
         # Set engine options
-        self.SetEngineOptions(p, self.engOpt)
+        self.SetEngineOptions(p, self.engineOptions)
                 
         # Send command to engine.
         p.stdin.write("isready\n")
@@ -1222,7 +1168,7 @@ class Analyze():
         # Send commands to engine.
         p.stdin.write("ucinewgame\n")
         p.stdin.write("position fen " + pos + "\n")
-        p.stdin.write("go movetime %d\n" %(self.moveTimeOpt))
+        p.stdin.write("go movetime %d\n" %(self.moveTime))
 
         # Parse the output and extract the engine search, depth and bestmove
         for eline in iter(p.stdout.readline, ''):        
@@ -1259,7 +1205,7 @@ class Analyze():
         assert depthSearched != TEST_SEARCH_DEPTH, 'Error the engine does not search at all.'
         assert scoreCp != TEST_SEARCH_SCORE, 'Error!, search failed to return a score.'
         assert bestMove is not None, 'Error! seach failed to return a move.'
-        return depthSearched, self.moveTimeOpt/1000, bestMove, scoreCp
+        return depthSearched, self.moveTime/1000, bestMove, scoreCp
 
     def GetEpdEngineStaticScore(self, pos):
         """ Returns ce and Ae opcodes. """
@@ -1281,7 +1227,7 @@ class Analyze():
                 break
 
         # Set engine options
-        self.SetEngineOptions(p, self.engOpt)
+        self.SetEngineOptions(p, self.engineOptions)
                 
         # Send command to engine.
         p.stdin.write("isready\n")
@@ -1361,10 +1307,10 @@ class Analyze():
         # Get engine id name for the Annotator tag.
         engineIdName = self.engIdName
 
-        # Disable bookOpt if engine is not Brainfish.
-        if self.bookOpt == 'cerebellum':
-            if 'Brainfish' not in engineIdName:
-                self.bookOpt = 'none'
+        # Disable use of cerebellum book if engine is not Brainfish.
+        if self.bookType == 'cerebellum':
+            if 'brainfish' not in engineIdName.lower():
+                self.bookType = None
                 print('\nWarning!! engine is not Brainfish, cerebellum book is disabled.\n')
         
         # Open the input pgn file
@@ -1404,10 +1350,10 @@ class Analyze():
 
             # Before the movetext are written, add a comment of whether
             # move comments are from static evaluation or search score of the engine.
-            if self.evalOpt == 'static':
+            if self.evalType == 'static':
                 with open(self.outfn, 'a+') as f:
                     f.write('{Move comments are from engine static evaluation.}\n')
-            elif self.evalOpt == 'search':
+            elif self.evalType == 'search':
                 with open(self.outfn, 'a+') as f:
                     hashValue = self.GetEngineOptionValue('Hash')
                     if hashValue is None:
@@ -1421,11 +1367,11 @@ class Analyze():
                     if 'lc0' in engineIdName.lower() or\
                         'leela chess zero' in engineIdName.lower():
                         f.write('{Threads %s, @ %0.1fs/pos}\n'\
-                            %(threadsValue, self.moveTimeOpt/1000.0))
+                            %(threadsValue, self.moveTime/1000.0))
                     else:
                         f.write('{Hash %smb, Threads %s, @ %0.1fs/pos}\n'\
                             %(hashValue, threadsValue,
-                              self.moveTimeOpt/1000.0))
+                              self.moveTime/1000.0))
 
             # Save result to be written later as game termination marker.
             res = game.headers['Result']
@@ -1440,19 +1386,19 @@ class Analyze():
                 complexityNumber, moveChanges = 0, 0
                 threatMove = None
 
-                # (0) Don't start the engine analysis when fmvn is
-                # below moveStart and not using a cerebellum book.
-                if fmvn < self.moveStartOpt and self.bookOpt != 'cerebellum':
+                # (0) Don't analyze if move num is below moveStart value
+                if fmvn < self.analysisMoveStart:
                     cereBookMove = None
                     self.WriteNotation(side, fmvn, sanMove, cereBookMove,
                                        None, False, None, None, 0, 0,
                                        None, threatMove)
                     gameNode = nextNode
-                    continue                    
+                    continue        
 
                 # (1) Try to get a cerebellum book move.
                 cereBookMove = None
-                if self.bookOpt == 'cerebellum' and not isCereEnd:
+                if self.bookType == 'cerebellum' and self.bookFile is not None \
+                        and not isCereEnd:
                     # Use FEN before a move.
                     fenBeforeMove = gameNode.board().fen()
                     cereBookMove = self.GetCerebellumBookMove(fenBeforeMove)
@@ -1462,7 +1408,7 @@ class Analyze():
                         isCereEnd = True
 
                 # (2) Don't start the engine analysis when fmvn is below moveStart.
-                if fmvn < self.moveStartOpt and cereBookMove is not None:
+                if fmvn < self.analysisMoveStart and cereBookMove is not None:
                     self.WriteNotation(side, fmvn, sanMove, cereBookMove,
                                        None, False, None, None, 0, 0,
                                        None, threatMove)
@@ -1472,11 +1418,11 @@ class Analyze():
                 # (3) Get the posScore or the score of the player move.
                 # Can be by static eval of the engine or search score of the engine
                 posScore = None
-                if self.evalOpt == 'static':
+                if self.evalType == 'static':
                     fenAfterMove = nextNode.board().fen()
                     staticScore = self.GetStaticEvalAfterMove(fenAfterMove)
                     posScore = staticScore
-                elif self.evalOpt == 'search':
+                elif self.evalType == 'search':
                     fenAfterMove = nextNode.board().fen()
                     searchScore = self.GetSearchScoreAfterMove(fenAfterMove,
                                                                side)
@@ -1486,14 +1432,14 @@ class Analyze():
                 # if posScore is not winning or lossing (more than 3.0 pawns).
                 engBestMove, engBestScore, pvLine = None, None, None
                 if (posScore is None or abs(posScore) < DECISIVE_SCORE)\
-                   and self.jobOpt == 'analyze':
+                   and self.jobType == 'analyze':
                     engBestMove, engBestScore, complexityNumber,\
                                  moveChanges, pvLine =\
                         self.GetSearchScoreBeforeMove(gameNode.board().fen(),
                                                       side)
 
                     # Calculate total move errors incrementally and get the average later
-                    if fmvn >= 12 and self.evalOpt == 'search' and\
+                    if fmvn >= 12 and self.evalType == 'search' and\
                        sanMove != engBestMove:
                         if side:
                             scoreError = engBestScore - posScore
@@ -1588,24 +1534,24 @@ class Analyze():
                     continue
 
                 # Get engine analysis.
-                if self.evalOpt == 'static':
+                if self.evalType == 'static':
                     ce = self.GetEpdEngineStaticScore(fen)
-                elif self.evalOpt != 'none':
+                elif self.evalType == 'search':
                     acd, acs, bm, ce = self.GetEpdEngineSearchScore(fen)
 
                 # Show progress in console.
-                if self.evalOpt == 'search':
+                if self.evalType == 'search':
                     print('bm: %s' %(bm))
                 print('ce: %+d\n' %(ce))
 
                 # Save to output file the epd analysis.
                 with open(self.outfn, 'a') as f1:
-                    if self.evalOpt == 'static':
+                    if self.evalType == 'static':
                         f1.write('%s ce %+d; c0 \"%s\"; Ae \"%s\";\n'\
                                  %(epd, ce,
                                    'ce is static eval of engine',
                                    self.engIdName))
-                    elif self.evalOpt != 'none':
+                    elif self.evalType == 'search':
                         f1.write('%s acd %d; acs %d; bm %s; ce %+d; Ae \"%s\";\n'\
                                  %(epd, acd, acs, bm, ce, self.engIdName))
 
@@ -1735,7 +1681,7 @@ class Analyze():
         with open(self.outfn, 'a') as f:
             f.write(':: EPD %s TEST RESULTS ::\n' %(self.infn))
             f.write('Engine        : %s\n' %(self.engIdName))
-            f.write('Time/pos (sec): %0.1f\n\n' %(self.moveTimeOpt/1000.0))
+            f.write('Time/pos (sec): %0.1f\n\n' %(self.moveTime/1000.0))
             f.write('Total epd lines       : %d\n' %(cntEpd))
             f.write('Total tested positions: %d\n' %(cntValidEpd))
             f.write('Total correct         : %d\n' %(cntCorrect))
@@ -1743,88 +1689,83 @@ class Analyze():
             
 
 def main(argv):
-    PrintProgram()
+    parser = argparse.ArgumentParser(prog='%s v%s' % (APP_NAME, APP_VERSION),
+                description='Read pgn and analyze games in it or analyze ' +
+                'epd file or test engines with epd test suites',
+                epilog='%(prog)s')
+    parser.add_argument('-i', '--infile', 
+                        help='input pgn or EPD filename', 
+                        required=True)
+    parser.add_argument('-o', '--outfile', 
+                        help='output filename', 
+                        required=True)
+    parser.add_argument('-e', '--enginefile', 
+                        help='input engine filename', 
+                        required=True)
+    parser.add_argument('-n', '--engineoptions', 
+        help='input engine options, like threads, hash and others ' +
+        'example: --engineoptions "Hash value 128, Threads value 1"', 
+                        required=True)
+    parser.add_argument('--booktype', 
+                        help='input book type, can be cerebellum',
+                        required=False)
+    parser.add_argument('--bookfile', 
+                        help='input book filename',
+                        required=False)
+    parser.add_argument('--eval', 
+                        help='eval can be static or search. static ' + 
+        'uses static evaluation of Stockfish', 
+                        choices=['static','search'],
+                        required=True)
+    parser.add_argument("--movetime", 
+                        help='input analysis time per position in ms, ' + 
+                        '(default=1000)', default=1000,
+                        type=int, required=False)
+    parser.add_argument("--movestart", 
+                        help='input move number to start the analysis, ' + 
+                        'this is used when analyzing games, (default=8)',
+                        default=8, type=int, required=False)
+    parser.add_argument('--job', 
+                        help='type of jobs to execute, can be analyze or ' +
+        'test. For game analysis use analyze, for annotating epd use ' + 
+        'analyze too, for testing engine with epd suite, use test',
+                        choices=['analyze','test'],
+                        required=True)
 
-    # Initialize
-    inputFile = 'src.pgn'
-    outputFile = 'out_src.pgn'
-    engineFile = 'engine.exe'
-    bookOption = 'none'   # ['none', 'cerebellum', 'polyglot']
-    evalOption = 'static' # ['none', 'static', 'search']
-    cereBookFile = 'Cerebellum_Light.bin'
-    moveTimeOption = 0
-    moveStartOption = 8
-    jobOption = 'analyze' # ['none' 'analyze', 'test']
-    engOption = 'none'
+    args = parser.parse_args()
     
-    # Evaluate the command line options.
-    options = EvaluateOptions(argv)
-    if len(options):
-        inputFile = GetOptionValue(options, '-infile', inputFile)
-        outputFile = GetOptionValue(options, '-outfile', outputFile)
-        engineFile = GetOptionValue(options, '-eng', engineFile)
-        bookOption = GetOptionValue(options, '-book', bookOption)
-        evalOption = GetOptionValue(options, '-eval', evalOption)
-        moveTimeOption = GetOptionValue(options, '-movetime', moveTimeOption)
-        moveStartOption = GetOptionValue(options, '-movestart', moveStartOption)
-        jobOption = GetOptionValue(options, '-job', jobOption)
-        engOption = GetOptionValue(options, '-engoptions', engOption)
-
-    # Exit program if inputs are invalid
-    if not IsValidInputFiles(inputFile, outputFile, engineFile):
-        sys.exit(1)
-    
-    # Disable use of cerebellum book when Cerebellum_Light.bin is missing.
-    if bookOption == 'cerebellum':
-        if not os.path.isfile(cereBookFile):
-            bookOption = 'none'
-            print('Warning! cerebellum book is missing.')
-
-    # Determine if input file is epd or pgn or None.
-    if inputFile.endswith('.epd'):
-        fileType = EPD_FILE
-    elif inputFile.endswith('.pgn'):
-        fileType = PGN_FILE
-    
-    # Exit if book and eval options are none and file type is pgn.
-    if bookOption == 'none' and evalOption == 'none'\
-       and fileType == PGN_FILE and jobOption == 'none':
-        print('Error! options were not defined. Nothing has been processed.')
-        sys.exit(1)
-
-    # Exit if file type is epd and move time is 0.
-    if fileType == EPD_FILE and moveTimeOption <= 0 and evalOption != 'static':
-        print('Error! movetime is zero.')
-        sys.exit(1)
-
-    # Exit if analyzing epd with -eval none
-    if fileType == EPD_FILE and evalOption == 'none' and jobOption != 'test':
-        print('Error! -eval was set to none.')
-        sys.exit(1)
-        
-    # Delete existing output file.
-    DeleteFile(outputFile)
+    inputFile = args.infile
+    outputFile = args.outfile
+    engineFile = args.enginefile
+    bookType = args.booktype   # cerebellum
+    evalType = args.eval  # static, search
+    bookFile = args.bookfile  # 'Cerebellum_Light.bin'
+    analysisMoveTime = args.movetime  # ms or 1s
+    analysisMoveStart = args.movestart
+    jobType = args.job  # analyze, test
+    engOption = args.engineoptions
         
     # Convert options to dict.
-    options = {'-book': bookOption,
-               '-eval': evalOption,
-               '-movetime': moveTimeOption,
-               '-movestart': moveStartOption,
-               '-job': jobOption,
-               '-engoptions': engOption
+    options = {'-booktype': bookType,
+               '-eval': evalType,
+               '-movetime': analysisMoveTime,
+               '-movestart': analysisMoveStart,
+               '-job': jobType,
+               '-engineoptions': engOption,
+               '-bookfile': bookFile
                }
 
     # Create an object of class Analyze.
     g = Analyze(inputFile, outputFile, engineFile, **options)
     g.PrintEngineIdName()
 
-    # Process input file depending on the format and options
-    if fileType == EPD_FILE:
-        if jobOption == 'test':
+    # Process input file depending on the infile format
+    if inputFile.endswith('.epd'):
+        if jobType == 'test':
             g.TestEngineWithEpd()
         else:
             g.AnnotateEpd()
-    elif fileType == PGN_FILE:
+    elif inputFile.endswith('.pgn'):
         g.AnnotatePgn()
 
     print('Done!!\n')  
