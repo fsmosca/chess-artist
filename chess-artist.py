@@ -37,9 +37,10 @@ import math
 import chess
 from chess import pgn
 
+
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = '0.2.0'
+APP_VERSION = '0.2.1'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -55,48 +56,57 @@ COMPLEXITY_MINIMUM_TIME = 2000
 DEFAULT_HASH = 32
 DEFAULT_THREADS = 1
 
+
 def PrintProgram():
     """ Prints program name and version """
     print('%s %s\n' %(APP_NAME, APP_VERSION))
     
+
 def DeleteFile(fn):
     """ Delete fn file """
     if os.path.isfile(fn):
         os.remove(fn)
 
-def CheckFiles(infn, outfn, engfn):
+
+def IsValidInputFiles(infn, outfn, engfn):
     """ Quit program if infn is missing.
         Quit program if infn and outfn is the same.
         Quit program if engfn is missing.
         Quit program if input file type is not epd or pgn
     """
+    isValidInput = True
+    
     # input file is missing
     if not os.path.isfile(infn):
         print('Error! %s is missing' %(infn))
-        sys.exit(1)
+        isValidInput = False
 
     # input file and output file is the same.
     if infn == outfn:
         print('Error! input filename and output filename is the same')
-        sys.exit(1)
+        isValidInput = False
 
     # engine file is missing.
     if not os.path.isfile(engfn):
         print('Error! %s is missing' %(engfn))
-        sys.exit(1)
+        isValidInput = False
 
     # If file is not epd or pgn
     if not infn.endswith('.epd') and not infn.endswith('.pgn'):
         print('Error! %s is not an epd or pgn file' %(infn))
-        sys.exit(1)
+        isValidInput = False
+        
+    return isValidInput
+
 
 def EvaluateOptions(opt):
     """ Convert opt list to dict and returns it """
     return dict([(k, v) for k, v in zip(opt[::2], opt[1::2])])
 
+
 def GetOptionValue(opt, optName, var):
     """ Returns value of opt dict given the key """
-    if opt.has_key(optName):
+    if optName in opt:
         var = opt.get(optName)
         if optName == '-movetime':
             var = int(var)
@@ -106,7 +116,9 @@ def GetOptionValue(opt, optName, var):
             var = int(var)
         elif optName == '-movestart':
             var = int(var)
+
     return var
+
 
 class Analyze():
     """ An object that will read and annotate games in a pgn file """
@@ -633,7 +645,7 @@ class Analyze():
 
         # Get piece values except pawns
         wmat = Q*9 + R*5 + B*3 + N*3
-        bmat = q*9 + r*5 + b*3 + b*3
+        bmat = q*9 + r*5 + b*3 + n*3
 
         # Get queen and pawn counts
         queens = Q+q
@@ -1708,7 +1720,6 @@ class Analyze():
                 print
 
         # Print test summary.
-        cntWrong = cntValidEpd - cntCorrect
         pctCorrect = 0.0
         if cntValidEpd:
             pctCorrect = (100.0 * cntCorrect)/cntValidEpd
@@ -1730,14 +1741,14 @@ class Analyze():
             f.write('Total correct         : %d\n' %(cntCorrect))
             f.write('Correct percentage    : %0.1f\n' %(pctCorrect))
             
+
 def main(argv):
-    """ start """
     PrintProgram()
 
     # Initialize
     inputFile = 'src.pgn'
     outputFile = 'out_src.pgn'
-    engineName = 'engine.exe'
+    engineFile = 'engine.exe'
     bookOption = 'none'   # ['none', 'cerebellum', 'polyglot']
     evalOption = 'static' # ['none', 'static', 'search']
     cereBookFile = 'Cerebellum_Light.bin'
@@ -1751,7 +1762,7 @@ def main(argv):
     if len(options):
         inputFile = GetOptionValue(options, '-infile', inputFile)
         outputFile = GetOptionValue(options, '-outfile', outputFile)
-        engineName = GetOptionValue(options, '-eng', engineName)
+        engineFile = GetOptionValue(options, '-eng', engineFile)
         bookOption = GetOptionValue(options, '-book', bookOption)
         evalOption = GetOptionValue(options, '-eval', evalOption)
         moveTimeOption = GetOptionValue(options, '-movetime', moveTimeOption)
@@ -1759,8 +1770,9 @@ def main(argv):
         jobOption = GetOptionValue(options, '-job', jobOption)
         engOption = GetOptionValue(options, '-engoptions', engOption)
 
-    # Check input, output and engine files.
-    CheckFiles(inputFile, outputFile, engineName)
+    # Exit program if inputs are invalid
+    if not IsValidInputFiles(inputFile, outputFile, engineFile):
+        sys.exit(1)
     
     # Disable use of cerebellum book when Cerebellum_Light.bin is missing.
     if bookOption == 'cerebellum':
@@ -1803,7 +1815,7 @@ def main(argv):
                }
 
     # Create an object of class Analyze.
-    g = Analyze(inputFile, outputFile, engineName, **options)
+    g = Analyze(inputFile, outputFile, engineFile, **options)
     g.PrintEngineIdName()
 
     # Process input file depending on the format and options
@@ -1814,10 +1826,10 @@ def main(argv):
             g.AnnotateEpd()
     elif fileType == PGN_FILE:
         g.AnnotatePgn()
-    else:
-        print('Warning! it is not possbile to reach here')
 
-    print('Done!!\n')    
+    print('Done!!\n')  
+    sys.exit(0)
+
 
 if __name__ == "__main__":
     main(sys.argv[1:])
