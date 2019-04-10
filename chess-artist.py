@@ -1549,12 +1549,12 @@ class Analyze():
                 with open(self.outfn, 'a') as f1:
                     if self.evalType == 'static':
                         f1.write('%s ce %+d; c0 \"%s\"; Ae \"%s\";\n'\
-                                 %(epd, ce,
+                                 %(epdLine, ce,
                                    'ce is static eval of engine',
                                    self.engIdName))
                     elif self.evalType == 'search':
                         f1.write('%s acd %d; acs %d; bm %s; ce %+d; Ae \"%s\";\n'\
-                                 %(epd, acd, acs, bm, ce, self.engIdName))
+                                 %(epdLine, acd, acs, bm, ce, self.engIdName))
 
     def GetEpdBm(self, epdLineList):
         """ return the bm in a list format in the epd line.
