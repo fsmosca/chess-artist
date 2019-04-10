@@ -29,5 +29,5 @@ Total tested positions: 300
 Total correct         : 279
 Correct percentage    : 93.0
 ```
-### Analyze epd file
-`python chess-artist.py --infile puzzle.epd --outfile out_puzzle.epd --enginefile stockfish_10.exe --engineoptions "Hash value 128, Threads value 1" --eval search --job analyze --movetime 1000`
+### Annotate the epd file
+`python2 chess-artist.py --infile repertoire.epd --outfile out_repertoire.epd --enginefile stockfish_10.exe --engineoptions "Hash value 128, Threads value 1" --eval search --job analyze --movetime 5000`
