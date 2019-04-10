@@ -30,4 +30,11 @@ Total correct         : 279
 Correct percentage    : 93.0
 ```
 ### Annotate the epd file
-`python2 chess-artist.py --infile repertoire.epd --outfile out_repertoire.epd --enginefile stockfish_10.exe --engineoptions "Hash value 128, Threads value 1" --eval search --job analyze --movetime 5000`
+#### Use Stockfish to annotate epd file at movetime 30s or 30000ms
+`python2 chess-artist.py --infile repertoire.epd --outfile out_repertoire.epd --enginefile stockfish_10.exe --engineoptions "Hash value 128, Threads value 1" --eval search --job analyze --movetime 30000`
+
+Example output:
+```
+rn1q1rk1/pbp2ppp/1p1ppn2/6B1/2PP4/P1Q1P3/1P3PPP/R3KBNR w KQ - c0 "Nimzo-Indian"; acd 26; acs 30; bm f3; ce +46; Ae "Stockfish 10 64 POPCNT";
+rnbq1rk1/pp2ppbp/6p1/2p5/3PP3/2P2N2/P4PPP/1RBQKB1R w K - c0 "Gruenfeld"; acd 26; acs 30; bm Be2; ce +74; Ae "Stockfish 10 64 POPCNT";
+```
