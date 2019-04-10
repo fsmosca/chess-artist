@@ -692,15 +692,16 @@ class Analyze():
     def GetEngineOptionValue(self, optionName):
         """ Returns value str of option given option name """
         engOptionValue = self.engineOptions
-        if engOptionValue == 'none':
-            # Return defaults
-            if 'Hash' in optionName:
+        
+        # Return default Hash and threads if engine options are not defined
+        if engOptionValue is None:            
+            if 'hash' in optionName.lower():
                 return str(DEFAULT_HASH)
-            elif 'Threads' in optionName:
+            elif 'threads' in optionName.lower():
                 return str(DEFAULT_THREADS)
 
         # If there are more than 1 options defined
-        if ',' in engOptionValue:
+        elif ',' in engOptionValue:
             engOptionValueList = engOptionValue.split(',')
             for n in engOptionValueList:
                 value = n.strip()
@@ -716,9 +717,9 @@ class Analyze():
     def SetEngineOptions(self, p, engOptionValue):
         """ Set engine options for uci engines """
         # If nothing is defined, means that the user relies on the default
-        if engOptionValue == 'none':
-            return            
-        
+        if engOptionValue is None:
+            return
+
         # Convert engOptionValue to list
         if ',' in engOptionValue:
             engOptionValueList = engOptionValue.split(',')
@@ -1705,7 +1706,7 @@ def main(argv):
     parser.add_argument('-n', '--engineoptions', 
         help='input engine options, like threads, hash and others ' +
         'example: --engineoptions "Hash value 128, Threads value 1"', 
-                        required=True)
+                        required=False)
     parser.add_argument('--booktype', 
                         help='input book type, can be cerebellum',
                         required=False)
