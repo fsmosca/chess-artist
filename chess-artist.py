@@ -27,7 +27,7 @@ E. Programming language
 https://www.python.org/
 
 F. Other
-1. See also the README.txt for some useful informations.
+1. See also the README.txt and README.md for some useful informations.
 """
 
 
@@ -37,12 +37,12 @@ import subprocess
 import argparse
 import math
 import chess
-from chess import pgn
+import chess.pgn
 
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = '0.3.0'
+APP_VERSION = '0.3.1'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -1556,40 +1556,76 @@ class Analyze():
                         f1.write('%s acd %d; acs %d; bm %s; ce %+d; Ae \"%s\";\n'\
                                  %(epdLine, acd, acs, bm, ce, self.engIdName))
 
-    def GetEpdBm(self, epdLineList):
-        """ return the bm in a list format in the epd line.
-            There can be more 1 bm in a given epd.
+    def GetEpdBmAm(self, epdLine):
+        """ Return the bm and am in a list format in the epdLine.
+            There can be more than 1 bm and/or more than 1 am.
+            bm = best move, based from input epd
+            am = avoid move, based from input epd
         """
-        # Example epd line.
-        # [pieces] [side] [castle] [ep] bm e4 Nf3; c0 "id 1";
-        bmIndex = epdLineList.index('bm')
+        # Example epd lines:
+        # [pieces] [side] [castle] [ep] bm [best move]; id "id [id name]";
+        # rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - bm e4 d4; id "id 1";
+        # rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - am a3; id "id 2";
+        # rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - bm d4; am a3; id "id 3";
+        
+        # Save bm and am from the given epd
+        bmList, amList = [], []
+        
+        # (1) Get the bm in the epd
+        try:
+            # Split epd by semi-colon, then examine every slice to find bm
+            bmSplit = epdLine.split(';')
+            
+            bm = None            
+            # Check every slice searching for bm without a quote
+            for part in bmSplit:
+                if ' bm ' in part and not '"' in part:
+                    bm = part.split(' bm ')[1].strip()
+                    break
+            
+            # Convert the bm into list, useful when there are more than 1 bm
+            # Expected example output when there are more than 1 bm.
+            # bmList = ['e4', 'd4']
+            if bm is not None:
+                bmList = bm.split()
+                print('epd bm: %s' % (bmList))
+        except IndexError:
+            pass
+        except Exception as e:
+            print('Unexpected exception %s in reading bm op code' % (e))
+            
+        # (2) Get the am in the epd
+        try:
+            # Split epd by semi-colon, then examine every slice to find am
+            amSplit = epdLine.split(';')
+            
+            am = None            
+            # Check every slice searching for am without a quote
+            for part in amSplit:
+                if ' am ' in part and not '"' in part:
+                    am = part.split(' am ')[1].strip()
+                    break
+            if am is not None:
+                amList = am.split()
+                print('epd am: %s' % (amList))
+        except IndexError:
+            pass
+        except Exception as e:
+            print('Unexpected exception %s in reading am op code' % (e))
+            
+        return bmList, amList
 
-        # Extract the string beyond the bm.
-        bmStartValue = ' '.join(epdLineList[bmIndex+1:])
-
-        # Remove trailing and leading empty space in the string.
-        bmStartValue = bmStartValue.strip()
-
-        # Split at semi colon.
-        semiColonSplit = bmStartValue.split(';')
-
-        # Extract the bm by taking the value with index [0].
-        bmValue = semiColonSplit[0]
-
-        # There could be more than 1 bm so we save it in a list.
-        epdBm = bmValue.split()
-        return epdBm
-
-    def IsCorrectEngineBm(self, engineBm, epdBm):
-        """ Returns True or False.
-            Check if engineBm is correct against epdBm list
+    def IsCorrectEngineBm(self, engineBm, epdBm, epdAm):
+        """ Return True if engineBm is in epdBm or if engineBm is not
+            in epdAm, otherwise return False.
         """
-        found = False
-        for ebm in epdBm:
-            if engineBm == ebm:
-                found = True
-                break
-        return found
+        if len(epdBm) >= 1 and engineBm in epdBm:
+            return True
+        
+        if len(epdAm) >= 1 and engineBm not in epdAm:
+            return True
+        
+        return False
 
     def GetHmvcInEpd(self, epdLine):
         """ Returns hmvc in an epd line """        
@@ -1625,7 +1661,8 @@ class Analyze():
                 epd = ' '.join(epdLineSplit[0:4])
                 hmvc = self.GetHmvcInEpd(epdLine)
 
-                # Add hmvc and fmvn to create a FEN for the engine.
+                # Add hmvc to create a FEN for the engine.
+                # Use 1 for fmvn
                 fen = epd + ' ' + hmvc + ' 1'
 
                 # Show progress in console.
@@ -1641,14 +1678,15 @@ class Analyze():
                     print('has no legal move - skipped.\n')
                     continue
 
-                # If the epd line has no bm then we just skip it.
-                if 'bm ' not in epdLine:
-                    print('Warning!! epd \"%s\"')
-                    print('has no bm opcode - skipped.\n')
+                # Get the bm and/or am move in the epd line.
+                epdBm, epdAm = self.GetEpdBmAm(epdLine)  
+                
+                # If the epd line has no bm or am then we just skip it.
+                if len(epdBm) <= 0 and len(epdAm) <= 0:
+                    # Show warning in console.
+                    print('Warning! epd \"%s\"' %(epd))
+                    print('has no bm and am opcodes - skipped.\n')
                     continue
-
-                # Get the bm(s) move in the epd line, epdBm is a list.
-                epdBm = self.GetEpdBm(epdLineSplit)                
 
                 # Get engine analysis, we are only interested on bm.
                 _, _, bm, _ = self.GetEpdEngineSearchScore(fen)
@@ -1659,12 +1697,14 @@ class Analyze():
                 # Show progress in console.
                 print('engine bm: %s' %(bm))
 
-                # Check bm of engine against the bm in epd, if found count it.
-                isCorrect = self.IsCorrectEngineBm(bm, epdBm)
+                # If engine bm is in the epdBm list then increment cntCorrect.
+                # If not, check if engine bm is not in epdAm list, if so
+                # increment the cntCorrect.
+                isCorrect = self.IsCorrectEngineBm(bm, epdBm, epdAm)
                 if isCorrect:
                     cntCorrect += 1
-                    print('correct: %d' %(cntCorrect))
-                print
+                print('correct: %s' % ('Yes' if isCorrect else 'No'))
+                print('num correct: %d' % (cntCorrect))
 
         # Print test summary.
         pctCorrect = 0.0
@@ -1676,7 +1716,7 @@ class Analyze():
         print('Total epd lines       : %d' %(cntEpd))
         print('Total tested positions: %d' %(cntValidEpd))
         print('Total correct         : %d' %(cntCorrect))
-        print('Correct percentage    : %0.1f' %(pctCorrect))
+        print('Correct percentage    : %0.2f' %(pctCorrect))
 
         # Write to output file, that was specified in -outfile option.
         with open(self.outfn, 'a') as f:
@@ -1686,7 +1726,7 @@ class Analyze():
             f.write('Total epd lines       : %d\n' %(cntEpd))
             f.write('Total tested positions: %d\n' %(cntValidEpd))
             f.write('Total correct         : %d\n' %(cntCorrect))
-            f.write('Correct percentage    : %0.1f\n' %(pctCorrect))
+            f.write('Correct percentage    : %0.2f\n\n' %(pctCorrect))
             
 
 def main(argv):
