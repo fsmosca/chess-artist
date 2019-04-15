@@ -38,11 +38,12 @@ import argparse
 import math
 import chess
 import chess.pgn
+import chess.polyglot
 
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = '0.3.1'
+APP_VERSION = '0.3.2'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -79,6 +80,7 @@ class Analyze():
         self.jobType = opt['-job']
         self.engineOptions = opt['-engineoptions']
         self.bookFile = opt['-bookfile']
+        self.bookMove = None  # Can be cerebellum or polyglot book move
         self.writeCnt = 0
         self.engIdName = self.GetEngineIdName()
 
@@ -361,8 +363,7 @@ class Analyze():
                                      complexityNumber, moveChanges,
                                      pvLine, threatMove):
         """ Write moves with score and book moves in the output file """
-        bookComment = 'cerebellum'
-        assert bookMove is not None
+        bookComment = 'cerebellum' if self.bookType == 'cerebellum' else 'polyglot'
         
         # Write the move and comments
         with open(self.outfn, 'a+') as f:
@@ -688,6 +689,29 @@ class Analyze():
             bestMove = self.UciToSanMove(pos, bestMove)
             return bestMove
         return None
+    
+    def GetPolyglotBookMove(self, fen):
+        """ Returns a move from polyglot book """
+        polyMove = None
+        if self.bookType != 'polyglot' or self.bookFile is None:
+            return polyMove
+
+        # Find the move with highest book weight
+        board = chess.Board(fen)
+        bestWeight = -1
+        bestMove = None        
+        with chess.polyglot.open_reader(self.bookFile) as reader:
+            for entry in reader.find_all(board):
+                if entry.weight > bestWeight:
+                    bestWeight = entry.weight
+                    bestMove = str(entry.move())
+                
+        polyMove = bestMove
+                
+        if polyMove is not None:
+            polyMove = self.UciToSanMove(fen, polyMove)
+        
+        return polyMove
 
     def GetEngineOptionValue(self, optionName):
         """ Returns value str of option given option name """
@@ -905,7 +929,7 @@ class Analyze():
 
             # Save pv move per depth
             if isGetComplexityNumber:
-                if 'info depth ' in line and 'pv ' in line and not\
+                if 'info depth ' in line and ' pv ' in line and not\
                    'upperbound' in line and not 'lowerbound' in line:
                     
                     # Get the depth
@@ -978,22 +1002,29 @@ class Analyze():
         return bestMove, scoreP, complexityNumber, moveChanges, pvLineSan
 
     def GetComplexityNumber(self, savedMove, fen):
-        """ Returns complexity number and move changes counts """
+        """ Returns complexity number and move changes counts
+            savedMove = [[depth1, move1],[depth2, move2]]
+        """
         complexityNumber, moveChanges = 0, 0
+        lastMove = None
+        lastDepth = 0
         for n in savedMove:
             depth = n[0]
+            move = n[1]
             if depth >= 10:
-                if n[1] != lastMove and depth != lastDepth:
-                    complexityNumber += n[0]
+                if move != lastMove and depth != lastDepth:
+                    complexityNumber += depth
                     moveChanges += 1
             lastDepth = depth
-            lastMove = n[1]
+            lastMove = move
 
         # Increase complexityNumber when there are queens, and high mat values
-        if complexityNumber:
+        if complexityNumber > 0:
             wmat, bmat, queens, pawns = self.GetMaterialInfo(fen)
             if queens > 0:
                 complexityNumber += 5
+                
+            # High piece values remaining and 2 pawns is at least exchanged
             if wmat + bmat >= 46 and pawns <= 14:
                 complexityNumber += 5
 
@@ -1337,9 +1368,6 @@ class Analyze():
             # Show progress in console.
             print('Annotating game %d...' %(gameCnt))
 
-            # We don't access cere book if isCereEnd is true.
-            isCereEnd = False
-
             # Save the tag section of the game.
             for key, value in game.headers.items():
                 with open(self.outfn, 'a+') as f:
@@ -1385,36 +1413,24 @@ class Analyze():
                 nextNode = gameNode.variation(0)                      
                 sanMove = nextNode.san()
                 complexityNumber, moveChanges = 0, 0
-                threatMove = None
+                threatMove = None  
+                self.bookMove = None
 
-                # (0) Don't analyze if move num is below moveStart value
+                # (1) Don't analyze or probe the book move if move number is below moveStart value
                 if fmvn < self.analysisMoveStart:
-                    cereBookMove = None
-                    self.WriteNotation(side, fmvn, sanMove, cereBookMove,
+                    self.WriteNotation(side, fmvn, sanMove, self.bookMove,
                                        None, False, None, None, 0, 0,
                                        None, threatMove)
                     gameNode = nextNode
-                    continue        
+                    continue
 
-                # (1) Try to get a cerebellum book move.
-                cereBookMove = None
-                if self.bookType == 'cerebellum' and self.bookFile is not None \
-                        and not isCereEnd:
-                    # Use FEN before a move.
+                # (2) Probe the book file and save the best book move  
+                if fmvn <= BOOK_MOVE_LIMIT and self.bookFile is not None:  
                     fenBeforeMove = gameNode.board().fen()
-                    cereBookMove = self.GetCerebellumBookMove(fenBeforeMove)
-
-                    # End trying to find cerebellum book move beyond BOOK_MOVE_LIMIT.
-                    if cereBookMove is None and fmvn > BOOK_MOVE_LIMIT:
-                        isCereEnd = True
-
-                # (2) Don't start the engine analysis when fmvn is below moveStart.
-                if fmvn < self.analysisMoveStart and cereBookMove is not None:
-                    self.WriteNotation(side, fmvn, sanMove, cereBookMove,
-                                       None, False, None, None, 0, 0,
-                                       None, threatMove)
-                    gameNode = nextNode
-                    continue 
+                    if self.bookType == 'cerebellum':
+                        self.bookMove = self.GetCerebellumBookMove(fenBeforeMove)
+                    elif self.bookType == 'polyglot':
+                        self.bookMove = self.GetPolyglotBookMove(fenBeforeMove)
 
                 # (3) Get the posScore or the score of the player move.
                 # Can be by static eval of the engine or search score of the engine
@@ -1465,7 +1481,7 @@ class Analyze():
                     assert threatMove is not None
                 
                 # (6) Write moves and comments.
-                self.WriteNotation(side, fmvn, sanMove, cereBookMove,
+                self.WriteNotation(side, fmvn, sanMove, self.bookMove,
                                    posScore, isGameOver,
                                    engBestMove, engBestScore,
                                    complexityNumber, moveChanges,
