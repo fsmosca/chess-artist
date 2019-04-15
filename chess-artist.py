@@ -81,6 +81,9 @@ class Analyze():
         self.engineOptions = opt['-engineoptions']
         self.bookFile = opt['-bookfile']
         self.bookMove = None  # Can be cerebellum or polyglot book move
+        self.sidePassedPawnIsGood = False
+        self.whitePassedPawnCommentCnt = 0
+        self.blackPassedPawnCommentCnt = 0
         self.writeCnt = 0
         self.engIdName = self.GetEngineIdName()
 
@@ -233,7 +236,10 @@ class Analyze():
                     f.write('\n')
 
     def WritePosScore(self, side, moveNumber, sanMove, posScore):
-        """ Write moves with score in the output file """
+        """ Write moves with score in the output file 
+            This could be a case where the engine has no suggestion possibly
+            the game move is the same as the engine move
+        """
         
         # Write the move and comments
         with open(self.outfn, 'a+') as f:
@@ -241,9 +247,17 @@ class Analyze():
 
             # If side to move is white
             if side:
-                f.write('%d. %s {%+0.2f} ' %(moveNumber, sanMove, posScore))
+                if self.sidePassedPawnIsGood:
+                    f.write('%d. %s {%+0.2f with a better passed pawn} ' %(moveNumber, sanMove, posScore))
+                    self.whitePassedPawnCommentCnt += 1
+                else:
+                    f.write('%d. %s {%+0.2f} ' %(moveNumber, sanMove, posScore))
             else:
-                f.write('%s {%+0.2f} ' %(sanMove, posScore))
+                if self.sidePassedPawnIsGood:
+                    f.write('%s {%+0.2f, with a better passed pawn} ' %(sanMove, posScore))
+                    self.blackPassedPawnCommentCnt += 1
+                else:
+                    f.write('%s {%+0.2f} ' %(sanMove, posScore))
 
                 # Format output, don't write movetext in one long line.
                 if self.writeCnt >= 4:
@@ -490,7 +504,7 @@ class Analyze():
                       moveChanges, pvLine, threatMove):
         """ Write moves and comments to the output file """
         # (0) If game is over [mate, stalemate] just print the move.
-        if isGameOver:
+        if isGameOver or (posScore is None and bookMove is None):
             self.WriteSanMove(side, fmvn, sanMove)
             return
 
@@ -554,12 +568,7 @@ class Analyze():
                               engMove is not None
         if isWriteEngMove:
             self.WriteEngMove(side, fmvn, sanMove, engMove, engScore, pvLine)
-            return
-
-        # (8) Write sanMove only
-        if posScore is None and bookMove is None:
-            self.WriteSanMove(side, fmvn, sanMove)
-            return            
+            return          
             
     def MateDistanceToValue(self, d):
         """ Returns value given distance to mate """
@@ -689,6 +698,62 @@ class Analyze():
             bestMove = self.UciToSanMove(pos, bestMove)
             return bestMove
         return None
+    
+    def IsPassedPawnGood(self, fen, side):
+        """ Returns True if passed pawn eval of side not to move is good.
+            Example line to be parsed:
+                      Passed |  3.01  3.87 |  0.08  0.39 |  2.92  3.48
+        """
+        
+        # Evaluate the passed pawn of the side not to move
+        sideToEvaluate = not side
+        
+        # Run the engine.
+        p = subprocess.Popen(self.eng, stdin=subprocess.PIPE,
+                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
+        # Setup fen and send eval command, the engine should be Stockfish
+        # or Brainfish that supports eval command
+        p.stdin.write('uci\n')
+        for eline in iter(p.stdout.readline, ''):
+            line = eline.strip()
+            if 'uciok' in line:
+                break
+        p.stdin.write('ucinewgame\n')
+        p.stdin.write('position fen %s\n' % fen)
+        p.stdin.write('eval\n')
+        
+        # Parse the output
+        passedPawnComment = None
+        for eline in iter(p.stdout.readline, ''):        
+            line = eline.strip()
+            
+            if 'Passed ' in line:
+                passedPawnComment = line
+                break
+            if 'bestmove ' in line:
+                break
+
+        p.stdin.write('quit\n')
+        p.communicate()
+
+        whiteMgPassedValue = float(passedPawnComment.split()[8])
+        whiteEgPassedValue = float(passedPawnComment.split()[9])
+        
+        # Positive is better for white, negative is better for black
+        # If side to move is white
+        if sideToEvaluate:
+            if whiteMgPassedValue >= 2.0 and whiteEgPassedValue >= 2.0:
+                print('White has a good passer: %0.2f' % whiteMgPassedValue)
+                print(fen)
+                return True
+        else:
+            if whiteMgPassedValue <= -2.0 and whiteEgPassedValue <= -2.0:
+                print('Black has a good passer: %0.2f' % whiteMgPassedValue)
+                print(fen)
+                return True
+
+        return False 
     
     def GetPolyglotBookMove(self, fen):
         """ Returns a move from polyglot book """
@@ -1305,7 +1370,7 @@ class Analyze():
         """ Write termination marker and average errror """
         if wcnt and bcnt:
             with open(self.outfn, 'a') as f:
-                f.write('(-- {WhiteAveError=%0.2f, BlackAveError=%0.2f, ratingDiff=%d}) %s\n\n'\
+                f.write('{WhiteAveError=%0.2f, BlackAveError=%0.2f, ratingDiff=%d} %s\n\n'\
                         %(werr, berr, rdiff, res))
         else:
             with open(self.outfn, 'a') as f:
@@ -1357,6 +1422,11 @@ class Analyze():
         # Loop thru the games.
         while game:
             gameCnt += 1
+            
+            # Reset passed pawn comment every game. Passed pawn comment is
+            # only done once for white and once for black per game
+            self.whitePassedPawnCommentCnt = 0
+            self.blackPassedPawnCommentCnt = 0
 
             # Initialize move error calculation
             moveError = {'white':0.0, 'black':0.0}
@@ -1415,6 +1485,9 @@ class Analyze():
                 complexityNumber, moveChanges = 0, 0
                 threatMove = None  
                 self.bookMove = None
+                self.sidePassedPawnIsGood = False
+                
+                print('side: %s, move_num %d' % ('White' if side else 'Black',  fmvn))
 
                 # (1) Don't analyze or probe the book move if move number is below moveStart value
                 if fmvn < self.analysisMoveStart:
@@ -1479,6 +1552,13 @@ class Analyze():
                         and abs(engBestScore) <= 2.0:
                     threatMove = self.GetThreatMove(gameNode.board().fen())
                     assert threatMove is not None
+                    
+                # (5.2) Check if passed pawn of side to move is good. We need
+                # to make the move on the board and then evaluate it
+                if side and self.whitePassedPawnCommentCnt == 0:
+                    self.sidePassedPawnIsGood = self.IsPassedPawnGood(nextNode.board().fen(), not side)
+                elif not side and self.blackPassedPawnCommentCnt == 0:
+                    self.sidePassedPawnIsGood = self.IsPassedPawnGood(nextNode.board().fen(), not side)
                 
                 # (6) Write moves and comments.
                 self.WriteNotation(side, fmvn, sanMove, self.bookMove,
