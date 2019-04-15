@@ -16,6 +16,9 @@ A python script that can analyze games in the pgn file. It can also analyze epd 
 `python chess-artist.py --infile sample.pgn --outfile out_sample.pgn --enginefile Stockfish.exe --engineoptions "Hash value 128, Threads value 1" --eval search --job analyze --movetime 2000`<br><br>
 Will analyze games inside sample.pgn and output the analyzed games in out_sample.pgn. It uses engine Stockfish.exe with Hash 128MB and Threads 1 at 2000 millisec or 2 sec analysis time per position. chess-artist.py and Stockfish.exe engine must be in same directory.<br>
 
+#### Analyze game with polyglot book
+`python chess-artist.py --infile sample.pgn --outfile out_sample.pgn --enginefile Stockfish.exe --engineoptions "Hash value 128, Threads value 1" --bookfile gm2600.bin --booktype polyglot --eval search --job analyze --movetime 2000`
+
 ### Test engine with test suite
 `python chess-artist.py --infile wacnew.epd --outfile result_wacnew.txt --enginefile stockfish_10.exe --engineoptions "Hash value 128, Threads value 1" --eval search --job test --movetime 500`<br><br>
 Output file result_wacnew.txt<br>
@@ -38,3 +41,7 @@ Example output:
 rn1q1rk1/pbp2ppp/1p1ppn2/6B1/2PP4/P1Q1P3/1P3PPP/R3KBNR w KQ - c0 "Nimzo-Indian"; acd 26; acs 30; bm f3; ce +46; Ae "Stockfish 10 64 POPCNT";
 rnbq1rk1/pp2ppbp/6p1/2p5/3PP3/2P2N2/P4PPP/1RBQKB1R w K - c0 "Gruenfeld"; acd 26; acs 30; bm Be2; ce +74; Ae "Stockfish 10 64 POPCNT";
 ```
+
+## Credits
+* Niklas Fiekas<br>
+https://github.com/niklasf/python-chess
