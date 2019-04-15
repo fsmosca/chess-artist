@@ -1560,7 +1560,7 @@ class Analyze():
                     if side and self.whitePassedPawnCommentCnt == 0:
                         self.sidePassedPawnIsGood = self.IsPassedPawnGood(nextNode.board().fen(), not side)
                     elif not side and self.blackPassedPawnCommentCnt == 0:
-                        self.sidePassedPawnIsGood = self.IsPassedPawnGood(nextNode.board().fen(), not side)
+                        self.sidePassedPawnIsGood = self.IsPassedPawnGood(nextNode.board().fen(), side)
                 
                 # (6) Write moves and comments.
                 self.WriteNotation(side, fmvn, sanMove, self.bookMove,
