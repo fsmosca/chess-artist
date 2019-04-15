@@ -1555,10 +1555,12 @@ class Analyze():
                     
                 # (5.2) Check if passed pawn of side to move is good. We need
                 # to make the move on the board and then evaluate it
-                if side and self.whitePassedPawnCommentCnt == 0:
-                    self.sidePassedPawnIsGood = self.IsPassedPawnGood(nextNode.board().fen(), not side)
-                elif not side and self.blackPassedPawnCommentCnt == 0:
-                    self.sidePassedPawnIsGood = self.IsPassedPawnGood(nextNode.board().fen(), not side)
+                if 'stockfish' in engineIdName.lower() or \
+                        'brainfish' in engineIdName.lower():
+                    if side and self.whitePassedPawnCommentCnt == 0:
+                        self.sidePassedPawnIsGood = self.IsPassedPawnGood(nextNode.board().fen(), not side)
+                    elif not side and self.blackPassedPawnCommentCnt == 0:
+                        self.sidePassedPawnIsGood = self.IsPassedPawnGood(nextNode.board().fen(), not side)
                 
                 # (6) Write moves and comments.
                 self.WriteNotation(side, fmvn, sanMove, self.bookMove,
