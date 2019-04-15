@@ -45,3 +45,6 @@ rnbq1rk1/pp2ppbp/6p1/2p5/3PP3/2P2N2/P4PPP/1RBQKB1R w K - c0 "Gruenfeld"; acd 26;
 ## Credits
 * Niklas Fiekas<br>
 https://github.com/niklasf/python-chess
+* Thomas Zipproth<br>
+https://zipproth.de/#Brainfish_download
+
