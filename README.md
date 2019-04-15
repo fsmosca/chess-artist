@@ -25,12 +25,21 @@ Output file result_wacnew.txt<br>
 ```
 :: EPD wacnew.epd TEST RESULTS ::
 Engine        : Stockfish 10 64 POPCNT
+Time/pos (sec): 5.0
+
+Total epd lines       : 300
+Total tested positions: 300
+Total correct         : 292
+Correct percentage    : 97.33
+
+:: EPD wacnew.epd TEST RESULTS ::
+Engine        : Stockfish 10 64 POPCNT
 Time/pos (sec): 0.5
 
 Total epd lines       : 300
 Total tested positions: 300
-Total correct         : 279
-Correct percentage    : 93.0
+Total correct         : 274
+Correct percentage    : 91.33
 ```
 ### Annotate the epd file
 #### Use Stockfish to annotate epd file at movetime 30s or 30000ms
