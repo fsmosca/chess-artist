@@ -84,6 +84,9 @@ class Analyze():
         self.sidePassedPawnIsGood = False
         self.whitePassedPawnCommentCnt = 0
         self.blackPassedPawnCommentCnt = 0
+        self.oppKingSafetyIsBad = False
+        self.whiteKingSafetyCommentCnt = 0
+        self.blackKingSafetyCommentCnt = 0
         self.writeCnt = 0
         self.engIdName = self.GetEngineIdName()
 
@@ -248,14 +251,22 @@ class Analyze():
             # If side to move is white
             if side:
                 if self.sidePassedPawnIsGood:
-                    f.write('%d. %s {%+0.2f with a better passed pawn} ' %(moveNumber, sanMove, posScore))
+                    f.write('%d. %s {%+0.2f, with a better passed pawn} ' %(moveNumber, sanMove, posScore))
                     self.whitePassedPawnCommentCnt += 1
+                elif self.oppKingSafetyIsBad:
+#                    print('King safety is written to pgn file')
+                    f.write('%d. %s {%+0.2f, with a dangerous king attack} ' %(moveNumber, sanMove, posScore))
+                    self.whiteKingSafetyCommentCnt += 1
                 else:
                     f.write('%d. %s {%+0.2f} ' %(moveNumber, sanMove, posScore))
             else:
                 if self.sidePassedPawnIsGood:
                     f.write('%s {%+0.2f, with a better passed pawn} ' %(sanMove, posScore))
                     self.blackPassedPawnCommentCnt += 1
+                elif self.oppKingSafetyIsBad:
+#                    print('King safety is written to pgn file')
+                    f.write('%s {%+0.2f, with a dangerous king attack} ' %(sanMove, posScore))
+                    self.blackKingSafetyCommentCnt += 1
                 else:
                     f.write('%s {%+0.2f} ' %(sanMove, posScore))
 
@@ -699,6 +710,89 @@ class Analyze():
             return bestMove
         return None
     
+    def IsKingSafetyBad(self, curFen, nextFen, curMove):
+        """ Returns True if king safety of side not to move is bad.
+            Example line to be parsed:
+                      King safety |  3.01  3.87 |  0.08  0.39 |  2.92  3.48
+        """
+        curBoard = chess.Board(curFen)
+        curSide = curBoard.turn
+        
+        # (1) Get the king safety based on curFen
+        
+        # Run the engine.
+        p = subprocess.Popen(self.eng, stdin=subprocess.PIPE,
+                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
+        # Setup fen and send eval command, the engine should be Stockfish
+        # or Brainfish that supports eval command
+        p.stdin.write('uci\n')
+        for eline in iter(p.stdout.readline, ''):
+            line = eline.strip()
+            if 'uciok' in line:
+                break
+        p.stdin.write('ucinewgame\n')
+        p.stdin.write('position fen %s\n' % curFen)
+        p.stdin.write('eval\n')
+        
+        # Parse the output
+        kingSafetyCommentCur = None
+        for eline in iter(p.stdout.readline, ''):        
+            line = eline.strip()
+            
+            if 'King safety ' in line:
+                kingSafetyCommentCur = line
+                break
+            if 'bestmove ' in line:
+                break
+            
+        if kingSafetyCommentCur is None:
+            p.stdin.write('quit\n')
+            p.communicate()
+            return False
+            
+        # Net score white POV
+        whiteMgKingSafetyCur = float(kingSafetyCommentCur.split()[9])           
+        
+        # (2) Get the king safety based on nextFen
+        
+        p.stdin.write('ucinewgame\n')
+        p.stdin.write('position fen %s\n' % nextFen)
+        p.stdin.write('eval\n')
+        
+        # Parse the output
+        kingSafetyCommentNext = None
+        for eline in iter(p.stdout.readline, ''):        
+            line = eline.strip()
+            
+            if 'King safety ' in line:
+                kingSafetyCommentNext = line
+                break
+            if 'bestmove ' in line:
+                break
+
+        p.stdin.write('quit\n')
+        p.communicate()
+        
+        if kingSafetyCommentNext is None:
+            return False
+
+        # Net score white POV
+        whiteMgKingSafetyNext = float(kingSafetyCommentNext.split()[9])
+        
+        # Evaluate the king safety of side not to move based on curFen
+        sideToEvaluate = not curSide
+        
+        # If white
+        if sideToEvaluate:
+            if whiteMgKingSafetyNext < -3.0 and whiteMgKingSafetyNext < whiteMgKingSafetyCur:
+                return True
+        else:
+            if whiteMgKingSafetyNext > 3.0 and whiteMgKingSafetyNext > whiteMgKingSafetyCur:
+                return True
+
+        return False 
+
     def IsPassedPawnGood(self, fen, side):
         """ Returns True if passed pawn eval of side not to move is good.
             Example line to be parsed:
@@ -736,6 +830,9 @@ class Analyze():
 
         p.stdin.write('quit\n')
         p.communicate()
+        
+        if passedPawnComment is None:
+            return False
 
         whiteMgPassedValue = float(passedPawnComment.split()[8])
         whiteEgPassedValue = float(passedPawnComment.split()[9])
@@ -744,13 +841,9 @@ class Analyze():
         # If side to move is white
         if sideToEvaluate:
             if whiteMgPassedValue >= 2.0 and whiteEgPassedValue >= 2.0:
-                print('White has a good passer: %0.2f' % whiteMgPassedValue)
-                print(fen)
                 return True
         else:
             if whiteMgPassedValue <= -2.0 and whiteEgPassedValue <= -2.0:
-                print('Black has a good passer: %0.2f' % whiteMgPassedValue)
-                print(fen)
                 return True
 
         return False 
@@ -1427,6 +1520,8 @@ class Analyze():
             # only done once for white and once for black per game
             self.whitePassedPawnCommentCnt = 0
             self.blackPassedPawnCommentCnt = 0
+            self.whiteKingSafetyCommentCnt = 0
+            self.blackKingSafetyCommentCnt = 0
 
             # Initialize move error calculation
             moveError = {'white':0.0, 'black':0.0}
@@ -1463,14 +1558,10 @@ class Analyze():
                     
                     # Don't write Hash in the comment if the analyzing engine
                     # is Lc0 or Leela Chess Zero
-                    if 'lc0' in engineIdName.lower() or\
-                        'leela chess zero' in engineIdName.lower():
-                        f.write('{Threads %s, @ %0.1fs/pos}\n'\
-                            %(threadsValue, self.moveTime/1000.0))
+                    if 'lc0' in engineIdName.lower() or 'leela chess zero' in engineIdName.lower():
+                        f.write('{Threads %s, @ %0.1fs/pos}\n' %(threadsValue, self.moveTime/1000.0))
                     else:
-                        f.write('{Hash %smb, Threads %s, @ %0.1fs/pos}\n'\
-                            %(hashValue, threadsValue,
-                              self.moveTime/1000.0))
+                        f.write('{Hash %smb, Threads %s, @ %0.1fs/pos}\n' %(hashValue, threadsValue, self.moveTime/1000.0))
 
             # Save result to be written later as game termination marker.
             res = game.headers['Result']
@@ -1479,13 +1570,16 @@ class Analyze():
             gameNode = game        
             while gameNode.variations:
                 side = gameNode.board().turn
-                fmvn = gameNode.board().fullmove_number             
+                fmvn = gameNode.board().fullmove_number     
+                curFen = gameNode.board().fen()
                 nextNode = gameNode.variation(0)                      
+                nextFen = nextNode.board().fen()
                 sanMove = nextNode.san()
                 complexityNumber, moveChanges = 0, 0
                 threatMove = None  
                 self.bookMove = None
                 self.sidePassedPawnIsGood = False
+                self.oppKingSafetyIsBad = False
                 
                 print('side: %s, move_num %d' % ('White' if side else 'Black',  fmvn))
 
@@ -1498,39 +1592,32 @@ class Analyze():
                     continue
 
                 # (2) Probe the book file and save the best book move  
-                if fmvn <= BOOK_MOVE_LIMIT and self.bookFile is not None:  
-                    fenBeforeMove = gameNode.board().fen()
+                if fmvn <= BOOK_MOVE_LIMIT and self.bookFile is not None:
                     if self.bookType == 'cerebellum':
-                        self.bookMove = self.GetCerebellumBookMove(fenBeforeMove)
+                        self.bookMove = self.GetCerebellumBookMove(curFen)
                     elif self.bookType == 'polyglot':
-                        self.bookMove = self.GetPolyglotBookMove(fenBeforeMove)
+                        self.bookMove = self.GetPolyglotBookMove(curFen)
 
                 # (3) Get the posScore or the score of the player move.
                 # Can be by static eval of the engine or search score of the engine
                 posScore = None
                 if self.evalType == 'static':
-                    fenAfterMove = nextNode.board().fen()
-                    staticScore = self.GetStaticEvalAfterMove(fenAfterMove)
+                    staticScore = self.GetStaticEvalAfterMove(nextFen)
                     posScore = staticScore
                 elif self.evalType == 'search':
-                    fenAfterMove = nextNode.board().fen()
-                    searchScore = self.GetSearchScoreAfterMove(fenAfterMove,
-                                                               side)
+                    searchScore = self.GetSearchScoreAfterMove(nextFen, side)
                     posScore = searchScore
 
                 # (4) Analyze the position with the engine. Only do this
                 # if posScore is not winning or lossing (more than 3.0 pawns).
                 engBestMove, engBestScore, pvLine = None, None, None
-                if (posScore is None or abs(posScore) < DECISIVE_SCORE)\
-                   and self.jobType == 'analyze':
-                    engBestMove, engBestScore, complexityNumber,\
-                                 moveChanges, pvLine =\
-                        self.GetSearchScoreBeforeMove(gameNode.board().fen(),
-                                                      side)
+                if (posScore is None or abs(posScore) < DECISIVE_SCORE) and self.jobType == 'analyze':
+                    engBestMove, engBestScore, complexityNumber, moveChanges, pvLine = self.GetSearchScoreBeforeMove(curFen, side)
+                        
+                    print('Game move: %s (%0.2f), Engine bestmove: %s (%0.2f)' % (sanMove, posScore, engBestMove, engBestScore))
 
                     # Calculate total move errors incrementally and get the average later
-                    if fmvn >= 12 and self.evalType == 'search' and\
-                       sanMove != engBestMove:
+                    if fmvn >= 12 and self.evalType == 'search' and sanMove != engBestMove:
                         if side:
                             scoreError = engBestScore - posScore
                             moveError['white'] += scoreError
@@ -1541,26 +1628,34 @@ class Analyze():
                             moveCnt['black'] += 1
                     
                 # (5) If game is over by checkmate and stalemate after a move              
-                isGameOver = nextNode.board().is_checkmate() or\
-                             nextNode.board().is_stalemate()
+                isGameOver = nextNode.board().is_checkmate() or nextNode.board().is_stalemate()
 
                 # (5.1) Calculate the threat move if game move and engine best
                 # move is the same and the position is complex and the engine
                 # score is not winning or lossing
-                if moveChanges >= 3 and sanMove == engBestMove\
-                        and not gameNode.board().is_check()\
-                        and abs(engBestScore) <= 2.0:
-                    threatMove = self.GetThreatMove(gameNode.board().fen())
+                if moveChanges >= 3 and sanMove == engBestMove and not gameNode.board().is_check() and abs(engBestScore) <= 2.0:
+                    threatMove = self.GetThreatMove(curFen)
                     assert threatMove is not None
                     
                 # (5.2) Check if passed pawn of side to move is good. We need
                 # to make the move on the board and then evaluate it
-                if 'stockfish' in engineIdName.lower() or \
-                        'brainfish' in engineIdName.lower():
+                if 'stockfish' in engineIdName.lower() or 'brainfish' in engineIdName.lower():
                     if side and self.whitePassedPawnCommentCnt == 0:
-                        self.sidePassedPawnIsGood = self.IsPassedPawnGood(nextNode.board().fen(), not side)
+                        self.sidePassedPawnIsGood = self.IsPassedPawnGood(nextFen, not side)
                     elif not side and self.blackPassedPawnCommentCnt == 0:
-                        self.sidePassedPawnIsGood = self.IsPassedPawnGood(nextNode.board().fen(), side)
+                        self.sidePassedPawnIsGood = self.IsPassedPawnGood(nextFen, side)
+                        
+                # (5.3) Calculate the king safety of the side not to move.
+                # First calculcate the king safety using the current position (ks1) then
+                # calculate the king safety after making the move on the board (ks2)
+                # If ks2 < ks1 and ks2 < -3 pawns or worst then the current move increases
+                # attack to the opponent's king, we add a comment "with a dangerous king attack"
+                # on this move
+                if 'stockfish' in engineIdName.lower() or 'brainfish' in engineIdName.lower():
+                    if side and self.whiteKingSafetyCommentCnt == 0:
+                        self.oppKingSafetyIsBad = self.IsKingSafetyBad(curFen, nextFen, sanMove)
+                    elif not side and self.blackKingSafetyCommentCnt == 0:
+                        self.oppKingSafetyIsBad = self.IsKingSafetyBad(curFen, nextFen, sanMove)
                 
                 # (6) Write moves and comments.
                 self.WriteNotation(side, fmvn, sanMove, self.bookMove,
@@ -1646,13 +1741,9 @@ class Analyze():
                 # Save to output file the epd analysis.
                 with open(self.outfn, 'a') as f1:
                     if self.evalType == 'static':
-                        f1.write('%s ce %+d; c0 \"%s\"; Ae \"%s\";\n'\
-                                 %(epdLine, ce,
-                                   'ce is static eval of engine',
-                                   self.engIdName))
+                        f1.write('%s ce %+d; c0 \"%s\"; Ae \"%s\";\n' %(epdLine, ce, 'ce is static eval of engine', self.engIdName))
                     elif self.evalType == 'search':
-                        f1.write('%s acd %d; acs %d; bm %s; ce %+d; Ae \"%s\";\n'\
-                                 %(epdLine, acd, acs, bm, ce, self.engIdName))
+                        f1.write('%s acd %d; acs %d; bm %s; ce %+d; Ae \"%s\";\n' %(epdLine, acd, acs, bm, ce, self.engIdName))
 
     def GetEpdBmAm(self, epdLine):
         """ Return the bm and am in a list format in the epdLine.
