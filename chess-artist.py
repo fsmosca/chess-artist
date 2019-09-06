@@ -44,7 +44,7 @@ import chess.polyglot
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = '0.3.5'
+APP_VERSION = '0.3.6'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -991,63 +991,40 @@ class Analyze():
                'Error! something is wrong in static eval calculation.'
         return score
 
-    def GetThreatMove(self, pos):
-        """ Returns threat move after pushing a null move
-            and get the engine best move
+    def GetThreatMove(self, fen):
+        """ 
+        Returns threat move after pushing a null move and search.
         """
-
-        # Initialize
+        logging.debug('Get threat move.')
         bestMove = None
-
-        # Run the engine.
         p = subprocess.Popen(self.eng, stdin=subprocess.PIPE,
                              stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-
-        # Send command to engine.
-        p.stdin.write("uci\n")
-
-        # Parse engine replies.
-        for eline in iter(p.stdout.readline, ''):
-            line = eline.strip()
-            if "uciok" in line:
-                break
-
-        # Set engine options
+        self.Send(p, 'uci')
+        self.ReadEngineReply(p, 'uci')
         self.SetEngineOptions(p, self.engineOptions)
-                
-        # Send command to engine.
-        p.stdin.write("isready\n")
-        
-        # Parse engine replies.
-        for eline in iter(p.stdout.readline, ''):
-            line = eline.strip()
-            if "readyok" in line:
-                break
+        self.Send(p, 'isready')
+        self.ReadEngineReply(p, 'isready')
 
         # Push null move
-        b = chess.Board(pos)
+        b = chess.Board(fen)
         b.push(chess.Move.null())
-        newPos = b.fen()
+        newFen = b.fen()
         
-        # Send commands to engine.
-        p.stdin.write("ucinewgame\n")
-        p.stdin.write("position fen " + newPos + "\n")
-        p.stdin.write("go movetime %d\n" %(self.moveTime))
+        self.Send(p, 'ucinewgame')
+        self.Send(p, 'position fen %s' % newFen)
+        self.Send(p, 'go movetime %d' % self.moveTime)
 
-        # Parse the output and extract the engine search score.
         for eline in iter(p.stdout.readline, ''):        
             line = eline.strip()
             if 'bestmove ' in line:
                 bestMove = line.split()[1]
                 break
-                
-        # Quit the engine
-        p.stdin.write('quit\n')
+
+        self.Send(p, 'quit')
         p.communicate()
 
-        # Convert uci move to san move format.
         if bestMove is not None:
-            bestMove = self.UciToSanMove(newPos, bestMove)
+            bestMove = self.UciToSanMove(newFen, bestMove)
         
         return bestMove
 
