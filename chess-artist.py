@@ -80,6 +80,7 @@ class Analyze():
         self.jobType = opt['-job']
         self.engineOptions = opt['-engineoptions']
         self.bookFile = opt['-bookfile']
+        self.depth = opt['-depth']
         self.bookMove = None  # Can be cerebellum or polyglot book move
         self.sidePassedPawnIsGood = False
         self.whitePassedPawnCommentCnt = 0
@@ -1330,7 +1331,7 @@ class Analyze():
         scoreCp = TEST_SEARCH_SCORE
         depthSearched = TEST_SEARCH_DEPTH
 
-        # Run the engine.
+        # Run the engine, python 2
         p = subprocess.Popen(self.eng, stdin=subprocess.PIPE,
                              stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
@@ -1358,7 +1359,18 @@ class Analyze():
         # Send commands to engine.
         p.stdin.write("ucinewgame\n")
         p.stdin.write("position fen " + pos + "\n")
-        p.stdin.write("go movetime %d\n" %(self.moveTime))
+        
+        if self.moveTime > 0:
+            if self.depth > 0:
+                p.stdin.write('go movetime %d depth %d\n' % (self.moveTime, self.depth))
+            else:
+                p.stdin.write('go movetime %d\n' % self.moveTime)
+        elif self.depth > 0:
+            p.stdin.write('go depth %d\n' % self.depth)
+        else:
+            print('Error, missing movetime and depth')
+            p.stdin.write('quit\n')
+            return
 
         # Parse the output and extract the engine search, depth and bestmove
         for eline in iter(p.stdout.readline, ''):        
@@ -1951,6 +1963,9 @@ def main(argv):
                         help='input analysis time per position in ms, ' + 
                         '(default=1000)', default=1000,
                         type=int, required=False)
+    parser.add_argument("--depth", 
+                        help='input analysis depth, (default=0)', default=0,
+                        type=int, required=False)
     parser.add_argument("--movestart", 
                         help='input move number to start the analysis, ' + 
                         'this is used when analyzing games, (default=8)',
@@ -1982,7 +1997,8 @@ def main(argv):
                '-movestart': analysisMoveStart,
                '-job': jobType,
                '-engineoptions': engOption,
-               '-bookfile': bookFile
+               '-bookfile': bookFile,
+               '-depth': args.depth
                }
 
     # Create an object of class Analyze.
