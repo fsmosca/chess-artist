@@ -44,7 +44,7 @@ import chess.polyglot
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = '0.3.3'
+APP_VERSION = '0.3.4'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -92,12 +92,10 @@ class Analyze():
         self.writeCnt = 0
         self.engIdName = self.GetEngineIdName()
 
-    def UciToSanMove(self, pos, uciMove):
-        """ Returns san move given uci move """
-        board = chess.Board(pos)
-        board.push(chess.Move.from_uci(uciMove))
-        sanMove = board.san(board.pop())
-        return sanMove
+    def UciToSanMove(self, fen, uciMove):
+        """ Returns san move given fen and uci move """
+        board = chess.Board(fen)
+        return board.san(chess.Move.from_uci(uciMove))
 
     def PrintEngineIdName(self):
         """ Prints engine id name """
@@ -1324,7 +1322,7 @@ class Analyze():
         scoreP = float(scoreCp)/100.0
         return scoreP
 
-    def GetEpdEngineSearchScore(self, pos):
+    def GetEpdEngineSearchScore(self, fen):
         """ Returns acd, acs, bm, ce and Ae opcodes. """
 
         # Initialize
@@ -1363,8 +1361,8 @@ class Analyze():
         # Send commands to engine.
         p.stdin.write("ucinewgame\n")
         logging.debug('>> ucinewgame')
-        p.stdin.write("position fen " + pos + "\n")
-        logging.debug('>> position fen %s' % pos)
+        p.stdin.write('position fen %s\n' % fen)
+        logging.debug('>> position fen %s' % fen)
         
         if self.moveTime > 0:
             if self.depth > 0:
@@ -1417,7 +1415,7 @@ class Analyze():
         p.communicate()
 
         # Convert uci move to san move format.
-        bestMove = self.UciToSanMove(pos, bestMove)
+        bestMove = self.UciToSanMove(fen, bestMove)
 
         # Verify values to be returned
         assert depthSearched != TEST_SEARCH_DEPTH, 'Error the engine does not search at all.'
