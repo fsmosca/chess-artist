@@ -20,6 +20,7 @@ Will analyze games inside sample.pgn and output the analyzed games in out_sample
 `python chess-artist.py --infile sample.pgn --outfile out_sample.pgn --enginefile Stockfish.exe --engineoptions "Hash value 128, Threads value 1" --bookfile gm2600.bin --booktype polyglot --eval search --job analyze --movetime 2000`
 
 ### Test engine with test suite
+#### Use movetime of 500ms
 `python chess-artist.py --infile wacnew.epd --outfile result_wacnew.txt --enginefile stockfish_10.exe --engineoptions "Hash value 128, Threads value 1" --eval search --job test --movetime 500`<br><br>
 Output file result_wacnew.txt<br>
 ```
@@ -41,6 +42,9 @@ Total tested positions: 300
 Total correct         : 274
 Correct percentage    : 91.33
 ```
+#### Use depth of 10 without movetime
+`python chess-artist.py --infile wacnew.epd --outfile result_wacnew.txt --enginefile stockfish_10.exe --engineoptions "Hash value 128, Threads value 1" --eval search --job test --depth 10 --movetime 0'
+
 ### Annotate the epd file
 #### Use Stockfish to annotate epd file at movetime 30s or 30000ms
 `python2 chess-artist.py --infile repertoire.epd --outfile out_repertoire.epd --enginefile stockfish_10.exe --engineoptions "Hash value 128, Threads value 1" --eval search --job analyze --movetime 30000`
@@ -50,6 +54,8 @@ Example output:
 rn1q1rk1/pbp2ppp/1p1ppn2/6B1/2PP4/P1Q1P3/1P3PPP/R3KBNR w KQ - c0 "Nimzo-Indian"; acd 26; acs 30; bm f3; ce +46; Ae "Stockfish 10 64 POPCNT";
 rnbq1rk1/pp2ppbp/6p1/2p5/3PP3/2P2N2/P4PPP/1RBQKB1R w K - c0 "Gruenfeld"; acd 26; acs 30; bm Be2; ce +74; Ae "Stockfish 10 64 POPCNT";
 ```
+#### Use Stockfish to annotate epd file with depth equals 16 and no movetime
+`python2 chess-artist.py --infile repertoire.epd --outfile out_repertoire.epd --enginefile stockfish_10.exe --engineoptions "Hash value 128, Threads value 1" --eval search --job analyze --depth 16 --movetime 0`
 
 ## Credits
 * Niklas Fiekas<br>
