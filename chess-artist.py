@@ -44,7 +44,7 @@ import chess.polyglot
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = '0.3.4'
+APP_VERSION = '0.3.5'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -91,6 +91,21 @@ class Analyze():
         self.blackKingSafetyCommentCnt = 0
         self.writeCnt = 0
         self.engIdName = self.GetEngineIdName()
+        
+    def Send(self, p, msg):
+        """ Send msg to engine """
+        p.stdin.write('%s\n' % msg)
+        logging.debug('>> %s' % msg)
+        
+    def ReadEngineReply(self, p, command):
+        """ Read reply from engine """
+        for eline in iter(p.stdout.readline, ''):
+            line = eline.strip()
+            logging.debug('<< %s' % line)
+            if command == 'uci' and 'uciok' in line:
+                break
+            if command == 'isready' and 'readyok' in line:
+                break
 
     def UciToSanMove(self, fen, uciMove):
         """ Returns san move given fen and uci move """
@@ -1330,55 +1345,27 @@ class Analyze():
         scoreCp = TEST_SEARCH_SCORE
         depthSearched = TEST_SEARCH_DEPTH
 
-        # Run the engine, python 2
+        # Run the engine, only works with python 2
         p = subprocess.Popen(self.eng, stdin=subprocess.PIPE,
                              stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-
-        # Send command to engine.
-        p.stdin.write("uci\n")
-        logging.debug('>> uci')
-
-        # Parse engine replies.
-        for eline in iter(p.stdout.readline, ''):
-            line = eline.strip()               
-            if "uciok" in line:
-                break
-
-        # Set engine options
+        self.Send(p, 'uci')
+        self.ReadEngineReply(p, 'uci')
         self.SetEngineOptions(p, self.engineOptions)
-                
-        # Send command to engine.
-        p.stdin.write("isready\n")
-        logging.debug('>> isready')
-        
-        # Parse engine replies.
-        for eline in iter(p.stdout.readline, ''):
-            line = eline.strip()
-            logging.debug('<< %s' % line)
-            if "readyok" in line:
-                break
-                
-        # Send commands to engine.
-        p.stdin.write("ucinewgame\n")
-        logging.debug('>> ucinewgame')
-        p.stdin.write('position fen %s\n' % fen)
-        logging.debug('>> position fen %s' % fen)
+        self.Send(p, 'isready')
+        self.ReadEngineReply(p, 'isready')
+        self.Send(p, 'ucinewgame')
+        self.Send(p, 'position fen %s' % fen)
         
         if self.moveTime > 0:
             if self.depth > 0:
-                p.stdin.write('go movetime %d depth %d\n' % (self.moveTime, self.depth))
-                logging.debug('>> go movetime %d depth %d' % (self.moveTime, self.depth))
+                self.Send(p, 'go movetime %d depth %d' % (self.moveTime, self.depth))
             else:
-                p.stdin.write('go movetime %d\n' % self.moveTime)
-                logging.debug('>> go movetime %d' % self.moveTime)
+                self.Send(p, 'go movetime %d' % self.moveTime)
         elif self.depth > 0:
-            p.stdin.write('go depth %d\n' % self.depth)
-            logging.debug('>> go depth %d' % self.depth)
+            self.Send(p, 'go depth %d' % self.depth)
         else:
-            print('Error, missing movetime and depth')
             logging.debug('Error, missing movetime and depth')
-            p.stdin.write('quit\n')
-            logging.debug('>> go quit')
+            self.Send(p, 'quit')
             return
 
         # Parse the output and extract the engine search, depth and bestmove
@@ -1410,8 +1397,7 @@ class Analyze():
                 break
                 
         # Quit the engine
-        p.stdin.write('quit\n')
-        logging.debug('>> quit')
+        self.Send(p, 'quit')
         p.communicate()
 
         # Convert uci move to san move format.
@@ -1423,7 +1409,7 @@ class Analyze():
         assert bestMove is not None, 'Error! seach failed to return a move.'
         return depthSearched, self.moveTime/1000, bestMove, scoreCp
 
-    def GetEpdEngineStaticScore(self, pos):
+    def GetEpdEngineStaticScore(self, fen):
         """ Returns ce and Ae opcodes. """
 
         # Initialize
@@ -1432,32 +1418,14 @@ class Analyze():
         # Run the engine.
         p = subprocess.Popen(self.eng, stdin=subprocess.PIPE,
                              stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-
-        # Send command to engine.
-        p.stdin.write("uci\n")
-
-        # Parse engine replies.
-        for eline in iter(p.stdout.readline, ''):
-            line = eline.strip()               
-            if "uciok" in line:
-                break
-
-        # Set engine options
+        self.Send(p, 'uci')
+        self.ReadEngineReply(p, 'uci')
         self.SetEngineOptions(p, self.engineOptions)
-                
-        # Send command to engine.
-        p.stdin.write("isready\n")
-        
-        # Parse engine replies.
-        for eline in iter(p.stdout.readline, ''):
-            line = eline.strip()
-            if "readyok" in line:
-                break
-                
-        # Send commands to engine.
-        p.stdin.write("ucinewgame\n")
-        p.stdin.write("position fen " + pos + "\n")
-        p.stdin.write("eval\n")
+        self.Send(p, 'isready')
+        self.ReadEngineReply(p, 'isready')
+        self.Send(p, 'ucinewgame')
+        self.Send(p, 'position fen %s' % fen)
+        self.Send(p, 'eval')
 
         # Parse the output and extract the engine search score, depth and bestmove
         for eline in iter(p.stdout.readline, ''):        
@@ -1478,7 +1446,7 @@ class Analyze():
                'Error!, engine failed to return its static eval.'
 
         # Convert to side POV
-        if pos.split()[1] == 'b':
+        if fen.split()[1] == 'b':
             scoreP = -1 * scoreP
 
         # Convert to centipawn
