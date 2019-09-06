@@ -36,6 +36,7 @@ import sys
 import subprocess
 import argparse
 import math
+import logging
 import chess
 import chess.pgn
 import chess.polyglot
@@ -43,7 +44,7 @@ import chess.polyglot
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = '0.3.2'
+APP_VERSION = '0.3.3'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -1337,6 +1338,7 @@ class Analyze():
 
         # Send command to engine.
         p.stdin.write("uci\n")
+        logging.debug('>> uci')
 
         # Parse engine replies.
         for eline in iter(p.stdout.readline, ''):
@@ -1349,32 +1351,45 @@ class Analyze():
                 
         # Send command to engine.
         p.stdin.write("isready\n")
+        logging.debug('>> isready')
         
         # Parse engine replies.
         for eline in iter(p.stdout.readline, ''):
             line = eline.strip()
+            logging.debug('<< %s' % line)
             if "readyok" in line:
                 break
                 
         # Send commands to engine.
         p.stdin.write("ucinewgame\n")
+        logging.debug('>> ucinewgame')
         p.stdin.write("position fen " + pos + "\n")
+        logging.debug('>> position fen %s' % pos)
         
         if self.moveTime > 0:
             if self.depth > 0:
                 p.stdin.write('go movetime %d depth %d\n' % (self.moveTime, self.depth))
+                logging.debug('>> go movetime %d depth %d' % (self.moveTime, self.depth))
             else:
                 p.stdin.write('go movetime %d\n' % self.moveTime)
+                logging.debug('>> go movetime %d' % self.moveTime)
         elif self.depth > 0:
             p.stdin.write('go depth %d\n' % self.depth)
+            logging.debug('>> go depth %d' % self.depth)
         else:
             print('Error, missing movetime and depth')
+            logging.debug('Error, missing movetime and depth')
             p.stdin.write('quit\n')
+            logging.debug('>> go quit')
             return
 
         # Parse the output and extract the engine search, depth and bestmove
         for eline in iter(p.stdout.readline, ''):        
             line = eline.strip()
+            if 'bestmove' in line or \
+                    'depth' in line and 'score' in line and 'pv' in line:
+                logging.debug('<< %s' % line)
+                
             if 'score cp ' in line:
                 splitStr = line.split()
                 scoreIndex = splitStr.index('score')
@@ -1398,6 +1413,7 @@ class Analyze():
                 
         # Quit the engine
         p.stdin.write('quit\n')
+        logging.debug('>> quit')
         p.communicate()
 
         # Convert uci move to san move format.
@@ -1970,6 +1986,8 @@ def main(argv):
                         help='input move number to start the analysis, ' + 
                         'this is used when analyzing games, (default=8)',
                         default=8, type=int, required=False)
+    parser.add_argument('--log', action='store_true',
+                        help='Save log to chess_artist_log.txt')
     parser.add_argument('--job', 
                         help='type of jobs to execute, can be analyze or ' +
         'test. For game analysis use analyze, for annotating epd use ' + 
@@ -2000,6 +2018,12 @@ def main(argv):
                '-bookfile': bookFile,
                '-depth': args.depth
                }
+    
+    if args.log:
+        log_format = '%(asctime)s :: pid: %(process)d :: %(levelname)s :: %(message)s'
+        logging.basicConfig(filename='chess_artist_log.txt',
+                            filemode='w', level=logging.DEBUG,
+                            format=log_format)
 
     # Create an object of class Analyze.
     g = Analyze(inputFile, outputFile, engineFile, **options)
@@ -2008,10 +2032,13 @@ def main(argv):
     # Process input file depending on the infile format
     if inputFile.endswith('.epd'):
         if jobType == 'test':
+            logging.info('Test engine with epd suite')
             g.TestEngineWithEpd()
         else:
-            g.AnnotateEpd()
+            logging.info('Annotate epd')
+            g.AnnotateEpd()            
     elif inputFile.endswith('.pgn'):
+        logging.info('Annotate game')
         g.AnnotatePgn()
 
     print('Done!!\n')  
