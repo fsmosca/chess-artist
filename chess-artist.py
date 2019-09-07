@@ -44,7 +44,7 @@ import chess.polyglot
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = '0.3.7'
+APP_VERSION = '0.3.8'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -637,27 +637,17 @@ class Analyze():
     def GetEngineIdName(self):
         """ Returns the engine id name """
         engineIdName = self.eng[0:-4]
-
-        # Run the engine
         p = subprocess.Popen(self.eng, stdin=subprocess.PIPE,
                              stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-
-        # Send command to engine.
-        p.stdin.write("uci\n")
-        
-        # Parse engine replies.
+        self.Send(p, 'uci')
         for eline in iter(p.stdout.readline, ''):
             line = eline.strip()
-
-            # Save id name.
             if 'id name ' in line:
                 idName = line.split()
                 engineIdName = ' '.join(idName[2:])            
-            if "uciok" in line:           
+            if 'uciok' in line:           
                 break
-                
-        # Quit the engine
-        p.stdin.write('quit\n')
+        self.Send(p, 'quit')
         p.communicate()
         return engineIdName
     
