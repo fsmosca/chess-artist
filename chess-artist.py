@@ -44,7 +44,7 @@ import chess.polyglot
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = '0.3.12'
+APP_VERSION = '0.3.13'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -605,8 +605,9 @@ class Analyze():
         elif d > 0:
             value = MAX_SCORE - 2*d + 1
         return value
-
-    def GetMaterialInfo(self, fen):
+    
+    @staticmethod
+    def GetMaterialInfo(fen):
         """ Returns number of queens, pawns and white and
             black material. Material is calculated based
             on q=9, r=5, b=3, n=3
@@ -1064,7 +1065,7 @@ class Analyze():
 
         # Increase complexityNumber when there are queens, and high mat values
         if complexityNumber > 0:
-            wmat, bmat, queens, pawns = self.GetMaterialInfo(fen)
+            wmat, bmat, queens, pawns = Analyze.GetMaterialInfo(fen)
             if queens > 0:
                 complexityNumber += 5
                 
