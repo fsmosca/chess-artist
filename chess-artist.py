@@ -44,7 +44,7 @@ import chess.polyglot
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = '0.3.6'
+APP_VERSION = '0.3.7'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -74,7 +74,6 @@ class Analyze():
         self.infn = infn
         self.outfn = outfn
         self.eng = eng
-        self.bookType = opt['-booktype']
         self.evalType = opt['-eval']
         self.moveTime = opt['-movetime']
         self.analysisMoveStart = opt['-movestart']
@@ -82,7 +81,7 @@ class Analyze():
         self.engineOptions = opt['-engineoptions']
         self.bookFile = opt['-bookfile']
         self.depth = opt['-depth']
-        self.bookMove = None  # Can be cerebellum or polyglot book move
+        self.bookMove = None
         self.sidePassedPawnIsGood = False
         self.whitePassedPawnCommentCnt = 0
         self.blackPassedPawnCommentCnt = 0
@@ -351,7 +350,7 @@ class Analyze():
 
     def WriteBookMove(self, side, moveNumber, sanMove, bookMove):
         """ Write moves with book moves in the output file """
-        bookComment = 'cerebellum'
+        bookComment = 'polyglot'
         assert bookMove is not None
         
         # Write the move and comments
@@ -376,7 +375,7 @@ class Analyze():
     def WritePosScoreBookMove(self, side, moveNumber, sanMove,
                               bookMove, posScore):
         """ Write moves with score and book moves in the output file """
-        bookComment = 'cerebellum'
+        bookComment = 'polyglot'
         assert bookMove is not None
         
         # Write the move and comments
@@ -404,7 +403,7 @@ class Analyze():
                                      complexityNumber, moveChanges,
                                      pvLine, threatMove):
         """ Write moves with score and book moves in the output file """
-        bookComment = 'cerebellum' if self.bookType == 'cerebellum' else 'polyglot'
+        bookComment = 'polyglot'
         
         # Write the move and comments
         with open(self.outfn, 'a+') as f:
@@ -466,7 +465,7 @@ class Analyze():
     def WriteBookMoveEngMove(self, side, moveNumber, sanMove, bookMove,
                                             engMove, engScore, pvLine):
         """ Write moves with book moves and eng moves in the output file """
-        bookComment = 'cerebellum'
+        bookComment = 'polyglot'
         assert bookMove is not None
         
         # Write the move and comments
@@ -661,70 +660,6 @@ class Analyze():
         p.stdin.write('quit\n')
         p.communicate()
         return engineIdName
-
-    def GetCerebellumBookMove(self, pos):
-        """ Returns a move from cerebellum book """
-        isInfoDepth = False
-        
-        # Run the engine.
-        p = subprocess.Popen(self.eng, stdin=subprocess.PIPE,
-                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-
-        # Send command to engine.
-        p.stdin.write("uci\n")
-
-        # Parse engine replies.
-        for eline in iter(p.stdout.readline, ''):
-            line = eline.strip()
-            if "uciok" in line:
-                break
-
-        # Set the path of Brainfish cerebellum book. Make sure the Brainfish
-        # engine, the script and the cerebellum book are on the same directory.
-        p.stdin.write("setoption name BookPath value %s\n" % (self.bookFile))
-
-        # Set threads to 1.
-        p.stdin.write("setoption name Threads value 1\n")
-                
-        # Send command to engine.
-        p.stdin.write("isready\n")
-        
-        # Parse engine replies.
-        for eline in iter(p.stdout.readline, ''):
-            line = eline.strip()
-            if "readyok" in line:
-                break
-                
-        # Send commands to engine.
-        p.stdin.write("ucinewgame\n")
-        p.stdin.write("position fen " + pos + "\n")
-        p.stdin.write("go movetime %d\n" %(BOOK_SEARCH_TIME))
-
-        # Parse the output and extract the bestmove.
-        for eline in iter(p.stdout.readline, ''):        
-            line = eline.strip()
-            
-            # If the engine shows info depth ... it is no longer using a book
-            if 'info depth' in line:
-                isInfoDepth = True
-            
-            # Break search when we receive bestmove string from engine
-            if 'bestmove ' in line:
-                moveLine = line.split()[1]
-                bestMove = moveLine.strip()
-                break
-                
-        # Quit the engine
-        p.stdin.write('quit\n')
-        p.communicate()
-
-        # If we did not get info depth from the engine
-        # then the bestmove is from the book.
-        if not isInfoDepth:
-            # Convert uci move to san move format.
-            bestMove = Analyze.UciToSanMove(pos, bestMove)
-            return bestMove
-        return None
     
     def IsKingSafetyBad(self, curFen, nextFen, curMove):
         """ Returns True if king safety of side not to move is bad.
@@ -867,7 +802,7 @@ class Analyze():
     def GetPolyglotBookMove(self, fen):
         """ Returns a move from polyglot book """
         polyMove = None
-        if self.bookType != 'polyglot' or self.bookFile is None:
+        if self.bookFile is None:
             return polyMove
 
         # Find the move with highest book weight
@@ -1434,12 +1369,6 @@ class Analyze():
         """ Parse the pgn file and annotate the games """
         # Get engine id name for the Annotator tag.
         engineIdName = self.engIdName
-
-        # Disable use of cerebellum book if engine is not Brainfish.
-        if self.bookType == 'cerebellum':
-            if 'brainfish' not in engineIdName.lower():
-                self.bookType = None
-                print('\nWarning!! engine is not Brainfish, cerebellum book is disabled.\n')
         
         # Open the input pgn file
         pgnHandle = open(self.infn, 'r')
@@ -1531,10 +1460,7 @@ class Analyze():
 
                 # (2) Probe the book file and save the best book move  
                 if fmvn <= BOOK_MOVE_LIMIT and self.bookFile is not None:
-                    if self.bookType == 'cerebellum':
-                        self.bookMove = self.GetCerebellumBookMove(curFen)
-                    elif self.bookType == 'polyglot':
-                        self.bookMove = self.GetPolyglotBookMove(curFen)
+                    self.bookMove = self.GetPolyglotBookMove(curFen)
 
                 # (3) Get the posScore or the score of the player move.
                 # Can be by static eval of the engine or search score of the engine
@@ -1875,7 +1801,7 @@ def main(argv):
         'example: --engineoptions "Hash value 128, Threads value 1"', 
                         required=False)
     parser.add_argument('--booktype', 
-                        help='input book type, can be cerebellum',
+                        help='input book type, this should be polyglot',
                         required=False)
     parser.add_argument('--bookfile', 
                         help='input book filename',
@@ -1910,7 +1836,6 @@ def main(argv):
     inputFile = args.infile
     outputFile = args.outfile
     engineFile = args.enginefile
-    bookType = args.booktype   # cerebellum
     evalType = args.eval  # static, search
     bookFile = args.bookfile  # 'Cerebellum_Light.bin'
     analysisMoveTime = args.movetime  # ms or 1s
@@ -1919,8 +1844,7 @@ def main(argv):
     engOption = args.engineoptions
         
     # Convert options to dict.
-    options = {'-booktype': bookType,
-               '-eval': evalType,
+    options = {'-eval': evalType,
                '-movetime': analysisMoveTime,
                '-movestart': analysisMoveStart,
                '-job': jobType,
