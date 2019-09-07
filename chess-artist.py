@@ -44,7 +44,7 @@ import chess.polyglot
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = '0.3.10'
+APP_VERSION = '0.3.11'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -1632,11 +1632,15 @@ class Analyze():
             # bmList = ['e4', 'd4']
             if bm is not None:
                 bmList = bm.split()
-                print('epd bm: %s' % (bmList))
+                logging.info('epd bm: %s' % bmList)
         except IndexError:
-            pass
-        except Exception as e:
-            print('Unexpected exception %s in reading bm op code' % (e))
+            logging.exception('Index error in getting bm of epd')
+            logging.debug(epdLine)
+            raise
+        except Exception:
+            logging.exception('Unexpected exception in getting bm of epd')
+            logging.debug(epdLine)
+            raise
             
         # (2) Get the am in the epd
         try:
@@ -1651,11 +1655,15 @@ class Analyze():
                     break
             if am is not None:
                 amList = am.split()
-                print('epd am: %s' % (amList))
+                logging.info('epd am: %s' % amList)
         except IndexError:
-            pass
-        except Exception as e:
-            print('Unexpected exception %s in reading am op code' % (e))
+            logging.exception('Index error in getting am of epd')
+            logging.debug(epdLine)
+            raise
+        except Exception:
+            logging.exception('Unexpected exception in getting am of epd')
+            logging.debug(epdLine)
+            raise
             
         return bmList, amList
 
