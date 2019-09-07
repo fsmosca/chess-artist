@@ -1930,7 +1930,7 @@ def main(argv):
                }
     
     if args.log:
-        log_format = '%(asctime)s :: pid: %(process)d :: %(levelname)s :: %(message)s'
+        log_format = '%(asctime)s :: pid: %(process)d :: tid: %(thread)d :: %(levelname)s :: %(message)s'
         logging.basicConfig(filename='chess_artist_log.txt',
                             filemode='w', level=logging.DEBUG,
                             format=log_format)
