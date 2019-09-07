@@ -44,7 +44,7 @@ import chess.polyglot
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = '0.3.11'
+APP_VERSION = '0.3.12'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -169,8 +169,9 @@ class Analyze():
         elif moveChanges >= 1 and complexityNumber >= 18:
             moveNag = '$5'
         return moveNag
-
-    def GetBadNag(self, side, posScore, engScore):
+    
+    @staticmethod
+    def GetBadNag(side, posScore, engScore):
         """ Returns ??, ?, ?! depending on the player score and analyzing
             engine score. 
             posScore is the score of the move in the game, in pawn unit.
@@ -303,7 +304,7 @@ class Analyze():
             # If side to move is white
             if side:
                 if sanMove != engMove:
-                    moveNag = self.GetBadNag(side, posScore, engScore)
+                    moveNag = Analyze.GetBadNag(side, posScore, engScore)
 
                     # Add better is symbol before the engine variation
                     varComment = self.PreComment(side, engScore, posScore)
@@ -323,7 +324,7 @@ class Analyze():
                         %(threatMove, moveNumber, sanMove, moveNag, posScore))
             else:
                 if sanMove != engMove:
-                    moveNag = self.GetBadNag(side, posScore, engScore)
+                    moveNag = Analyze.GetBadNag(side, posScore, engScore)
 
                     # Add better is symbol before the engine variation
                     varComment = self.PreComment(side, engScore, posScore)
@@ -412,7 +413,7 @@ class Analyze():
             # If side to move is white
             if side:
                 if sanMove != engMove:
-                    moveNag = self.GetBadNag(side, posScore, engScore)
+                    moveNag = Analyze.GetBadNag(side, posScore, engScore)
 
                     # Add better is symbol before the engine variation
                     varComment = self.PreComment(side, engScore, posScore)
@@ -435,7 +436,7 @@ class Analyze():
                                                 bookMove, bookComment))
             else:
                 if sanMove != engMove:
-                    moveNag = self.GetBadNag(side, posScore, engScore)
+                    moveNag = Analyze.GetBadNag(side, posScore, engScore)
 
                     # Add better is symbol before the engine variation
                     varComment = self.PreComment(side, engScore, posScore)
