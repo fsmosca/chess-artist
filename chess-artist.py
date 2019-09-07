@@ -44,7 +44,7 @@ import chess.polyglot
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = '0.3.9'
+APP_VERSION = '0.3.10'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -1773,7 +1773,7 @@ class Analyze():
             f.write('Correct percentage    : %0.2f\n\n' %(pctCorrect))
             
 
-def main(argv):
+def main():
     parser = argparse.ArgumentParser(prog='%s v%s' % (APP_NAME, APP_VERSION),
                 description='Read pgn and analyze games in it or analyze ' +
                 'epd file or test engines with epd test suites',
@@ -1871,4 +1871,4 @@ def main(argv):
 
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    main()
