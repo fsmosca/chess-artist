@@ -106,8 +106,9 @@ class Analyze():
                 break
             if command == 'isready' and 'readyok' in line:
                 break
-
-    def UciToSanMove(self, fen, uciMove):
+    
+    @staticmethod
+    def UciToSanMove(fen, uciMove):
         """ Returns san move given fen and uci move """
         board = chess.Board(fen)
         return board.san(chess.Move.from_uci(uciMove))
@@ -721,7 +722,7 @@ class Analyze():
         # then the bestmove is from the book.
         if not isInfoDepth:
             # Convert uci move to san move format.
-            bestMove = self.UciToSanMove(pos, bestMove)
+            bestMove = Analyze.UciToSanMove(pos, bestMove)
             return bestMove
         return None
     
@@ -882,7 +883,7 @@ class Analyze():
         polyMove = bestMove
                 
         if polyMove is not None:
-            polyMove = self.UciToSanMove(fen, polyMove)
+            polyMove = Analyze.UciToSanMove(fen, polyMove)
         
         return polyMove
 
@@ -1024,7 +1025,7 @@ class Analyze():
         p.communicate()
 
         if bestMove is not None:
-            bestMove = self.UciToSanMove(newFen, bestMove)
+            bestMove = Analyze.UciToSanMove(newFen, bestMove)
         
         return bestMove
 
@@ -1110,7 +1111,7 @@ class Analyze():
         if isGetComplexityNumber:
             complexityNumber, moveChanges = self.GetComplexityNumber(
                     savedMove, fen)
-        bestMove = self.UciToSanMove(fen, bestMove)
+        bestMove = Analyze.UciToSanMove(fen, bestMove)
         if not side:
             scoreCp = -1 * scoreCp
 
@@ -1344,7 +1345,7 @@ class Analyze():
         p.communicate()
 
         # Convert uci move to san move format.
-        bestMove = self.UciToSanMove(fen, bestMove)
+        bestMove = Analyze.UciToSanMove(fen, bestMove)
 
         # Verify values to be returned
         assert depthSearched != TEST_SEARCH_DEPTH, 'Error the engine does not search at all.'
