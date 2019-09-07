@@ -44,7 +44,7 @@ import chess.polyglot
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = '0.3.8'
+APP_VERSION = '0.3.9'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -651,11 +651,12 @@ class Analyze():
         p.communicate()
         return engineIdName
     
-    def IsKingSafetyBad(self, curFen, nextFen, curMove):
+    def IsKingSafetyBad(self, curFen, nextFen):
         """ Returns True if king safety of side not to move is bad.
             Example line to be parsed:
                       King safety |  3.01  3.87 |  0.08  0.39 |  2.92  3.48
         """
+        logging.info('Check king safety')
         curBoard = chess.Board(curFen)
         curSide = curBoard.turn
         
@@ -964,7 +965,7 @@ class Analyze():
         searchDepth = 0
         savedMove = []
         complexityNumber = 0
-        moveChanges = 0;
+        moveChanges = 0
         isGetComplexityNumber = self.jobType == 'analyze' and\
                                 self.moveTime >= COMPLEXITY_MINIMUM_TIME
         p = subprocess.Popen(self.eng, stdin=subprocess.PIPE,
@@ -1507,9 +1508,9 @@ class Analyze():
                 # on this move
                 if 'stockfish' in engineIdName.lower() or 'brainfish' in engineIdName.lower():
                     if side and self.whiteKingSafetyCommentCnt == 0:
-                        self.oppKingSafetyIsBad = self.IsKingSafetyBad(curFen, nextFen, sanMove)
+                        self.oppKingSafetyIsBad = self.IsKingSafetyBad(curFen, nextFen)
                     elif not side and self.blackKingSafetyCommentCnt == 0:
-                        self.oppKingSafetyIsBad = self.IsKingSafetyBad(curFen, nextFen, sanMove)
+                        self.oppKingSafetyIsBad = self.IsKingSafetyBad(curFen, nextFen)
                 
                 # (6) Write moves and comments.
                 self.WriteNotation(side, fmvn, sanMove, self.bookMove,
