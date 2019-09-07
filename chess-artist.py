@@ -1028,13 +1028,12 @@ class Analyze():
         
         return bestMove
 
-    def GetSearchScoreBeforeMove(self, pos, side):
-        """ Returns bestmove, pv, score complexity number of the position
-            and root move changes. """
-
-        # Initialize
+    def GetSearchScoreBeforeMove(self, fen, side):
+        """
+        Returns bestmove, pv, score complexity number of the position and
+        root move changes. 
+        """
         scoreCp = TEST_SEARCH_SCORE
-
         pvLine = None
         searchDepth = 0
         savedMove = []
@@ -1042,41 +1041,19 @@ class Analyze():
         moveChanges = 0;
         isGetComplexityNumber = self.jobType == 'analyze' and\
                                 self.moveTime >= COMPLEXITY_MINIMUM_TIME
-
-        # Run the engine.
         p = subprocess.Popen(self.eng, stdin=subprocess.PIPE,
                              stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-
-        # Send command to engine.
-        p.stdin.write("uci\n")
-
-        # Parse engine replies.
-        for eline in iter(p.stdout.readline, ''):
-            line = eline.strip()
-            if "uciok" in line:
-                break
-
-        # Set engine options
+        self.Send(p, 'uci')
+        self.ReadEngineReply(p, 'uci')
         self.SetEngineOptions(p, self.engineOptions)
-                
-        # Send command to engine.
-        p.stdin.write("isready\n")
-        
-        # Parse engine replies.
-        for eline in iter(p.stdout.readline, ''):
-            line = eline.strip()
-            if "readyok" in line:
-                break
-                
-        # Send commands to engine.
-        p.stdin.write("ucinewgame\n")
-        p.stdin.write("position fen " + pos + "\n")
-        p.stdin.write("go movetime %d\n" %(self.moveTime))
+        self.Send(p, 'isready')
+        self.ReadEngineReply(p, 'isready')
+        self.Send(p, 'ucinewgame')
+        self.Send(p, 'position fen %s' % fen)
+        self.Send(p, 'go movetime %d' % self.moveTime)
 
-        # Parse the output and extract the engine search score.
         for eline in iter(p.stdout.readline, ''):        
-            line = eline.strip()                
-
+            line = eline.strip()
             # Save pv move per depth
             if isGetComplexityNumber:
                 if 'info depth ' in line and ' pv ' in line and not\
@@ -1091,7 +1068,7 @@ class Analyze():
                     savedMove.append([searchDepth, pvMove])
 
             # Save pv line
-            if 'info depth ' in line and 'pv ' in line and not\
+            if 'info depth ' in line and ' pv ' in line and not\
                    'upperbound' in line and not 'lowerbound' in line:
                 splitLine = line.split()
                 pvIndex = splitLine.index('pv')
@@ -1101,23 +1078,19 @@ class Analyze():
                 splitStr = line.split()
                 scoreIndex = splitStr.index('score')
                 scoreCp = int(splitStr[scoreIndex + 2])
-            if 'score mate ' in line:
+            elif 'score mate ' in line:
                 splitStr = line.split()
                 scoreIndex = splitStr.index('score')
                 mateInN = int(splitStr[scoreIndex + 2])
 
-                # Convert mate in move number to value
                 scoreCp = self.MateDistanceToValue(mateInN)        
-                
-            # Break search when we receive bestmove string from engine
+
             if 'bestmove ' in line:
                 bestMove = line.split()[1]
                 break
-                
-        # Quit the engine
-        p.stdin.write('quit\n')
-        p.communicate()        
-        assert scoreCp != TEST_SEARCH_SCORE, 'Error, search failed to return a score.'
+
+        self.Send(p, 'quit')
+        p.communicate()
 
         # Get the first move of the pvLine, make sure the this move
         # is the same with the bestMove, if not then set bestMove as pvLine
@@ -1126,28 +1099,21 @@ class Analyze():
             pvLine = []
             pvLine.append(bestMove)
 
-        # Convert pv line to SAN
         try:
-            board = chess.Board(pos)
-            pvLineSan = \
-                board.variation_san([chess.Move.from_uci(m) for m in pvLine])
+            board = chess.Board(fen)
+            pvLineSan = board.variation_san(
+                    [chess.Move.from_uci(m) for m in pvLine])
         except:
-            print('Warning, there is error in pvLine')
-            print('pvLine: %s' %(pvLine))
+            logging.warning('Warning, there is error in pvLine')
+            logging.info('pvLine: %s' % pvLine)
 
-        # Get complexity number and moveChanges count
         if isGetComplexityNumber:
-            complexityNumber, moveChanges =\
-                              self.GetComplexityNumber(savedMove, pos)
-
-        # Convert uci move to san move format.
-        bestMove = self.UciToSanMove(pos, bestMove)
-
-        # Convert score from the point of view of white.
+            complexityNumber, moveChanges = self.GetComplexityNumber(
+                    savedMove, fen)
+        bestMove = self.UciToSanMove(fen, bestMove)
         if not side:
             scoreCp = -1 * scoreCp
 
-        # Convert the score to pawn unit in float type
         scoreP = float(scoreCp)/100.0
         return bestMove, scoreP, complexityNumber, moveChanges, pvLineSan
 
