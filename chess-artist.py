@@ -35,15 +35,18 @@ import os
 import sys
 import subprocess
 import argparse
+import random
 import logging
 import chess
 import chess.pgn
 import chess.polyglot
 
+sr = random.SystemRandom()
+
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = '0.3.15'
+APP_VERSION = '0.3.16'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -58,6 +61,14 @@ DECISIVE_SCORE = +3.0
 COMPLEXITY_MINIMUM_TIME = 2000
 DEFAULT_HASH = 32
 DEFAULT_THREADS = 1
+
+
+BEST = ['Excellent', 'Outstanding', 'Exceptional', 'Striking', 'Pricess',
+        'Top-notch', 'Marvellous', 'Terrific', 'Splendid', 'Magnificient',
+        'Admirable', 'Brilliant', 'Cool']
+BETTER = ['Better', 'Preferable', 'More useful', 'More appropriate',
+          'More suitable', 'Worthier', 'Superior', 'Nicer', 'More expert',
+          'More valuable', 'More fitting']
     
 
 def DeleteFile(fn):
@@ -233,9 +244,9 @@ class Analyze():
             posScore = -1 * posScore
         varComment = ''
         if engScore - posScore > 5 * DRAW_SCORE:
-            varComment = 'Excellent is'
+            varComment = '%s is' % sr.choice(BEST)
         elif engScore - posScore > DRAW_SCORE:
-            varComment = 'Better is'
+            varComment = '%s is' % sr.choice(BETTER)
         return varComment
 
     def WriteSanMove(self, side, moveNumber, sanMove):
