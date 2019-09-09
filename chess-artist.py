@@ -46,7 +46,7 @@ sr = random.SystemRandom()
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = '0.3.17'
+APP_VERSION = '0.3.18'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -1784,9 +1784,6 @@ def main():
     parser.add_argument('-n', '--engineoptions', 
         help='input engine options, like threads, hash and others ' +
         'example: --engineoptions "Hash value 128, Threads value 1"', 
-                        required=False)
-    parser.add_argument('--booktype', 
-                        help='input book type, this should be polyglot',
                         required=False)
     parser.add_argument('--bookfile', 
                         help='input book filename',
