@@ -46,7 +46,7 @@ sr = random.SystemRandom()
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = '0.3.18'
+APP_VERSION = '0.3.19'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -881,6 +881,7 @@ class Analyze():
         """ Returns static eval by running the engine,
             setup position pos and send eval command.
         """
+        logging.info('Get search score after making the game move.')
         score = TEST_SEARCH_SCORE
 
         # Run the engine.
@@ -970,6 +971,7 @@ class Analyze():
         Returns bestmove, pv, score complexity number of the position and
         root move changes. 
         """
+        logging.info('Get search score before making the game move.')
         scoreCp = TEST_SEARCH_SCORE
         pvLine = None
         searchDepth = 0
@@ -995,6 +997,7 @@ class Analyze():
             if isGetComplexityNumber:
                 if 'info depth ' in line and ' pv ' in line and not\
                    'upperbound' in line and not 'lowerbound' in line:
+                    logging.info(line)
                     
                     # Get the depth
                     splitLine = line.split()
@@ -1024,6 +1027,7 @@ class Analyze():
 
             if 'bestmove ' in line:
                 bestMove = line.split()[1]
+                logging.debug(line)
                 break
 
         self.Send(p, 'quit')
@@ -1058,6 +1062,7 @@ class Analyze():
         """ Returns complexity number and move changes counts
             savedMove = [[depth1, move1],[depth2, move2]]
         """
+        logging.info('Get Complexity number.')
         complexityNumber, moveChanges = 0, 0
         lastMove = None
         lastDepth = 0
@@ -1086,6 +1091,8 @@ class Analyze():
             complexityNumber -= 10
             if complexityNumber < 0:
                 complexityNumber = 0
+                
+        logging.info('Complexity number: %d' % complexityNumber)
                 
         return complexityNumber, moveChanges
 
@@ -1199,6 +1206,7 @@ class Analyze():
                 
             # Break search when we receive bestmove string from engine
             if 'bestmove ' in line:
+                logging.info(line)
                 break
                 
         # Quit the engine
