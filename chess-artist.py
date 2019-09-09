@@ -46,7 +46,7 @@ sr = random.SystemRandom()
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = '0.3.19'
+APP_VERSION = '0.3.20'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -63,7 +63,7 @@ DEFAULT_HASH = 32
 DEFAULT_THREADS = 1
 
 
-BEST = ['Excellent', 'Outstanding', 'Exceptional', 'Striking', 'Pricess',
+BEST = ['Excellent', 'Outstanding', 'Exceptional', 'Striking', 'Priceless',
         'Top-notch', 'Marvellous', 'Terrific', 'Splendid', 'Magnificient',
         'Admirable', 'Brilliant', 'Cool']
 BETTER = ['Better', 'Preferable', 'More useful', 'More appropriate',
