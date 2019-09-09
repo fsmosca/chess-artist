@@ -35,7 +35,6 @@ import os
 import sys
 import subprocess
 import argparse
-import math
 import logging
 import chess
 import chess.pgn
@@ -44,7 +43,7 @@ import chess.polyglot
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = '0.3.14'
+APP_VERSION = '0.3.15'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -318,10 +317,11 @@ class Analyze():
                                               complexityNumber, moveChanges)
                     if threatMove is None:
                         f.write('%d. %s %s {%+0.2f} ' %(moveNumber, sanMove,
-                                                    moveNag, posScore))
-                    else :
+                                moveNag, posScore))
+                    else:
                         f.write('{, with the idea of %s} %d. %s %s {%+0.2f} '\
-                        %(threatMove, moveNumber, sanMove, moveNag, posScore))
+                                % (threatMove, moveNumber, sanMove, moveNag,
+                                   posScore))
             else:
                 if sanMove != engMove:
                     moveNag = Analyze.GetBadNag(side, posScore, engScore)
@@ -1325,38 +1325,15 @@ class Analyze():
         scoreCp = int(scoreP * 100.0)
         return scoreCp
 
-    def WriteTerminationMarker(self, wcnt, bcnt, werr, berr, rdiff, res):
+    def WriteTerminationMarker(self, wcnt, bcnt, werr, berr, res):
         """ Write termination marker and average errror """
         if wcnt and bcnt:
             with open(self.outfn, 'a') as f:
-                f.write('{WhiteAveError=%0.2f, BlackAveError=%0.2f, ratingDiff=%d} %s\n\n'\
-                        %(werr, berr, rdiff, res))
+                f.write('{WhiteAveError=%0.2f, BlackAveError=%0.2f} %s\n\n'\
+                        %(werr, berr, res))
         else:
             with open(self.outfn, 'a') as f:
                 f.write('%s\n\n' %(res)) 
-
-    def WinPercentage(self, pa):
-        """ Returns win percentage given pawn advantage, pa """
-        y = -pa/4.0
-        wp = 1.0/(1.0 + (10**y))
-        return wp
-
-    def GetRatingDiff(self, averageError):
-        """ Returns rating difference,
-            wp = 1/(1+10**m)
-            wp x (1+10**m) = 1
-            wp + wp x 10**m = 1
-            10**m = (1-wp)/wp
-            m x log(10) = log((1-wp)/wp)
-            log(10) = 1
-            m = log((1-wp)/wp)
-            m = ratingDiff/400
-            ratingDiff = 400 x m
-        """
-        wp = self.WinPercentage(-averageError)
-        m = math.log((1.0 - wp)/wp)
-        ratingDiff = 400 * m
-        return int(ratingDiff)
     
     def AnnotatePgn(self):
         """ Parse the pgn file and annotate the games """
@@ -1533,25 +1510,18 @@ class Analyze():
                                    pvLine, threatMove)
                 gameNode = nextNode
 
-            # All moves are parsed in this game, calculate average
-            # errors and rating difference.
+            # All moves are parsed in this game, calculate average errors.
             averageError = {'white':0.0, 'black':0.0}
-            ratingDiff = {'white':0, 'black':0}                
             if moveCnt['white']:
-                averageError['white'] = moveError['white']/moveCnt['white']                
-                ratingDiff['white'] = self.GetRatingDiff(averageError['white'])
+                averageError['white'] = moveError['white']/moveCnt['white'] 
             if moveCnt['black']:
-                averageError['black'] = moveError['black']/moveCnt['black']            
-                ratingDiff['black'] = self.GetRatingDiff(averageError['black'])
+                averageError['black'] = moveError['black']/moveCnt['black']
             
-            # Write errors, rating difference and game termination
-            # marker to output file.
-            ratingDifference = abs(ratingDiff['white'] - ratingDiff['black'])
+            # Write errors, and game termination marker to output file.
             self.WriteTerminationMarker(moveCnt['white'],
                                         moveCnt['black'],
                                         averageError['white'],
-                                        averageError['black'],
-                                        ratingDifference, res)
+                                        averageError['black'], res)
             game = chess.pgn.read_game(pgnHandle)
 
         pgnHandle.close()
