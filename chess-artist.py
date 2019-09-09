@@ -46,7 +46,7 @@ sr = random.SystemRandom()
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = '0.3.16'
+APP_VERSION = '0.3.17'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -69,6 +69,7 @@ BEST = ['Excellent', 'Outstanding', 'Exceptional', 'Striking', 'Pricess',
 BETTER = ['Better', 'Preferable', 'More useful', 'More appropriate',
           'More suitable', 'Worthier', 'Superior', 'Nicer', 'More expert',
           'More valuable', 'More fitting']
+BOOK_COMMENT = 'Polyglot book'
     
 
 def DeleteFile(fn):
@@ -362,7 +363,6 @@ class Analyze():
 
     def WriteBookMove(self, side, moveNumber, sanMove, bookMove):
         """ Write moves with book moves in the output file """
-        bookComment = 'polyglot'
         assert bookMove is not None
         
         # Write the move and comments
@@ -373,11 +373,11 @@ class Analyze():
             if side:
                 f.write('%d. %s (%d. %s {%s}) ' %(moveNumber, sanMove,
                                                   moveNumber, bookMove,
-                                                  bookComment))
+                                                  BOOK_COMMENT))
             else:
                 f.write('%d... %s (%d... %s {%s}) ' %(moveNumber, sanMove,
                                                       moveNumber, bookMove,
-                                                      bookComment))
+                                                      BOOK_COMMENT))
 
                 # Format output, don't write movetext in one long line.
                 if self.writeCnt >= 2:
@@ -387,7 +387,6 @@ class Analyze():
     def WritePosScoreBookMove(self, side, moveNumber, sanMove,
                               bookMove, posScore):
         """ Write moves with score and book moves in the output file """
-        bookComment = 'polyglot'
         assert bookMove is not None
         
         # Write the move and comments
@@ -398,12 +397,12 @@ class Analyze():
             if side:
                 f.write('%d. %s {%+0.2f} (%d. %s {%s}) ' %(moveNumber, sanMove,
                                                         posScore, moveNumber,
-                                                        bookMove, bookComment))
+                                                        bookMove, BOOK_COMMENT))
             else:
                 f.write('%d... %s {%+0.2f} (%d... %s {%s}) ' %(moveNumber,
                                                         sanMove,
                                                         posScore, moveNumber,
-                                                        bookMove, bookComment))
+                                                        bookMove, BOOK_COMMENT))
                 
                 # Format output, don't write movetext in one long line.
                 if self.writeCnt >= 2:
@@ -415,7 +414,6 @@ class Analyze():
                                      complexityNumber, moveChanges,
                                      pvLine, threatMove):
         """ Write moves with score and book moves in the output file """
-        bookComment = 'polyglot'
         
         # Write the move and comments
         with open(self.outfn, 'a+') as f:
@@ -432,7 +430,7 @@ class Analyze():
                     # Write moves and comments
                     f.write('%d. %s %s {%+0.2f} (%d. %s {%s}) ({%s} %s {%+0.2f}) '\
                             %(moveNumber, sanMove, moveNag, posScore,
-                              moveNumber, bookMove, bookComment,
+                              moveNumber, bookMove, BOOK_COMMENT,
                               varComment, pvLine, engScore))
                 else:
                     moveNag = self.GetGoodNag(side, posScore, engScore,
@@ -440,11 +438,11 @@ class Analyze():
                     if threatMove is not None:
                         f.write('{, with the idea of %s} %d. %s {%+0.2f} (%d. %s {%s}) '\
                                 %(threatMove, moveNumber, sanMove, posScore,
-                                  moveNumber, bookMove, bookComment))
+                                  moveNumber, bookMove, BOOK_COMMENT))
                     else:
                         f.write('%d. %s {%+0.2f} (%d. %s {%s}) ' %(moveNumber,
                                                 sanMove, posScore, moveNumber,
-                                                bookMove, bookComment))
+                                                bookMove, BOOK_COMMENT))
             else:
                 if sanMove != engMove:
                     moveNag = Analyze.GetBadNag(side, posScore, engScore)
@@ -455,7 +453,7 @@ class Analyze():
                     # Write moves and comments
                     f.write('%d... %s %s {%+0.2f} (%d... %s {%s}) ({%s} %s {%+0.2f}) '\
                             %(moveNumber, sanMove, moveNag, posScore,
-                              moveNumber, bookMove, bookComment,
+                              moveNumber, bookMove, BOOK_COMMENT,
                               varComment, pvLine, engScore))
                 else:
                     moveNag = self.GetGoodNag(side, posScore, engScore,
@@ -463,11 +461,11 @@ class Analyze():
                     if threatMove is not None:
                         f.write('{, with the idea of %s} %d... %s {%+0.2f} (%d... %s {%s}) '\
                                 %(threatMove, moveNumber, sanMove, posScore,
-                                  moveNumber, bookMove, bookComment))
+                                  moveNumber, bookMove, BOOK_COMMENT))
                     else:
                         f.write('%d... %s {%+0.2f} (%d... %s {%s}) '\
                                 %(moveNumber, sanMove, posScore, moveNumber,
-                                  bookMove, bookComment))
+                                  bookMove, BOOK_COMMENT))
 
                 # Format output, don't write movetext in one long line.
                 if self.writeCnt >= 2:
@@ -477,7 +475,6 @@ class Analyze():
     def WriteBookMoveEngMove(self, side, moveNumber, sanMove, bookMove,
                                             engMove, engScore, pvLine):
         """ Write moves with book moves and eng moves in the output file """
-        bookComment = 'polyglot'
         assert bookMove is not None
         
         # Write the move and comments
@@ -490,23 +487,23 @@ class Analyze():
                     # Write moves and comments
                     f.write('%d. %s (%d. %s {%s}) (%s {%+0.2f}) '\
                             %(moveNumber, sanMove, moveNumber, bookMove,
-                              bookComment, pvLine, engScore))
+                              BOOK_COMMENT, pvLine, engScore))
                 else:
                     f.write('%d. %s (%d. %s {%s}) '\
                             %(moveNumber, sanMove,
-                              moveNumber, bookMove, bookComment))
+                              moveNumber, bookMove, BOOK_COMMENT))
             else:
                 if sanMove != engMove:
                     
                     # Write moves and comments
                     f.write('%d... %s (%d... %s {%s}) (%s {%+0.2f}) '\
                             %(moveNumber, sanMove, moveNumber,
-                              bookMove, bookComment, pvLine,
+                              bookMove, BOOK_COMMENT, pvLine,
                               engScore))
                 else:
                     f.write('%d... %s (%d... %s {%s}) '\
                             %(moveNumber, sanMove,
-                              moveNumber, bookMove, bookComment))
+                              moveNumber, bookMove, BOOK_COMMENT))
 
                 # Format output, don't write movetext in one long line.
                 if self.writeCnt >= 2:
