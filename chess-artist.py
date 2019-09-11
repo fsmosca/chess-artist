@@ -46,7 +46,7 @@ sr = random.SystemRandom()
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = '0.3.22'
+APP_VERSION = '0.3.23'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -782,8 +782,7 @@ class Analyze():
             if MgPassedValue <= -1.0 and EgPassedValue <= -1.0:
                 logging.info('black passed pawn value %0.1f is good' % MgPassedValue)
                 return True
-            
-        logging.info('passed pawn value %0.1f, %0.1f is bad' % (MgPassedValue, EgPassedValue))
+
         return False
     
     def GetPolyglotBookMove(self, fen):
@@ -983,7 +982,7 @@ class Analyze():
             if isGetComplexityNumber:
                 if 'info depth ' in line and ' pv ' in line and not\
                    'upperbound' in line and not 'lowerbound' in line:
-                    logging.info(line)
+                    logging.debug('<< %s' % line)
                     
                     # Get the depth
                     splitLine = line.split()
@@ -1013,7 +1012,7 @@ class Analyze():
 
             if 'bestmove ' in line:
                 bestMove = line.split()[1]
-                logging.debug(line)
+                logging.debug('<< %s' % line)
                 break
 
         self.Send(p, 'quit')
@@ -1171,7 +1170,7 @@ class Analyze():
                 
             # Break search when we receive bestmove string from engine
             if 'bestmove ' in line:
-                logging.info(line)
+                logging.info('<< %s' % line)
                 break
 
         self.Send(p, 'quit')
