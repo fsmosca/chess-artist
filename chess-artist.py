@@ -46,7 +46,7 @@ sr = random.SystemRandom()
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = '0.3.23'
+APP_VERSION = '0.3.24'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -69,6 +69,7 @@ BEST = ['Excellent', 'Outstanding', 'Exceptional', 'Striking', 'Priceless',
 BETTER = ['Better', 'Preferable', 'More useful', 'More appropriate',
           'More suitable', 'Worthier', 'Superior', 'Nicer', 'More valuable']
 BOOK_COMMENT = 'Polyglot book'
+PLAN_COMMENT = ['with the idea of', 'planning', 'followed by']
     
 
 def DeleteFile(fn):
@@ -340,9 +341,9 @@ class Analyze():
                             f.write('%d. %s %s {%+0.2f} ' %(moveNumber, sanMove,
                                     moveNag, posScore))
                     else:
-                        f.write('{, with the idea of %s} %d. %s %s {%+0.2f} ' % (
-                                threatMove, moveNumber, sanMove, moveNag,
-                                posScore))
+                        f.write('{, %s %s} %d. %s %s {%+0.2f} ' % (
+                                sr.choice(PLAN_COMMENT), threatMove,
+                                moveNumber, sanMove, moveNag, posScore))
             else:
                 if sanMove != engMove:
                     moveNag = Analyze.GetBadNag(side, posScore, engScore)
@@ -370,8 +371,9 @@ class Analyze():
                             f.write('%d... %s %s {%+0.2f} ' % (
                                     moveNumber, sanMove, moveNag, posScore))
                     else:
-                        f.write('{, with the idea of %s} %d... %s %s {%+0.2f} ' % (
-                                threatMove, moveNumber, sanMove, moveNag, posScore))
+                        f.write('{, %s %s} %d... %s %s {%+0.2f} ' % (
+                                sr.choice(PLAN_COMMENT), threatMove,
+                                moveNumber, sanMove, moveNag, posScore))
 
                 # Format output, don't write movetext in one long line.
                 if self.writeCnt >= 2:
@@ -453,9 +455,10 @@ class Analyze():
                     moveNag = self.GetGoodNag(side, posScore, engScore,
                                               complexityNumber, moveChanges)
                     if threatMove is not None:
-                        f.write('{, with the idea of %s} %d. %s {%+0.2f} (%d. %s {%s}) '\
-                                %(threatMove, moveNumber, sanMove, posScore,
-                                  moveNumber, bookMove, BOOK_COMMENT))
+                        f.write('{, %s %s} %d. %s {%+0.2f} (%d. %s {%s}) '%(
+                                sr.choice(PLAN_COMMENT), threatMove,
+                                moveNumber, sanMove, posScore, moveNumber,
+                                bookMove, BOOK_COMMENT))
                     else:
                         f.write('%d. %s {%+0.2f} (%d. %s {%s}) ' %(moveNumber,
                                                 sanMove, posScore, moveNumber,
@@ -476,9 +479,10 @@ class Analyze():
                     moveNag = self.GetGoodNag(side, posScore, engScore,
                                               complexityNumber, moveChanges)
                     if threatMove is not None:
-                        f.write('{, with the idea of %s} %d... %s {%+0.2f} (%d... %s {%s}) '\
-                                %(threatMove, moveNumber, sanMove, posScore,
-                                  moveNumber, bookMove, BOOK_COMMENT))
+                        f.write('{, %s %s} %d... %s {%+0.2f} (%d... %s {%s}) '\
+                                %(sr.choice(PLAN_COMMENT), threatMove,
+                                moveNumber, sanMove, posScore, moveNumber,
+                                bookMove, BOOK_COMMENT))
                     else:
                         f.write('%d... %s {%+0.2f} (%d... %s {%s}) '\
                                 %(moveNumber, sanMove, posScore, moveNumber,
