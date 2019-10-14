@@ -37,7 +37,7 @@ import subprocess
 import argparse
 import random
 import logging
-import chess
+import time
 import chess.pgn
 import chess.polyglot
 
@@ -46,7 +46,7 @@ sr = random.SystemRandom()
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = '0.3.25'
+APP_VERSION = '0.3.26'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -92,6 +92,7 @@ class Analyze():
         self.engineOptions = opt['-engineoptions']
         self.bookFile = opt['-bookfile']
         self.depth = opt['-depth']
+        self.puzzlefn = opt['-puzzle']
         self.bookMove = None
         self.passedPawnIsGood = False
         self.whitePassedPawnCommentCnt = 0
@@ -1744,6 +1745,114 @@ class Analyze():
             f.write('Total correct         : %d\n' %(cntCorrect))
             f.write('Correct percentage    : %0.2f\n\n' %(pctCorrect))
             
+    def CreatePuzzle(self):
+        """
+        Generate chess position puzzle or test positions from a given pgn file.
+        
+        Analyze position in the game from pgn file, record its pvmove and score
+        for the early part of analysis and final bestmove and bestscore after
+        the search. If pvmove and bestmove are not the same and score of bestmove is higher
+        than score at pvmove then save this pos as a test position.
+        """
+        print('Creating test positions ...')
+        with open(self.infn) as h:
+            game = chess.pgn.read_game(h)
+            while game:
+                gameNode = game        
+                while gameNode.variations:
+                    board = gameNode.board()
+#                    side = board.turn
+                    fmvn = board.fullmove_number
+                    
+                    nextNode = gameNode.variation(0)
+#                    sanMove = nextNode.san()
+                    
+                    if fmvn < 12:
+                        gameNode = nextNode
+                        continue
+
+                    fen = board.fen()
+                    print('analyzing fen %s ...' % fen)
+                    
+                    bestMove, bestScore, pvMove, pvScore = \
+                            None, -MAX_SCORE, None, -MAX_SCORE
+                    
+                    # Analyze the current fen                    
+                    p = subprocess.Popen(self.eng, stdin=subprocess.PIPE,
+                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                    self.Send(p, 'uci')
+                    self.ReadEngineReply(p, 'uci')
+                    self.SetEngineOptions(p, self.engineOptions)
+                    self.Send(p, 'isready')
+                    self.ReadEngineReply(p, 'isready')
+                    self.Send(p, 'ucinewgame')
+                    self.Send(p, 'position fen %s' % fen)
+                    
+                    start_time = time.time()
+                    self.Send(p, 'go movetime %s' % self.moveTime)
+                    
+                    for eline in iter(p.stdout.readline, ''):       
+                        line = eline.strip()
+                        
+                        if 'info depth ' in line and ' pv ' in line and not\
+                           'upperbound' in line and not 'lowerbound' in line\
+                           and 'score' in line:
+                            logging.debug('<< %s' % line)
+                            
+                            # Get the depth
+                            splitLine = line.split()
+        
+                            # Save pv move at first half of movetime                            
+                            if (time.time() - start_time) * 1000 < self.moveTime//4:
+                                pvMove = splitLine[splitLine.index('pv')+1].strip()
+                                
+                                if 'score cp ' in line:
+                                    splitStr = line.split()
+                                    scoreIndex = splitStr.index('score')
+                                    pvScore = int(splitStr[scoreIndex + 2])
+                                elif 'score mate ' in line:
+                                    splitStr = line.split()
+                                    scoreIndex = splitStr.index('score')
+                                    mateInN = int(splitStr[scoreIndex + 2])            
+                                    pvScore = self.MateDistanceToValue(mateInN)
+                                    
+                                # Don't save winning or losing positions
+                                if abs(pvScore) > 1000:
+                                    break
+                            else:
+                                if 'score cp ' in line:
+                                    splitStr = line.split()
+                                    scoreIndex = splitStr.index('score')
+                                    bestScore = int(splitStr[scoreIndex + 2])
+                                elif 'score mate ' in line:
+                                    splitStr = line.split()
+                                    scoreIndex = splitStr.index('score')
+                                    mateInN = int(splitStr[scoreIndex + 2])            
+                                    bestScore = self.MateDistanceToValue(mateInN)
+            
+                        if 'bestmove ' in line:
+                            bestMove = line.split()[1]
+                            logging.debug('<< %s' % line)
+                            break
+            
+                    self.Send(p, 'quit')
+                    p.communicate()
+                    
+                    logging.info('bestPv: %s, pvScore: %d' % (pvMove, pvScore))
+                    logging.info('bestmove: %s, bestScore: %d' % (bestMove, bestScore))
+                    
+                    # Compare pv move in the first half of the search and bestmove
+                    if bestMove != pvMove and bestScore >= pvScore + 10:
+                        with open(self.puzzlefn, 'a') as f:
+                            f.write('%s bm %s; Ubm %s;\n' % (
+                                    board.epd(),
+                                    board.san(chess.Move.from_uci(bestMove)),
+                                    bestMove))
+                    
+                    gameNode = nextNode
+                    
+                game = chess.pgn.read_game(h)    
+            
 
 def main():
     parser = argparse.ArgumentParser(prog='%s v%s' % (APP_NAME, APP_VERSION),
@@ -1785,10 +1894,14 @@ def main():
     parser.add_argument('--log', action='store_true',
                         help='Save log to chess_artist_log.txt')
     parser.add_argument('--job', 
-                        help='type of jobs to execute, can be analyze or ' +
-        'test. For game analysis use analyze, for annotating epd use ' + 
-        'analyze too, for testing engine with epd suite, use test',
-                        choices=['analyze','test'],
+                        help='type of jobs to execute, can be analyze or '
+                        'test or createpuzzle. '
+                        'To create puzzle: '
+                        '--infile games.pgn --job createpuzzle, '
+                        'To analyze pgn: --infile games.pgn --job analyze, '
+                        'To annotate epd: --infile positions.epd --job analyze, '
+                        'To test engine with epd: --infile test.epd --job test',
+                        choices=['analyze', 'test', 'createpuzzle'],
                         required=True)
 
     args = parser.parse_args()
@@ -1810,7 +1923,8 @@ def main():
                '-job': jobType,
                '-engineoptions': engOption,
                '-bookfile': bookFile,
-               '-depth': args.depth
+               '-depth': args.depth,
+               '-puzzle': 'puzzle.epd'
                }
     
     if args.log:
@@ -1832,8 +1946,14 @@ def main():
             logging.info('Annotate epd')
             g.AnnotateEpd()            
     elif inputFile.endswith('.pgn'):
-        logging.info('Annotate game')
-        g.AnnotatePgn()
+        if jobType == 'analyze':
+            logging.info('Annotate game')
+            g.AnnotatePgn()
+        elif jobType == 'createpuzzle':
+            g.CreatePuzzle()
+        else:
+            logging.info('There is error in command line.')
+            print('There is error in command line.')
 
     print('Done!!\n')  
     sys.exit(0)
