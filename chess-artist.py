@@ -46,7 +46,7 @@ sr = random.SystemRandom()
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = '0.3.24'
+APP_VERSION = '0.3.25'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -957,8 +957,8 @@ class Analyze():
 
     def GetSearchScoreBeforeMove(self, fen, side):
         """
-        Returns bestmove, pv, score complexity number of the position and
-        root move changes. 
+        Returns bestmove, score in pawn unit wpov, complexity number,
+        move changes and pv san. 
         """
         logging.info('Get search score before making the game move.')
         scoreCp = TEST_SEARCH_SCORE
@@ -1031,8 +1031,15 @@ class Analyze():
 
         try:
             board = chess.Board(fen)
+            
+            if len(pvLine) % 2 == 0:
+                logging.info('pvLine is even, %s' % pvLine)               
+                pvLine = pvLine[:-1]
+                logging.info('Change to odd, %s' % pvLine)
+                
             pvLineSan = board.variation_san(
                     [chess.Move.from_uci(m) for m in pvLine])
+            
         except:
             logging.warning('Warning, there is error in pvLine')
             logging.info('pvLine: %s' % pvLine)
