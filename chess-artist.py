@@ -46,7 +46,7 @@ sr = random.SystemRandom()
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = '0.3.26'
+APP_VERSION = '0.3.27'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -1751,8 +1751,9 @@ class Analyze():
         
         Analyze position in the game from pgn file, record its pvmove and score
         for the early part of analysis and final bestmove and bestscore after
-        the search. If pvmove and bestmove are not the same and score of bestmove is higher
-        than score at pvmove then save this pos as a test position.
+        the search. If pvmove and bestmove are not the same and score of
+        bestmove is higher than score at pvmove then save this as a test
+        position.
         """
         print('Creating test positions ...')
         with open(self.infn) as h:
@@ -1761,11 +1762,9 @@ class Analyze():
                 gameNode = game        
                 while gameNode.variations:
                     board = gameNode.board()
-#                    side = board.turn
                     fmvn = board.fullmove_number
                     
                     nextNode = gameNode.variation(0)
-#                    sanMove = nextNode.san()
                     
                     if fmvn < 12:
                         gameNode = nextNode
@@ -1799,10 +1798,9 @@ class Analyze():
                            and 'score' in line:
                             logging.debug('<< %s' % line)
                             
-                            # Get the depth
                             splitLine = line.split()
         
-                            # Save pv move at first half of movetime                            
+                            # Save pv move and score at quarter of movetime                            
                             if (time.time() - start_time) * 1000 < self.moveTime//4:
                                 pvMove = splitLine[splitLine.index('pv')+1].strip()
                                 
