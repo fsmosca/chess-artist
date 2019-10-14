@@ -46,7 +46,7 @@ sr = random.SystemRandom()
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = '0.3.28'
+APP_VERSION = '0.4'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -100,6 +100,9 @@ class Analyze():
         self.kingSafetyIsGood = False
         self.whiteKingSafetyCommentCnt = 0
         self.blackKingSafetyCommentCnt = 0
+        self.mobilityIsGood = False
+        self.whiteMobilityCommentCnt = 0
+        self.blackMobilityCommentCnt = 0
         self.writeCnt = 0
         self.engIdName = self.GetEngineIdName()
         
@@ -283,8 +286,13 @@ class Analyze():
                             posScore, 'with a better passer'))
                     self.whitePassedPawnCommentCnt += 1
                 elif self.kingSafetyIsGood:
-                    f.write('%d. %s {%+0.2f, with a better king safety} ' %(moveNumber, sanMove, posScore))
+                    f.write('%d. %s {%+0.2f, with a better king safety} ' %(
+                            moveNumber, sanMove, posScore))
                     self.whiteKingSafetyCommentCnt += 1
+                elif self.mobilityIsGood:
+                    f.write('%d. %s {%+0.2f, with a better piece mobility} ' %(
+                            moveNumber, sanMove, posScore))
+                    self.whiteMobilityCommentCnt += 1
                 else:
                     f.write('%d. %s {%+0.2f} ' %(moveNumber, sanMove, posScore))
             else:
@@ -296,6 +304,10 @@ class Analyze():
                     f.write('%d... %s {%+0.2f, with a better king safety} ' %(
                             moveNumber, sanMove, posScore))
                     self.blackKingSafetyCommentCnt += 1
+                elif self.mobilityIsGood:
+                    f.write('%d... %s {%+0.2f, with a better piece mobility} ' %(
+                            moveNumber, sanMove, posScore))
+                    self.blackMobilityCommentCnt += 1
                 else:
                     f.write('%d... %s {%+0.2f} ' % (moveNumber, sanMove, posScore))
 
@@ -338,6 +350,10 @@ class Analyze():
                             self.whiteKingSafetyCommentCnt += 1
                             f.write('%d. %s %s {%+0.2f, with a better king safety} ' % (
                                     moveNumber, sanMove, moveNag, posScore))
+                        elif self.mobilityIsGood:
+                            self.whiteMobilityCommentCnt += 1
+                            f.write('%d. %s %s {%+0.2f, with a better piece mobility} ' % (
+                                    moveNumber, sanMove, moveNag, posScore))
                         else:
                             f.write('%d. %s %s {%+0.2f} ' %(moveNumber, sanMove,
                                     moveNag, posScore))
@@ -367,6 +383,10 @@ class Analyze():
                         elif self.kingSafetyIsGood:
                             self.blackKingSafetyCommentCnt += 1
                             f.write('%d... %s %s {%+0.2f, with a better king safety} ' % (
+                                    moveNumber, sanMove, moveNag, posScore))
+                        elif self.mobilityIsGood:
+                            self.blackMobilityCommentCnt += 1
+                            f.write('%d... %s %s {%+0.2f, with a better piece mobility} ' % (
                                     moveNumber, sanMove, moveNag, posScore))
                         else:
                             f.write('%d... %s %s {%+0.2f} ' % (
@@ -786,6 +806,61 @@ class Analyze():
         else:
             if MgPassedValue <= -1.0 and EgPassedValue <= -1.0:
                 logging.info('black passed pawn value %0.1f is good' % MgPassedValue)
+                return True
+
+        return False
+    
+    def IsMobilityGood(self, fen, side):
+        """ 
+        Return True if net mobility of side to move is good. We send a fen
+        and eval command to stockfish or brainfish engines and then extract
+        the Mobility Mg/Eg values (white pov).
+        Tested on engine Stockfish 091019, win 7 OS.
+        """
+        MOBILITY_THRESHOLD = 0.5
+        logging.info('Checking if side to move has a good mobility')
+        p = subprocess.Popen(self.eng, stdin=subprocess.PIPE,
+                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        self.Send(p, 'uci')
+        self.ReadEngineReply(p, 'uci')
+        self.Send(p, 'ucinewgame')
+        self.Send(p, 'position fen %s' % fen)
+        self.Send(p, 'eval')
+        
+        # Parse the output
+        mobilityComment = None
+        for eline in iter(p.stdout.readline, ''):        
+            line = eline.strip()
+            logging.info(line)
+            
+            if 'Mobility ' in line:
+                mobilityComment = line
+            if 'total evaluation:' in line.lower():
+                break
+
+        self.Send(p, 'quit')
+        p.communicate()
+        
+        if mobilityComment is None:
+            logging.warning('Mobility comment from eval command is missing.')
+            return False
+        
+        MgMobilityValue = float(mobilityComment.split()[8])
+        EgMobilityValue = float(mobilityComment.split()[9])
+        logging.info('mgmob: %0.2f, egmob: %0.2f' % (MgMobilityValue,
+                                                     EgMobilityValue))
+        
+        if side:
+            if MgMobilityValue >= MOBILITY_THRESHOLD and \
+                    EgMobilityValue >= MOBILITY_THRESHOLD:
+                logging.info('white net mg mobility value of %0.2f is good' % MgMobilityValue)
+                logging.info('white net eg mobility value of %0.2f is good' % EgMobilityValue)
+                return True
+        else:
+            if MgMobilityValue <= -MOBILITY_THRESHOLD and \
+                    EgMobilityValue <= -MOBILITY_THRESHOLD:
+                logging.info('black net mg mobility value of %0.2f is good' % MgMobilityValue)
+                logging.info('black net eg mobility value of %0.2f is good' % EgMobilityValue)
                 return True
 
         return False
@@ -1335,6 +1410,8 @@ class Analyze():
             self.blackPassedPawnCommentCnt = 0
             self.whiteKingSafetyCommentCnt = 0
             self.blackKingSafetyCommentCnt = 0
+            self.whiteMobilityCommentCnt = 0
+            self.blackMobilityCommentCnt = 0
 
             # Initialize move error calculation
             moveError = {'white':0.0, 'black':0.0}
@@ -1399,6 +1476,7 @@ class Analyze():
                 self.bookMove = None
                 self.passedPawnIsGood = False
                 self.kingSafetyIsGood = False
+                self.mobilityIsGood = False
                 
                 print('side: %s, move_num: %d' % ('White' if side else 'Black',
                                                   fmvn))
@@ -1475,6 +1553,14 @@ class Analyze():
                             self.kingSafetyIsGood = self.IsKingSafetyGood(nextFen, not side)
                         elif not side and self.blackKingSafetyCommentCnt == 0:
                             self.kingSafetyIsGood = self.IsKingSafetyGood(nextFen, not side)
+                            
+                # (5.4) Check if mobility of side to move is good.
+                if any(s in engineIdName.lower() for s in ['stockfish', 'brainfish']):
+                    if abs(posScore) <= 3.0:
+                        if side and self.whiteMobilityCommentCnt == 0:
+                            self.mobilityIsGood = self.IsMobilityGood(nextFen, side)
+                        elif not side and self.blackMobilityCommentCnt == 0:
+                            self.mobilityIsGood = self.IsMobilityGood(nextFen, side)
                 
                 # (6) Write moves and comments.
                 self.WriteNotation(side, fmvn, sanMove, self.bookMove,
