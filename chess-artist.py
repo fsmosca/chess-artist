@@ -46,7 +46,7 @@ sr = random.SystemRandom()
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = '0.3.27'
+APP_VERSION = '0.3.28'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -849,23 +849,10 @@ class Analyze():
             engOptionValueList = engOptionValue.split(',')
             for n in engOptionValueList:
                 value = n.strip()
-
-                # Verify threads is 1 or more
-                if 'Threads ' in value:
-                    assert int(value.split()[2]) >= 1,\
-                    'Error! option Threads was set below 1'
-
-                # Verify Hash is 1 or more and not more than 32 GB
-                if 'Hash ' in value:
-                    hashValue = int(value.split()[2])
-                    assert hashValue >= 1 and hashValue <= 32000,\
-                    'Error! option Hash was set improperly'
-
-                # Set the value
-                p.stdin.write("setoption name %s\n" %(value))
+                self.Send(p, 'setoption name %s' % value)
         else:
             value = engOptionValue.strip()
-            p.stdin.write("setoption name %s\n" %(value))
+            self.Send(p, 'setoption name %s' % value)
 
     def GetStaticEvalAfterMove(self, pos):
         """ Returns static eval by running the engine,
