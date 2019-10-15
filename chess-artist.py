@@ -46,7 +46,7 @@ sr = random.SystemRandom()
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = '0.4'
+APP_VERSION = '0.5'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -105,6 +105,8 @@ class Analyze():
         self.blackMobilityCommentCnt = 0
         self.writeCnt = 0
         self.engIdName = self.GetEngineIdName()
+        self.matBal = []
+        self.matIsSacrificed = False
         
     def Send(self, p, msg):
         """ Send msg to engine """
@@ -293,6 +295,9 @@ class Analyze():
                     f.write('%d. %s {%+0.2f, with a better piece mobility} ' %(
                             moveNumber, sanMove, posScore))
                     self.whiteMobilityCommentCnt += 1
+                elif self.matIsSacrificed:
+                    f.write('%d. %s {%+0.2f, black had sacrificed material} ' %(
+                            moveNumber, sanMove, posScore))
                 else:
                     f.write('%d. %s {%+0.2f} ' %(moveNumber, sanMove, posScore))
             else:
@@ -308,6 +313,9 @@ class Analyze():
                     f.write('%d... %s {%+0.2f, with a better piece mobility} ' %(
                             moveNumber, sanMove, posScore))
                     self.blackMobilityCommentCnt += 1
+                elif self.matIsSacrificed:
+                    f.write('%d... %s {%+0.2f, white had sacrificed material} ' %(
+                            moveNumber, sanMove, posScore))
                 else:
                     f.write('%d... %s {%+0.2f} ' % (moveNumber, sanMove, posScore))
 
@@ -334,10 +342,14 @@ class Analyze():
                     # Add better is symbol before the engine variation
                     varComment = self.PreComment(side, engScore, posScore)
 
-                    # Write moves and comments
-                    f.write('%d. %s %s {%+0.2f} ({%s} %s {%+0.2f}) ' % (
-                            moveNumber, sanMove, moveNag, posScore, varComment,
-                            pvLine, engScore))
+                    if self.matIsSacrificed:
+                        f.write('%d. %s %s {%+0.2f, black had sacrificed material} ({%s} %s {%+0.2f}) ' % (
+                                moveNumber, sanMove, moveNag, posScore, varComment,
+                                pvLine, engScore))
+                    else:                    
+                        f.write('%d. %s %s {%+0.2f} ({%s} %s {%+0.2f}) ' % (
+                                moveNumber, sanMove, moveNag, posScore, varComment,
+                                pvLine, engScore))
                 else:
                     moveNag = self.GetGoodNag(side, posScore, engScore,
                                               complexityNumber, moveChanges)
@@ -354,6 +366,9 @@ class Analyze():
                             self.whiteMobilityCommentCnt += 1
                             f.write('%d. %s %s {%+0.2f, with a better piece mobility} ' % (
                                     moveNumber, sanMove, moveNag, posScore))
+                        elif self.matIsSacrificed:
+                            f.write('%d. %s %s {%+0.2f, black had sacrificed material} ' % (
+                                    moveNumber, sanMove, moveNag, posScore))
                         else:
                             f.write('%d. %s %s {%+0.2f} ' %(moveNumber, sanMove,
                                     moveNag, posScore))
@@ -368,10 +383,14 @@ class Analyze():
                     # Add better is symbol before the engine variation
                     varComment = self.PreComment(side, engScore, posScore)
 
-                    # Write moves and comments  
-                    f.write('%d... %s %s {%+0.2f} ({%s} %s {%+0.2f}) ' % (
-                            moveNumber, sanMove, moveNag, posScore,
-                            varComment, pvLine, engScore))
+                    if self.matIsSacrificed:
+                        f.write('%d... %s %s {%+0.2f, white had sacrificed material} ({%s} %s {%+0.2f}) ' % (
+                                moveNumber, sanMove, moveNag, posScore,
+                                varComment, pvLine, engScore))
+                    else:
+                        f.write('%d... %s %s {%+0.2f} ({%s} %s {%+0.2f}) ' % (
+                                moveNumber, sanMove, moveNag, posScore,
+                                varComment, pvLine, engScore))
                 else:
                     moveNag = self.GetGoodNag(side, posScore, engScore,
                                               complexityNumber, moveChanges)
@@ -387,6 +406,9 @@ class Analyze():
                         elif self.mobilityIsGood:
                             self.blackMobilityCommentCnt += 1
                             f.write('%d... %s %s {%+0.2f, with a better piece mobility} ' % (
+                                    moveNumber, sanMove, moveNag, posScore))
+                        elif self.matIsSacrificed:
+                            f.write('%d... %s %s {%+0.2f, white had sacrificed material} ' % (
                                     moveNumber, sanMove, moveNag, posScore))
                         else:
                             f.write('%d... %s %s {%+0.2f} ' % (
@@ -683,6 +705,28 @@ class Analyze():
         queens = Q+q
         pawns = P+p
         return wmat, bmat, queens, pawns
+    
+    @staticmethod
+    def GetMaterialBalance(fen):
+        """ 
+        Returns material balance in wpov from a given fen.
+        """
+        # Get piece field of fen
+        pieces = fen.split()[0]
+
+        # Count pieces
+        Q = pieces.count('Q')
+        q = pieces.count('q')
+        R = pieces.count('R')
+        r = pieces.count('r')
+        B = pieces.count('B')
+        b = pieces.count('b')
+        N = pieces.count('N')
+        n = pieces.count('n')
+        P = pieces.count('P')
+        p = pieces.count('p')
+        
+        return 10*(Q - q) + 5*(R - r) + 3*(B - b) + 3*(N - n) + (P - p)
     
     def GetEngineIdName(self):
         """ Returns the engine id name """
@@ -1388,7 +1432,85 @@ class Analyze():
                         %(werr, berr, res))
         else:
             with open(self.outfn, 'a') as f:
-                f.write('%s\n\n' %(res)) 
+                f.write('%s\n\n' %(res))
+
+    @staticmethod
+    def SaveMaterialBalance(game):
+        """
+        Visit all positions of the game and returns material balance in wpov.
+        Returned value is a list of list [[fen1, matbal1], [fen2, matbal2] ...]
+        """
+        mat = []
+        gameNode = game
+        while gameNode.variations:
+            board = gameNode.board()
+            fen = board.fen()
+            mbal = Analyze.GetMaterialBalance(board.fen())
+            mat.append([fen, mbal])
+            
+            nextNode = gameNode.variation(0)
+            
+            gameNode = nextNode
+            
+        endFen = nextNode.board().fen()
+        mat.append([endFen, Analyze.GetMaterialBalance(endFen)])
+            
+        return mat
+    
+    @staticmethod
+    def GetSacrificedMaterial(fen, matBal):
+        """
+        Returns value of sacrificed material, Q=10, R=5, B=N=3, P=1
+        
+        :matBal: Is a list of list or [[fen1, matbal1], [fen2, matbal2] ...]
+                 where fen1 can be startpos fen
+        
+        Pattern [0, 1, 1]: white is ahead so black had sacs material
+        Pattern [0, -1, -1]: black is ahead so white had sacs material
+        0, 1, 1 are material balance wpov from fen1 to fen n, n = total plies.
+        """
+        for i, n in enumerate(matBal):
+            fenVal = n[0]
+            
+            if fen != fenVal:
+                continue
+            
+            # Material balance that starts from 0 and look ahead of 2 plies
+            if matBal[i][1] == 0:
+                if i + 2 < len(matBal):
+                    # White is pawn ahead
+                    if matBal[i+1][1] == 1 and matBal[i+2][1] == 1:
+                        logging.info(fenVal)
+                        logging.info('Black sacs 1 pawn')
+                        return 1
+                    
+                    if matBal[i+1][1] == 2 and matBal[i+2][1] == 2:
+                        logging.info(fenVal)
+                        logging.info('Black sacs 2 pawn')
+                        return 2
+                    
+                    if matBal[i+1][1] == 3 and matBal[i+2][1] == 3:
+                        logging.info(fenVal)
+                        logging.info('Black sacs 3 pawn')
+                        return 3
+                    
+                    # Black is a pawn ahead
+                    if matBal[i+1][1] == -1 and matBal[i+2][1] == -1:
+                        logging.info(fenVal)
+                        logging.info('White sacs 1 pawn')
+                        return -1
+                    
+                    if matBal[i+1][1] == -2 and matBal[i+2][1] == -2:
+                        logging.info(fenVal)
+                        logging.info('White sacs 2 pawn')
+                        return -2
+                    
+                    if matBal[i+1][1] == -3 and matBal[i+2][1] == -3:
+                        logging.info(fenVal)
+                        logging.info('White sacs 3 pawn')
+                        return -3
+                    
+        return 0            
     
     def AnnotatePgn(self):
         """ Parse the pgn file and annotate the games """
@@ -1458,6 +1580,10 @@ class Analyze():
 
             # Save result to be written later as game termination marker.
             res = game.headers['Result']
+            
+            self.matBal = Analyze.SaveMaterialBalance(game)
+            logging.info('Material blance wpov:')
+            logging.info('%s' % self.matBal)
 
             # Loop thru the moves within this game.
             gameNode = game        
@@ -1477,6 +1603,7 @@ class Analyze():
                 self.passedPawnIsGood = False
                 self.kingSafetyIsGood = False
                 self.mobilityIsGood = False
+                self.matIsSacrificed = False
                 
                 print('side: %s, move_num: %d' % ('White' if side else 'Black',
                                                   fmvn))
@@ -1561,6 +1688,10 @@ class Analyze():
                             self.mobilityIsGood = self.IsMobilityGood(nextFen, side)
                         elif not side and self.blackMobilityCommentCnt == 0:
                             self.mobilityIsGood = self.IsMobilityGood(nextFen, side)
+                            
+                # Get piece type of a move
+                sacMat = Analyze.GetSacrificedMaterial(curFen, self.matBal)
+                self.matIsSacrificed = True if sacMat != 0 else False
                 
                 # (6) Write moves and comments.
                 self.WriteNotation(side, fmvn, sanMove, self.bookMove,
