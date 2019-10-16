@@ -46,7 +46,7 @@ sr = random.SystemRandom()
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = '0.10'
+APP_VERSION = '0.11'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -88,6 +88,7 @@ class Analyze():
         self.evalType = opt['-eval']
         self.moveTime = opt['-movetime']
         self.analysisMoveStart = opt['-movestart']
+        self.analysisMoveEnd = opt['-moveend']
         self.jobType = opt['-job']
         self.engineOptions = opt['-engineoptions']
         self.bookFile = opt['-bookfile']
@@ -1725,6 +1726,14 @@ class Analyze():
                                        None, threatMove)
                     gameNode = nextNode
                     continue
+                
+                # (1.1) Don't analyze beyond analysis move end
+                if fmvn > self.analysisMoveEnd:
+                    self.WriteNotation(side, fmvn, sanMove, self.bookMove,
+                                       None, False, None, None, 0, 0,
+                                       None, threatMove)
+                    gameNode = nextNode
+                    continue
 
                 # (2) Probe the book file and save the best book move  
                 if fmvn <= BOOK_MOVE_LIMIT and self.bookFile is not None:
@@ -2181,6 +2190,10 @@ def main():
                         help='input move number to start the analysis, ' + 
                         'this is used when analyzing games, (default=8)',
                         default=8, type=int, required=False)
+    parser.add_argument("--moveend", 
+                        help='input move number to end the analysis, '
+                        'this is used when analyzing games, (default=1000)',
+                        default=1000, type=int, required=False)
     parser.add_argument('--log', action='store_true',
                         help='Save log to chess_artist_log.txt')
     parser.add_argument('--job', 
@@ -2213,6 +2226,7 @@ def main():
     options = {'-eval': evalType,
                '-movetime': analysisMoveTime,
                '-movestart': analysisMoveStart,
+               '-moveend': args.moveend,
                '-job': jobType,
                '-engineoptions': engOption,
                '-bookfile': bookFile,
