@@ -46,7 +46,7 @@ sr = random.SystemRandom()
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = '0.7'
+APP_VERSION = '0.8'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -348,39 +348,74 @@ class Analyze():
                     varComment = self.PreComment(side, engScore, posScore)
 
                     if self.matIsSacrificed:
-                        f.write('%d. %s %s {%+0.2f, black had sacrificed material} ({%s} %s {%+0.2f}) ' % (
-                                moveNumber, sanMove, moveNag, posScore, varComment,
-                                pvLine, engScore))
-                    else:                    
-                        f.write('%d. %s %s {%+0.2f} ({%s} %s {%+0.2f}) ' % (
-                                moveNumber, sanMove, moveNag, posScore, varComment,
-                                pvLine, engScore))
+                        if moveNag == '$0':
+                            f.write('%d. %s {%+0.2f, black had sacrificed material} ({%s} %s {%+0.2f}) ' % (
+                                    moveNumber, sanMove, posScore, varComment,
+                                    pvLine, engScore))
+                        else:
+                            f.write('%d. %s %s {%+0.2f, black had sacrificed material} ({%s} %s {%+0.2f}) ' % (
+                                    moveNumber, sanMove, moveNag, posScore, varComment,
+                                    pvLine, engScore))
+                    else:  
+                        if moveNag == '$0':
+                            f.write('%d. %s {%+0.2f} ({%s} %s {%+0.2f}) ' % (
+                                    moveNumber, sanMove, posScore, varComment,
+                                    pvLine, engScore))
+                        else:
+                            f.write('%d. %s %s {%+0.2f} ({%s} %s {%+0.2f}) ' % (
+                                    moveNumber, sanMove, moveNag, posScore, varComment,
+                                    pvLine, engScore))
                 else:
                     moveNag = self.GetGoodNag(side, posScore, engScore,
                                               complexityNumber, moveChanges)
                     if threatMove is None:
                         if self.passedPawnIsGood:
                             self.whitePassedPawnCommentCnt += 1
-                            f.write('%d. %s %s {%+0.2f, with a better passer} ' % (
-                                    moveNumber, sanMove, moveNag, posScore))
+                            if moveNag == '$0':
+                                f.write('%d. %s {%+0.2f, with a better passer} ' % (
+                                        moveNumber, sanMove, posScore))
+                            else:
+                                f.write('%d. %s %s {%+0.2f, with a better passer} ' % (
+                                        moveNumber, sanMove, moveNag, posScore))
                         elif self.kingSafetyIsGood:
                             self.whiteKingSafetyCommentCnt += 1
-                            f.write('%d. %s %s {%+0.2f, with a better king safety} ' % (
-                                    moveNumber, sanMove, moveNag, posScore))
+                            if moveNag == '$0':
+                                f.write('%d. %s {%+0.2f, with a better king safety} ' % (
+                                        moveNumber, sanMove, posScore))
+                            else:
+                                f.write('%d. %s %s {%+0.2f, with a better king safety} ' % (
+                                        moveNumber, sanMove, moveNag, posScore))
                         elif self.mobilityIsGood:
                             self.whiteMobilityCommentCnt += 1
-                            f.write('%d. %s %s {%+0.2f, with a better piece mobility} ' % (
-                                    moveNumber, sanMove, moveNag, posScore))
+                            if moveNag == '$0':
+                                f.write('%d. %s {%+0.2f, with a better piece mobility} ' % (
+                                        moveNumber, sanMove, posScore))
+                            else:
+                                f.write('%d. %s %s {%+0.2f, with a better piece mobility} ' % (
+                                        moveNumber, sanMove, moveNag, posScore))
                         elif self.matIsSacrificed:
-                            f.write('%d. %s %s {%+0.2f, black had sacrificed material} ' % (
-                                    moveNumber, sanMove, moveNag, posScore))
+                            if moveNag == '$0':
+                                f.write('%d. %s {%+0.2f, black had sacrificed material} ' % (
+                                        moveNumber, sanMove, posScore))
+                            else:
+                                f.write('%d. %s %s {%+0.2f, black had sacrificed material} ' % (
+                                        moveNumber, sanMove, moveNag, posScore))
                         else:
-                            f.write('%d. %s %s {%+0.2f} ' %(moveNumber, sanMove,
-                                    moveNag, posScore))
+                            if moveNag == '$0':
+                                f.write('%d. %s {%+0.2f} ' %(
+                                        moveNumber, sanMove, posScore))
+                            else:
+                                f.write('%d. %s %s {%+0.2f} ' %(moveNumber, sanMove,
+                                        moveNag, posScore))
                     else:
-                        f.write('{, %s %s} %d. %s %s {%+0.2f} ' % (
-                                sr.choice(PLAN_COMMENT), threatMove,
-                                moveNumber, sanMove, moveNag, posScore))
+                        if moveNag == '$0':
+                            f.write('{, %s %s} %d. %s {%+0.2f} ' % (
+                                    sr.choice(PLAN_COMMENT), threatMove,
+                                    moveNumber, sanMove, posScore))
+                        else:
+                            f.write('{, %s %s} %d. %s %s {%+0.2f} ' % (
+                                    sr.choice(PLAN_COMMENT), threatMove,
+                                    moveNumber, sanMove, moveNag, posScore))
             else:
                 if sanMove != engMove:
                     moveNag = self.GetBadNag(side, posScore, engScore)
@@ -389,39 +424,74 @@ class Analyze():
                     varComment = self.PreComment(side, engScore, posScore)
 
                     if self.matIsSacrificed:
-                        f.write('%d... %s %s {%+0.2f, white had sacrificed material} ({%s} %s {%+0.2f}) ' % (
-                                moveNumber, sanMove, moveNag, posScore,
-                                varComment, pvLine, engScore))
+                        if moveNag == '$0':
+                            f.write('%d... %s {%+0.2f, white had sacrificed material} ({%s} %s {%+0.2f}) ' % (
+                                    moveNumber, sanMove, posScore,
+                                    varComment, pvLine, engScore))
+                        else:
+                            f.write('%d... %s %s {%+0.2f, white had sacrificed material} ({%s} %s {%+0.2f}) ' % (
+                                    moveNumber, sanMove, moveNag, posScore,
+                                    varComment, pvLine, engScore))
                     else:
-                        f.write('%d... %s %s {%+0.2f} ({%s} %s {%+0.2f}) ' % (
-                                moveNumber, sanMove, moveNag, posScore,
-                                varComment, pvLine, engScore))
+                        if moveNag == '$0':
+                            f.write('%d... %s {%+0.2f} ({%s} %s {%+0.2f}) ' % (
+                                    moveNumber, sanMove, posScore,
+                                    varComment, pvLine, engScore))
+                        else:
+                            f.write('%d... %s %s {%+0.2f} ({%s} %s {%+0.2f}) ' % (
+                                    moveNumber, sanMove, moveNag, posScore,
+                                    varComment, pvLine, engScore))
                 else:
                     moveNag = self.GetGoodNag(side, posScore, engScore,
                                               complexityNumber, moveChanges)
                     if threatMove is None:
                         if self.passedPawnIsGood:
                             self.blackPassedPawnCommentCnt += 1
-                            f.write('%d... %s %s {%+0.2f, with a better passer} ' % (
-                                    moveNumber, sanMove, moveNag, posScore))
+                            if moveNag == '$0':
+                                f.write('%d... %s {%+0.2f, with a better passer} ' % (
+                                        moveNumber, sanMove, posScore))
+                            else:
+                                f.write('%d... %s %s {%+0.2f, with a better passer} ' % (
+                                        moveNumber, sanMove, moveNag, posScore))
                         elif self.kingSafetyIsGood:
                             self.blackKingSafetyCommentCnt += 1
-                            f.write('%d... %s %s {%+0.2f, with a better king safety} ' % (
-                                    moveNumber, sanMove, moveNag, posScore))
+                            if moveNag == '$0':
+                                f.write('%d... %s {%+0.2f, with a better king safety} ' % (
+                                        moveNumber, sanMove, posScore))
+                            else:
+                                f.write('%d... %s %s {%+0.2f, with a better king safety} ' % (
+                                        moveNumber, sanMove, moveNag, posScore))
                         elif self.mobilityIsGood:
                             self.blackMobilityCommentCnt += 1
-                            f.write('%d... %s %s {%+0.2f, with a better piece mobility} ' % (
-                                    moveNumber, sanMove, moveNag, posScore))
+                            if moveNag == '$0':
+                                f.write('%d... %s {%+0.2f, with a better piece mobility} ' % (
+                                        moveNumber, sanMove, posScore))
+                            else:
+                                f.write('%d... %s %s {%+0.2f, with a better piece mobility} ' % (
+                                        moveNumber, sanMove, moveNag, posScore))
                         elif self.matIsSacrificed:
-                            f.write('%d... %s %s {%+0.2f, white had sacrificed material} ' % (
-                                    moveNumber, sanMove, moveNag, posScore))
+                            if moveNag == '$0':
+                                f.write('%d... %s {%+0.2f, white had sacrificed material} ' % (
+                                        moveNumber, sanMove, posScore))
+                            else:
+                                f.write('%d... %s %s {%+0.2f, white had sacrificed material} ' % (
+                                        moveNumber, sanMove, moveNag, posScore))
                         else:
-                            f.write('%d... %s %s {%+0.2f} ' % (
-                                    moveNumber, sanMove, moveNag, posScore))
+                            if moveNag == '$0':
+                                f.write('%d... %s {%+0.2f} ' % (
+                                        moveNumber, sanMove, posScore))
+                            else:
+                                f.write('%d... %s %s {%+0.2f} ' % (
+                                        moveNumber, sanMove, moveNag, posScore))
                     else:
-                        f.write('{, %s %s} %d... %s %s {%+0.2f} ' % (
-                                sr.choice(PLAN_COMMENT), threatMove,
-                                moveNumber, sanMove, moveNag, posScore))
+                        if moveNag == '$0':
+                            f.write('{, %s %s} %d... %s {%+0.2f} ' % (
+                                    sr.choice(PLAN_COMMENT), threatMove,
+                                    moveNumber, sanMove, posScore))
+                        else:
+                            f.write('{, %s %s} %d... %s %s {%+0.2f} ' % (
+                                    sr.choice(PLAN_COMMENT), threatMove,
+                                    moveNumber, sanMove, moveNag, posScore))
 
                 # Format output, don't write movetext in one long line.
                 if self.writeCnt >= 2:
@@ -494,23 +564,39 @@ class Analyze():
                     # Add better is symbol before the engine variation
                     varComment = self.PreComment(side, engScore, posScore)
 
-                    # Write moves and comments
-                    f.write('%d. %s %s {%+0.2f} (%d. %s {%s}) ({%s} %s {%+0.2f}) '\
-                            %(moveNumber, sanMove, moveNag, posScore,
-                              moveNumber, bookMove, BOOK_COMMENT,
-                              varComment, pvLine, engScore))
+                    if moveNag == '$0':
+                        f.write('%d. %s {%+0.2f} (%d. %s {%s}) ({%s} %s {%+0.2f}) '\
+                                %(moveNumber, sanMove, posScore,
+                                  moveNumber, bookMove, BOOK_COMMENT,
+                                  varComment, pvLine, engScore))
+                    else:
+                        f.write('%d. %s %s {%+0.2f} (%d. %s {%s}) ({%s} %s {%+0.2f}) '\
+                                %(moveNumber, sanMove, moveNag, posScore,
+                                  moveNumber, bookMove, BOOK_COMMENT,
+                                  varComment, pvLine, engScore))
                 else:
                     moveNag = self.GetGoodNag(side, posScore, engScore,
                                               complexityNumber, moveChanges)
                     if threatMove is not None:
-                        f.write('{, %s %s} %d. %s {%+0.2f} (%d. %s {%s}) '%(
-                                sr.choice(PLAN_COMMENT), threatMove,
-                                moveNumber, sanMove, posScore, moveNumber,
-                                bookMove, BOOK_COMMENT))
+                        if moveNag == '$0':
+                            f.write('{, %s %s} %d. %s {%+0.2f} (%d. %s {%s}) '%(
+                                    sr.choice(PLAN_COMMENT), threatMove,
+                                    moveNumber, sanMove, posScore,
+                                    moveNumber, bookMove, BOOK_COMMENT))
+                        else:
+                            f.write('{, %s %s} %d. %s %s {%+0.2f} (%d. %s {%s}) '%(
+                                    sr.choice(PLAN_COMMENT), threatMove,
+                                    moveNumber, sanMove, moveNag, posScore,
+                                    moveNumber, bookMove, BOOK_COMMENT))
                     else:
-                        f.write('%d. %s {%+0.2f} (%d. %s {%s}) ' %(moveNumber,
-                                                sanMove, posScore, moveNumber,
-                                                bookMove, BOOK_COMMENT))
+                        if moveNag == '$0':
+                            f.write('%d. %s {%+0.2f} (%d. %s {%s}) ' %(
+                                    moveNumber, sanMove, posScore, moveNumber,
+                                    bookMove, BOOK_COMMENT))
+                        else:
+                            f.write('%d. %s %s {%+0.2f} (%d. %s {%s}) ' %(
+                                    moveNumber, sanMove, moveNag, posScore, moveNumber,
+                                    bookMove, BOOK_COMMENT))
             else:
                 if sanMove != engMove:
                     moveNag = self.GetBadNag(side, posScore, engScore)
@@ -518,23 +604,39 @@ class Analyze():
                     # Add better is symbol before the engine variation
                     varComment = self.PreComment(side, engScore, posScore)
 
-                    # Write moves and comments
-                    f.write('%d... %s %s {%+0.2f} (%d... %s {%s}) ({%s} %s {%+0.2f}) '\
-                            %(moveNumber, sanMove, moveNag, posScore,
-                              moveNumber, bookMove, BOOK_COMMENT,
-                              varComment, pvLine, engScore))
+                    if moveNag == '$0':
+                        f.write('%d... %s {%+0.2f} (%d... %s {%s}) ({%s} %s {%+0.2f}) '\
+                                %(moveNumber, sanMove, posScore,
+                                  moveNumber, bookMove, BOOK_COMMENT,
+                                  varComment, pvLine, engScore))
+                    else:
+                        f.write('%d... %s %s {%+0.2f} (%d... %s {%s}) ({%s} %s {%+0.2f}) '\
+                                %(moveNumber, sanMove, moveNag, posScore,
+                                  moveNumber, bookMove, BOOK_COMMENT,
+                                  varComment, pvLine, engScore))
                 else:
                     moveNag = self.GetGoodNag(side, posScore, engScore,
                                               complexityNumber, moveChanges)
                     if threatMove is not None:
-                        f.write('{, %s %s} %d... %s {%+0.2f} (%d... %s {%s}) '\
-                                %(sr.choice(PLAN_COMMENT), threatMove,
-                                moveNumber, sanMove, posScore, moveNumber,
-                                bookMove, BOOK_COMMENT))
+                        if moveNag == '$0':
+                            f.write('{, %s %s} %d... %s {%+0.2f} (%d... %s {%s}) '\
+                                    %(sr.choice(PLAN_COMMENT), threatMove,
+                                    moveNumber, sanMove, posScore, moveNumber,
+                                    bookMove, BOOK_COMMENT))
+                        else:
+                            f.write('{, %s %s} %d... %s %s {%+0.2f} (%d... %s {%s}) '\
+                                    %(sr.choice(PLAN_COMMENT), threatMove,
+                                    moveNumber, sanMove, moveNag, posScore, moveNumber,
+                                    bookMove, BOOK_COMMENT))
                     else:
-                        f.write('%d... %s {%+0.2f} (%d... %s {%s}) '\
-                                %(moveNumber, sanMove, posScore, moveNumber,
-                                  bookMove, BOOK_COMMENT))
+                        if moveNag == '$0':
+                            f.write('%d... %s {%+0.2f} (%d... %s {%s}) ' % (
+                                    moveNumber, sanMove, posScore, moveNumber,
+                                    bookMove, BOOK_COMMENT))
+                        else:
+                            f.write('%d... %s %s {%+0.2f} (%d... %s {%s}) ' % (
+                                    moveNumber, sanMove, moveNag, posScore,
+                                    moveNumber, bookMove, BOOK_COMMENT))
 
                 # Format output, don't write movetext in one long line.
                 if self.writeCnt >= 2:
