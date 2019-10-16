@@ -46,7 +46,7 @@ sr = random.SystemRandom()
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = '0.12'
+APP_VERSION = '0.13'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -95,6 +95,7 @@ class Analyze():
         self.depth = opt['-depth']
         self.puzzlefn = opt['-puzzle']
         self.wordyComment = opt['-wordy']
+        self.player = opt['-player']
         self.bookMove = None
         self.passedPawnIsGood = False
         self.whitePassedPawnCommentCnt = 0
@@ -1637,6 +1638,15 @@ class Analyze():
         while game:
             gameCnt += 1
             
+            # Analyze games by player
+            if self.player is not None:            
+                wplayer = game.headers['White']
+                bplayer = game.headers['Black']
+
+                if self.player != wplayer and self.player != bplayer:
+                    game = chess.pgn.read_game(pgnHandle)
+                    continue
+            
             # Reset passed pawn comment every game. Passed pawn comment is
             # only done once for white and once for black per game
             self.whitePassedPawnCommentCnt = 0
@@ -2209,6 +2219,9 @@ def main():
     parser.add_argument('--wordycomment', action='store_true',
                         help='There are more words in the move comments such as '
                         'better is, planning, excellent is, Cool is and others.')
+    parser.add_argument("--player", 
+                        help='enter player name to analyze, (default=None) ',
+                        default=None, required=False)
 
     args = parser.parse_args()
     
@@ -2232,7 +2245,8 @@ def main():
                '-bookfile': bookFile,
                '-depth': args.depth,
                '-puzzle': 'puzzle.epd',
-               '-wordy': args.wordycomment
+               '-wordy': args.wordycomment,
+               '-player': args.player
                }
     
     if args.log:
