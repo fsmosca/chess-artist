@@ -2,8 +2,8 @@
 A python script that can analyze games in the pgn file. It can also analyze epd file, and can also test the engine using epd test suites. Only Python 2 is so far supported.
 
 ## A. Requirements
-* [Python 2](https://www.python.org/downloads/release/python-2715/)
-* [Python-chess](https://github.com/niklasf/python-chess)
+* [Python 2.7](https://www.python.org/downloads/release/python-2715/)
+* [Python-chess v0.21.2](https://github.com/niklasf/python-chess)
 * [UCI chess engines](https://stockfishchess.org/download/)
 * PGN file
 * EPD file
