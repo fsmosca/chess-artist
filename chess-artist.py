@@ -46,7 +46,7 @@ sr = random.SystemRandom()
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = '0.13'
+APP_VERSION = '0.14'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -96,6 +96,7 @@ class Analyze():
         self.puzzlefn = opt['-puzzle']
         self.wordyComment = opt['-wordy']
         self.player = opt['-player']
+        self.color = opt['-color']
         self.bookMove = None
         self.passedPawnIsGood = False
         self.whitePassedPawnCommentCnt = 0
@@ -1726,6 +1727,15 @@ class Analyze():
                 self.mobilityIsGood = False
                 self.matIsSacrificed = False
                 
+                # Analyze specific color or side to move
+                if self.color is not None:
+                    if side and self.color == 'black' or not side and self.color == 'white':
+                        self.WriteNotation(side, fmvn, sanMove, self.bookMove,
+                                       None, False, None, None, 0, 0,
+                                       None, threatMove)
+                        gameNode = nextNode
+                        continue
+                
                 print('side: %s, move_num: %d' % ('White' if side else 'Black',
                                                   fmvn))
 
@@ -2222,6 +2232,9 @@ def main():
     parser.add_argument("--player", 
                         help='enter player name to analyze, (default=None) ',
                         default=None, required=False)
+    parser.add_argument("--color", 
+                        help='enter color of player to analyze, (default=None) ',
+                        default=None, required=False)
 
     args = parser.parse_args()
     
@@ -2246,7 +2259,8 @@ def main():
                '-depth': args.depth,
                '-puzzle': 'puzzle.epd',
                '-wordy': args.wordycomment,
-               '-player': args.player
+               '-player': args.player,
+               '-color': args.color
                }
     
     if args.log:
