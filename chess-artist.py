@@ -46,7 +46,7 @@ sr = random.SystemRandom()
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = '0.6'
+APP_VERSION = '0.7'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -107,6 +107,8 @@ class Analyze():
         self.engIdName = self.GetEngineIdName()
         self.matBal = []
         self.matIsSacrificed = False
+        self.blunderCnt = {'w': 0, 'b': 0}
+        self.badCnt = {'w': 0, 'b': 0}
         
     def Send(self, p, msg):
         """ Send msg to engine """
@@ -187,8 +189,7 @@ class Analyze():
             moveNag = '$5'
         return moveNag
     
-    @staticmethod
-    def GetBadNag(side, posScore, engScore):
+    def GetBadNag(self, side, posScore, engScore):
         """ Returns ??, ?, ?! depending on the player score and analyzing
             engine score. 
             posScore is the score of the move in the game, in pawn unit.
@@ -218,10 +219,12 @@ class Analyze():
         # Blunder ??
         if posScore < -MODERATE_SCORE and engScore >= -MODERATE_SCORE:
             moveNag = '$4'
+            self.blunderCnt['w' if side else 'b'] += 1
             
         # Mistake ?
         elif posScore < -SLIGHT_SCORE and engScore >= -SLIGHT_SCORE:
             moveNag = '$2'
+            self.badCnt['w' if side else 'b'] += 1
             
         # Dubious ?!
         elif posScore < -DRAW_SCORE and engScore >= -DRAW_SCORE:
@@ -230,10 +233,12 @@ class Analyze():
         # Mistake ? if engScore is winning and posScore is not winning
         elif engScore > MODERATE_SCORE and posScore <= MODERATE_SCORE:
             moveNag = '$2'
+            self.badCnt['w' if side else 'b'] += 1
 
         # Mistake ? if posScore is too far from engScore by 0.50 or more
         elif engScore >= -MODERATE_SCORE and engScore - posScore >= +0.50:
             moveNag = '$2'
+            self.badCnt['w' if side else 'b'] += 1
 
         # Exception, add ! if posScore > engScore
         if posScore >= -SLIGHT_SCORE and posScore > engScore:
@@ -337,7 +342,7 @@ class Analyze():
             # If side to move is white
             if side:
                 if sanMove != engMove:
-                    moveNag = Analyze.GetBadNag(side, posScore, engScore)
+                    moveNag = self.GetBadNag(side, posScore, engScore)
 
                     # Add better is symbol before the engine variation
                     varComment = self.PreComment(side, engScore, posScore)
@@ -378,7 +383,7 @@ class Analyze():
                                 moveNumber, sanMove, moveNag, posScore))
             else:
                 if sanMove != engMove:
-                    moveNag = Analyze.GetBadNag(side, posScore, engScore)
+                    moveNag = self.GetBadNag(side, posScore, engScore)
 
                     # Add better is symbol before the engine variation
                     varComment = self.PreComment(side, engScore, posScore)
@@ -484,7 +489,7 @@ class Analyze():
             # If side to move is white
             if side:
                 if sanMove != engMove:
-                    moveNag = Analyze.GetBadNag(side, posScore, engScore)
+                    moveNag = self.GetBadNag(side, posScore, engScore)
 
                     # Add better is symbol before the engine variation
                     varComment = self.PreComment(side, engScore, posScore)
@@ -508,7 +513,7 @@ class Analyze():
                                                 bookMove, BOOK_COMMENT))
             else:
                 if sanMove != engMove:
-                    moveNag = Analyze.GetBadNag(side, posScore, engScore)
+                    moveNag = self.GetBadNag(side, posScore, engScore)
 
                     # Add better is symbol before the engine variation
                     varComment = self.PreComment(side, engScore, posScore)
@@ -1424,13 +1429,14 @@ class Analyze():
         scoreCp = int(scoreP * 100.0)
         return scoreCp
 
-    def WriteTerminationMarker(self, wBlunder, bBlunder, wBad, bBad, res):
+    def WriteTerminationMarker(self, res):
         """
         Write termination marker in the output game.
         """
         with open(self.outfn, 'a') as f:
             f.write('{WhiteBlunder=%d, BlackBunder=%d, WhiteBad=%d, BlackBad=%d} %s\n\n' % (
-                    wBlunder, bBlunder, wBad, bBad, res))
+                    self.blunderCnt['w'], self.blunderCnt['b'],
+                    self.badCnt['w'], self.badCnt['b'], res))
 
     @staticmethod
     def SaveMaterialBalance(game):
@@ -1533,9 +1539,9 @@ class Analyze():
             self.whiteMobilityCommentCnt = 0
             self.blackMobilityCommentCnt = 0
 
-            # Initialize blunder counts
-            blunderCnt = {'white': 0, 'black': 0}
-            badCnt = {'white': 0, 'black': 0}
+            # Initialize blunder/bad move counts in every game
+            self.blunderCnt = {'w': 0, 'b': 0}
+            self.badCnt = {'w': 0, 'b': 0}
 
             # Used for formatting the output.
             self.writeCnt = 0
@@ -1638,40 +1644,6 @@ class Analyze():
                         
                     print('Game move: %s (%0.2f), Engine bestmove: %s (%0.2f)'\
                           % (sanMove, posScore, engBestMove, engBestScore))
-
-                    # Check/save if move is a blunder
-                    if fmvn >= 12 and self.evalType == 'search' and\
-                            sanMove != engBestMove:
-                        isBlunder, isBad = False, False
-                        if side:   
-                            # Blunder, if a non-losing position turns
-                            # into a losing position
-                            if engBestScore >= -0.5 and posScore <= -1.5:
-                                isBlunder = True
-                                blunderCnt['white'] += 1
-                                logging.info('White blunders')
-                                
-                            # Bad, when pos score is behind
-                            # the engine best score
-                            elif engBestScore - posScore >= 0.75:
-                                isBad = True
-                                badCnt['white'] += 1
-                                logging.info('White made a bad move')
-                        else:
-                            if engBestScore <= 0.5 and posScore >= 1.5:
-                                isBlunder = True
-                                blunderCnt['black'] += 1
-                                logging.info('black blunders')
-                                
-                            elif engBestScore - posScore <= -0.75:
-                                isBad = True
-                                badCnt['black'] += 1
-                                logging.info('Black made a bad move')
-                                
-                        if isBlunder or isBad:
-                            logging.info(curFen)
-                            logging.info('game move score: %0.2f, engine move score: %0.2f' % (
-                                    posScore, engBestScore))
                     
                 # (5) If game is over by checkmate and stalemate after a move              
                 isGameOver = nextNode.board().is_checkmate() or\
@@ -1722,9 +1694,7 @@ class Analyze():
                 gameNode = nextNode
             
             # Write errors, and game termination marker to output file.
-            self.WriteTerminationMarker(
-                    blunderCnt['white'], blunderCnt['black'], 
-                    badCnt['white'], badCnt['black'], res)
+            self.WriteTerminationMarker(res)
             game = chess.pgn.read_game(pgnHandle)
 
         pgnHandle.close()
