@@ -12,6 +12,7 @@ A python script that can analyze games in the pgn file. It can also analyze epd 
 ### 1. Analyze games in pgn file
 #### a) Basic command line
 `python chess-artist.py --infile sample.pgn --outfile out_sample.pgn --enginefile Stockfish.exe --eval search --job analyze --movetime 2000`
+
 #### b) Add options to engine, use --engineoptions
 `python chess-artist.py --infile sample.pgn --outfile out_sample.pgn --enginefile Stockfish.exe --engineoptions "Hash value 128, Threads value 1" --eval search --job analyze --movetime 2000`<br><br>
 Will analyze games inside sample.pgn and output the analyzed games in out_sample.pgn. It uses engine Stockfish.exe with Hash 128MB and Threads 1 at 2000 millisec or 2 sec analysis time per position. chess-artist.py and Stockfish.exe engine must be in same directory.<br>
@@ -21,6 +22,15 @@ Will analyze games inside sample.pgn and output the analyzed games in out_sample
 
 #### d) Analyze game with polyglot book in book dir at chess-artist folder
 `python chess-artist.py --infile sample.pgn --outfile out_sample.pgn --enginefile Stockfish.exe --engineoptions "Hash value 128, Threads value 1" --bookfile book/book.bin --eval search --job analyze --movetime 2000`
+
+#### e) Analyze between move 12 to move 20
+`python chess-artist.py --infile sample.pgn --outfile out_sample.pgn --enginefile Stockfish.exe --eval search --job analyze --movetime 2000 --movestart 12 --moveend 20`
+
+#### f) Analyze certain player name say Carlsen, Magnus
+`python chess-artist.py --infile sample.pgn --outfile out_sample.pgn --enginefile Stockfish.exe --eval search --job analyze --movetime 2000 --movestart 12 --moveend 20 --player "Carlsen, Magnus"`
+
+#### g) Analyze games of Carlsen, Magnus where he is black
+`python chess-artist.py --infile sample.pgn --outfile out_sample.pgn --enginefile Stockfish.exe --eval search --job analyze --movetime 2000 --movestart 12 --moveend 20 --player "Carlsen, Magnus" --color black`
 
 ### 2. Test engine with test suite
 #### Use movetime of 500ms
