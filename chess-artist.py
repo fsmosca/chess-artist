@@ -46,7 +46,7 @@ sr = random.SystemRandom()
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = '0.8'
+APP_VERSION = '0.9'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -66,8 +66,8 @@ DEFAULT_THREADS = 1
 BEST = ['Excellent', 'Outstanding', 'Exceptional', 'Striking', 'Priceless',
         'Marvellous', 'Terrific', 'Splendid', 'Magnificient', 'Admirable',
         'Brilliant', 'Cool']
-BETTER = ['Better', 'Preferable', 'More useful', 'More appropriate',
-          'More suitable', 'Worthier', 'Superior', 'Nicer', 'More valuable']
+BETTER = ['Better', 'Preferable', 'More useful', 'Worthier', 'Superior',
+          'More valuable']
 BOOK_COMMENT = 'Polyglot book'
 PLAN_COMMENT = ['with the idea of', 'planning', 'followed by']
     
