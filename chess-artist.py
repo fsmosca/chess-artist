@@ -46,7 +46,7 @@ sr = random.SystemRandom()
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = '0.9'
+APP_VERSION = '0.10'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -93,6 +93,7 @@ class Analyze():
         self.bookFile = opt['-bookfile']
         self.depth = opt['-depth']
         self.puzzlefn = opt['-puzzle']
+        self.wordyComment = opt['-wordy']
         self.bookMove = None
         self.passedPawnIsGood = False
         self.whitePassedPawnCommentCnt = 0
@@ -251,6 +252,9 @@ class Analyze():
 
     def PreComment(self, side, engScore, posScore):
         """ returns a comment for the engine variation """
+        if not self.wordyComment:
+            return ''
+        
         if not side:
             engScore = -1 * engScore
             posScore = -1 * posScore
@@ -2189,6 +2193,9 @@ def main():
                         'To test engine with epd: --infile test.epd --job test',
                         choices=['analyze', 'test', 'createpuzzle'],
                         required=True)
+    parser.add_argument('--wordycomment', action='store_true',
+                        help='There are more words in the move comments such as '
+                        'better is, planning, excellent is, Cool is and others.')
 
     args = parser.parse_args()
     
@@ -2210,7 +2217,8 @@ def main():
                '-engineoptions': engOption,
                '-bookfile': bookFile,
                '-depth': args.depth,
-               '-puzzle': 'puzzle.epd'
+               '-puzzle': 'puzzle.epd',
+               '-wordy': args.wordycomment
                }
     
     if args.log:
