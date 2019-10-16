@@ -11,7 +11,11 @@ A python script that can analyze games in the pgn file. It can also analyze epd 
 ## B. Command lines
 ### 1. Analyze games in pgn file
 #### a) Basic command line
-`python chess-artist.py --infile sample.pgn --outfile out_sample.pgn --enginefile Stockfish.exe --eval search --job analyze --movetime 2000`
+`python chess-artist.py --infile sample.pgn --outfile out_sample.pgn --enginefile Stockfish.exe --eval search --job analyze --movetime 2000`  
+
+or  
+
+`chess-artist.exe ...`
 
 #### b) Add options to engine, use --engineoptions
 `python chess-artist.py --infile sample.pgn --outfile out_sample.pgn --enginefile Stockfish.exe --engineoptions "Hash value 128, Threads value 1" --eval search --job analyze --movetime 2000`<br><br>
