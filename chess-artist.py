@@ -46,7 +46,7 @@ sr = random.SystemRandom()
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = '0.11'
+APP_VERSION = '0.12'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -1683,10 +1683,10 @@ class Analyze():
                     # is Lc0 or Leela Chess Zero
                     if 'lc0' in engineIdName.lower() or\
                             'leela chess zero' in engineIdName.lower():
-                        f.write('{Threads %s, @ %0.1fs/pos}\n' %(
+                        f.write('{Threads %s, @ %0.1fs/pos, move eval is in pawn unit wpov}\n' %(
                                 threadsValue, self.moveTime/1000.0))
                     else:
-                        f.write('{Hash %smb, Threads %s, @ %0.1fs/pos}\n' %(
+                        f.write('{Hash %smb, Threads %s, @ %0.1fs/pos, move eval is in pawn unit wpov}\n' %(
                                 hashValue, threadsValue, self.moveTime/1000.0))
 
             # Save result to be written later as game termination marker.
