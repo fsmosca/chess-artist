@@ -46,7 +46,7 @@ sr = random.SystemRandom()
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = '0.14'
+APP_VERSION = 'v0.15'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -1674,7 +1674,8 @@ class Analyze():
 
             # Write the annotator tag.
             with open(self.outfn, 'a+') as f:
-                f.write('[Annotator "%s"]\n\n' %(engineIdName))
+                f.write('[Annotator "engine: %s, prog: %s %s"]\n\n' %(
+                        engineIdName, APP_NAME, APP_VERSION))
 
             # Before the movetext are written, add a comment of whether
             # move comments are from static or search score of the engine.
@@ -2174,7 +2175,7 @@ class Analyze():
             
 
 def main():
-    parser = argparse.ArgumentParser(prog='%s v%s' % (APP_NAME, APP_VERSION),
+    parser = argparse.ArgumentParser(prog='%s %s' % (APP_NAME, APP_VERSION),
                 description='Read pgn and analyze games in it or analyze ' +
                 'epd file or test engines with epd test suites',
                 epilog='%(prog)s')
