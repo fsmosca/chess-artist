@@ -59,7 +59,7 @@ Total correct         : 274
 Correct percentage    : 91.33
 ```
 #### Use depth of 10 without movetime
-`python chess-artist.py --infile wacnew.epd --outfile result_wacnew.txt --enginefile stockfish_10.exe --engineoptions "Hash value 128, Threads value 1" --eval search --job test --depth 10 --movetime 0'
+`python chess-artist.py --infile wacnew.epd --outfile result_wacnew.txt --enginefile stockfish_10.exe --engineoptions "Hash value 128, Threads value 1" --eval search --job test --depth 10 --movetime 0`
 
 ### 3. Annotate the epd file
 #### Use Stockfish to annotate epd file at movetime 30s or 30000ms
