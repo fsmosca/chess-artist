@@ -46,7 +46,7 @@ sr = random.SystemRandom()
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = 'v1.0.rc4'
+APP_VERSION = 'v1.0.rc5'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -98,6 +98,7 @@ class Analyze():
         self.player = opt['-player']
         self.playerandopp = opt['-playerandopp']
         self.color = opt['-color']
+        self.loss = opt['-loss']
         self.bookMove = None
         self.passedPawnIsGood = False
         self.whitePassedPawnCommentCnt = 0
@@ -1687,6 +1688,13 @@ class Analyze():
                 if playerName != wplayer and playerName != bplayer:
                     game = chess.pgn.read_game(pgnHandle)
                     continue
+                
+                if self.loss:
+                    gameResult = game.headers['Result']
+                    if not (playerName == wplayer and gameResult == '0-1' or \
+                            playerName == bplayer and gameResult == '1-0'):
+                        game = chess.pgn.read_game(pgnHandle)
+                        continue                        
             
             # Reset passed pawn comment every game. Passed pawn comment is
             # only done once for white and once for black per game
@@ -2305,8 +2313,6 @@ def main():
                         help='enter color of player to analyze, (default=None) ',
                         default=None, required=False)
     
-    
-    
     group = parser.add_mutually_exclusive_group()
     group.add_argument("--player", 
                         help='enter player name to analyze, (default=None). '
@@ -2318,6 +2324,11 @@ def main():
                         'are also analyzed, (default=None). '
                         'If you use --playerandopp do not use --player.',
                         default=None, required=False)
+    parser.add_argument('--loss', action='store_true',
+                        help='This is used to analyze games where a player '
+                        'lost his/her game. Example to analyze lost games by '
+                        'Mangnus, use: chess-artist.exe --player "Carlsen, Magnus" '
+                        '--loss ... other options')
 
     args = parser.parse_args()
     
@@ -2344,7 +2355,8 @@ def main():
                '-wordy': args.wordycomment,
                '-player': args.player,
                '-playerandopp': args.playerandopp,
-               '-color': args.color
+               '-color': args.color,
+               '-loss': args.loss
                }
     
     if args.log:
