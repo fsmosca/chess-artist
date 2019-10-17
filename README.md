@@ -4,18 +4,14 @@ A python script that can analyze games in the pgn file. It can also analyze epd 
 ## A. Requirements
 * [Python 2.7](https://www.python.org/downloads/release/python-2715/)
 * [Python-chess v0.21.2](https://github.com/niklasf/python-chess)
-* [UCI chess engines](https://stockfishchess.org/download/)
+* UCI chess engines
 * PGN file
 * EPD file
 
 ## B. Command lines
 ### 1. Analyze games in pgn file
 #### a) Basic command line
-`python chess-artist.py --infile sample.pgn --outfile out_sample.pgn --enginefile Stockfish.exe --eval search --job analyze --movetime 2000`  
-
-or  
-
-`chess-artist.exe ...`
+`chess-artist.exe --infile sample.pgn --outfile out_sample.pgn --enginefile engine\stockfish\windows\stockfish_10_x64_popcnt.exe --eval search --job analyze --movetime 2000`
 
 #### b) Add options to engine, use --engineoptions
 `python chess-artist.py --infile sample.pgn --outfile out_sample.pgn --enginefile Stockfish.exe --engineoptions "Hash value 128, Threads value 1" --eval search --job analyze --movetime 2000`<br><br>
@@ -98,7 +94,8 @@ https://github.com/niklasf/python-chess
 _Uses chess.pgn and chess.polyglot modules_
 * Stockfish team  
 https://github.com/official-stockfish/Stockfish  
-_Calculation of passer and king safety are from Stockfish engine static evaluation._
+_Calculation of passed pawn, king safety and mobility for move comments are from Stockfish engine static evaluation._  
+_Windows Stockfish files can also be found under Engine folder_
 * TheWeekInChess  
 https://theweekinchess.com/  
 _Good source of games with pgn files_
