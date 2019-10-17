@@ -46,7 +46,7 @@ sr = random.SystemRandom()
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = 'v1.0.rc1'
+APP_VERSION = 'v1.0.rc2'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -1538,14 +1538,39 @@ class Analyze():
         scoreCp = int(scoreP * 100.0)
         return scoreCp
 
-    def WriteTerminationMarker(self, res):
+    def WriteTerminationMarker(self, playerColor, res):
         """
         Write termination marker in the output game.
         """
         with open(self.outfn, 'a') as f:
-            f.write('{WhiteBlunder=%d, BlackBunder=%d, WhiteBad=%d, BlackBad=%d} %s\n\n' % (
-                    self.blunderCnt['w'], self.blunderCnt['b'],
-                    self.badCnt['w'], self.badCnt['b'], res))
+            if self.color is None and self.player is None:
+                f.write('{WhiteBlunder=%d, BlackBunder=%d, WhiteBad=%d, BlackBad=%d} %s\n\n' % (
+                        self.blunderCnt['w'], self.blunderCnt['b'],
+                        self.badCnt['w'], self.badCnt['b'], res))
+            elif self.color is not None and self.player is not None:
+                if playerColor == 'white' and self.color == 'white':
+                    f.write('{WhiteBlunder=%d, WhiteBad=%d} %s\n\n' % (
+                        self.blunderCnt['w'], self.badCnt['w'], res))
+                elif playerColor == 'black' and self.color == 'black':
+                    f.write('{BlackBlunder=%d, BlackBad=%d} %s\n\n' % (
+                        self.blunderCnt['b'], self.badCnt['b'], res))
+                else:
+                    f.write('%s\n\n' % (res))
+            elif self.color is not None:
+                if self.color == 'white':
+                    f.write('{WhiteBlunder=%d, WhiteBad=%d} %s\n\n' % (
+                        self.blunderCnt['w'], self.badCnt['w'], res))
+                else:
+                    f.write('{BlackBlunder=%d, BlackBad=%d} %s\n\n' % (
+                        self.blunderCnt['b'], self.badCnt['b'], res))
+            else:
+                assert self.player is not None
+                if playerColor == 'white':
+                    f.write('{WhiteBlunder=%d, WhiteBad=%d} %s\n\n' % (
+                        self.blunderCnt['w'], self.badCnt['w'], res))
+                else:
+                    f.write('{BlackBlunder=%d, BlackBad=%d} %s\n\n' % (
+                        self.blunderCnt['b'], self.badCnt['b'], res))                
 
     @staticmethod
     def SaveMaterialBalance(game):
@@ -1838,8 +1863,13 @@ class Analyze():
                                    pvLine, threatMove)
                 gameNode = nextNode
             
-            # Write errors, and game termination marker to output file.
-            self.WriteTerminationMarker(res)
+            # Write blunder/bad counts, and game termination marker to output file.
+            pColor = None
+            if self.player is not None:
+                pColor = 'white' if self.player == wplayer else 'black'
+            self.WriteTerminationMarker(pColor, res)
+            
+            # Read next game
             game = chess.pgn.read_game(pgnHandle)
 
         pgnHandle.close()
