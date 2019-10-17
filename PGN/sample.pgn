@@ -1,0 +1,18 @@
+[Event "chess.com IoM Masters"]
+[Site "Douglas ENG"]
+[Date "2018.10.23"]
+[Round "4.65"]
+[White "Rahul, Srivatshav P"]
+[Black "Leutwyler, Martin"]
+[Result "1-0"]
+[BlackElo "2142"]
+[BlackFideId "1301969"]
+[ECO "D00"]
+[EventDate "2018.10.20"]
+[Opening "Queen's pawn, Mason variation"]
+[WhiteElo "2395"]
+[WhiteFideId "25059653"]
+[WhiteTitle "IM"]
+
+1.d4 d5 2.Bf4 Nf6 3.e3 c5 4.c3 Nc6 5.Nd2 cxd4 6.exd4 Bg4 7.Qb3 Qc8 8.Ngf3 e6 9.Bb5 a6 10.Bxc6+ bxc6 11.Ne5 Bd6 12.f3 Rb8 13.Qa4 Bf5 14.g4 Bxe5 15.Bxe5 Rxb2 16.gxf5 exf5 17.Bxf6 gxf6 18.O-O-O 1-0
+
