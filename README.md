@@ -34,7 +34,10 @@ Will analyze games inside sample.pgn and output the analyzed games in out_sample
 `python chess-artist.py --infile sample.pgn --outfile out_sample.pgn --enginefile Stockfish.exe --eval search --job analyze --movetime 2000 --movestart 12 --moveend 20 --player "Carlsen, Magnus"`
 
 #### g) Analyze games of Carlsen, Magnus where he is black
-`python chess-artist.py --infile sample.pgn --outfile out_sample.pgn --enginefile Stockfish.exe --eval search --job analyze --movetime 2000 --movestart 12 --moveend 20 --player "Carlsen, Magnus" --color black`
+`python chess-artist.py --infile iommast19.pgn --outfile magnus_black.pgn --enginefile Stockfish.exe --eval search --job analyze --movetime 2000 --movestart 12 --moveend 20 --player "Carlsen, Magnus" --color black`
+
+#### h) Analyze lost games of Movsesian, Sergei, also analyze moves of its opponent, using --playerandopp option
+`chess-artist.exe --infile iommast19.pgn --outfile sergie_loses.pgn --enginefile Stockfish.exe --eval search --job analyze --movetime 5000 --playerandopp "Movsesian, Sergei" --loss`
 
 ### 2. Test engine with test suite
 #### Use movetime of 500ms
@@ -96,4 +99,7 @@ _Uses chess.pgn and chess.polyglot modules_
 * Stockfish team  
 https://github.com/official-stockfish/Stockfish  
 _Calculation of passer and king safety are from Stockfish engine static evaluation._
+* TheWeekInChess  
+https://theweekinchess.com/  
+_Good source of games with pgn files_
 
