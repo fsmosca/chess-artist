@@ -46,7 +46,7 @@ sr = random.SystemRandom()
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = 'v1.0.rc3'
+APP_VERSION = 'v1.0.rc4'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -568,6 +568,7 @@ class Analyze():
             if side:
                 if sanMove != engMove:
                     moveNag = self.GetBadNag(side, posScore, engScore)
+                    moveNag = '$0' if self.moveTime < 20000 else moveNag
 
                     # Add better is symbol before the engine variation
                     varComment = self.PreComment(side, engScore, posScore)
@@ -608,6 +609,7 @@ class Analyze():
             else:
                 if sanMove != engMove:
                     moveNag = self.GetBadNag(side, posScore, engScore)
+                    moveNag = '$0' if self.moveTime < 20000 else moveNag
 
                     # Add better is symbol before the engine variation
                     varComment = self.PreComment(side, engScore, posScore)
@@ -623,8 +625,10 @@ class Analyze():
                                   moveNumber, bookMove, BOOK_COMMENT,
                                   varComment, pvLine, engScore))
                 else:
-                    moveNag = self.GetGoodNag(side, posScore, engScore,
-                                              complexityNumber, moveChanges)
+                    moveNag = self.GetGoodNag(
+                            side, posScore, engScore, complexityNumber,
+                            moveChanges)
+                    moveNag = '$0' if self.moveTime < 20000 else moveNag
                     if threatMove is not None:
                         if moveNag == '$0':
                             f.write('{, %s %s} %d... %s {%+0.2f} (%d... %s {%s}) '\
