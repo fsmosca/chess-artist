@@ -46,7 +46,7 @@ sr = random.SystemRandom()
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = 'v1.0.rc2'
+APP_VERSION = 'v1.0.rc3'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -96,6 +96,7 @@ class Analyze():
         self.puzzlefn = opt['-puzzle']
         self.wordyComment = opt['-wordy']
         self.player = opt['-player']
+        self.playerandopp = opt['-playerandopp']
         self.color = opt['-color']
         self.bookMove = None
         self.passedPawnIsGood = False
@@ -1543,34 +1544,43 @@ class Analyze():
         Write termination marker in the output game.
         """
         with open(self.outfn, 'a') as f:
-            if self.color is None and self.player is None:
-                f.write('{WhiteBlunder=%d, BlackBunder=%d, WhiteBad=%d, BlackBad=%d} %s\n\n' % (
-                        self.blunderCnt['w'], self.blunderCnt['b'],
-                        self.badCnt['w'], self.badCnt['b'], res))
-            elif self.color is not None and self.player is not None:
-                if playerColor == 'white' and self.color == 'white':
-                    f.write('{WhiteBlunder=%d, WhiteBad=%d} %s\n\n' % (
-                        self.blunderCnt['w'], self.badCnt['w'], res))
-                elif playerColor == 'black' and self.color == 'black':
-                    f.write('{BlackBlunder=%d, BlackBad=%d} %s\n\n' % (
-                        self.blunderCnt['b'], self.badCnt['b'], res))
+            if self.playerandopp is not None:
+                if self.color == 'white' and playerColor == 'white' or \
+                        self.color == 'black' and playerColor == 'black':
+                    f.write('{WhiteBlunder=%d, BlackBunder=%d, WhiteBad=%d, BlackBad=%d} %s\n\n' % (
+                                self.blunderCnt['w'], self.blunderCnt['b'],
+                                self.badCnt['w'], self.badCnt['b'], res))
                 else:
                     f.write('%s\n\n' % (res))
-            elif self.color is not None:
-                if self.color == 'white':
-                    f.write('{WhiteBlunder=%d, WhiteBad=%d} %s\n\n' % (
-                        self.blunderCnt['w'], self.badCnt['w'], res))
-                else:
-                    f.write('{BlackBlunder=%d, BlackBad=%d} %s\n\n' % (
-                        self.blunderCnt['b'], self.badCnt['b'], res))
             else:
-                assert self.player is not None
-                if playerColor == 'white':
-                    f.write('{WhiteBlunder=%d, WhiteBad=%d} %s\n\n' % (
-                        self.blunderCnt['w'], self.badCnt['w'], res))
+                if self.color is None and self.player is None:
+                    f.write('{WhiteBlunder=%d, BlackBunder=%d, WhiteBad=%d, BlackBad=%d} %s\n\n' % (
+                            self.blunderCnt['w'], self.blunderCnt['b'],
+                            self.badCnt['w'], self.badCnt['b'], res))
+                elif self.color is not None and self.player is not None:
+                    if playerColor == 'white' and self.color == 'white':
+                        f.write('{WhiteBlunder=%d, WhiteBad=%d} %s\n\n' % (
+                            self.blunderCnt['w'], self.badCnt['w'], res))
+                    elif playerColor == 'black' and self.color == 'black':
+                        f.write('{BlackBlunder=%d, BlackBad=%d} %s\n\n' % (
+                            self.blunderCnt['b'], self.badCnt['b'], res))
+                    else:
+                        f.write('%s\n\n' % (res))
+                elif self.color is not None:
+                    if self.color == 'white':
+                        f.write('{WhiteBlunder=%d, WhiteBad=%d} %s\n\n' % (
+                            self.blunderCnt['w'], self.badCnt['w'], res))
+                    else:
+                        f.write('{BlackBlunder=%d, BlackBad=%d} %s\n\n' % (
+                            self.blunderCnt['b'], self.badCnt['b'], res))
                 else:
-                    f.write('{BlackBlunder=%d, BlackBad=%d} %s\n\n' % (
-                        self.blunderCnt['b'], self.badCnt['b'], res))                
+                    assert self.player is not None
+                    if playerColor == 'white':
+                        f.write('{WhiteBlunder=%d, WhiteBad=%d} %s\n\n' % (
+                            self.blunderCnt['w'], self.badCnt['w'], res))
+                    else:
+                        f.write('{BlackBlunder=%d, BlackBad=%d} %s\n\n' % (
+                            self.blunderCnt['b'], self.badCnt['b'], res))                
 
     @staticmethod
     def SaveMaterialBalance(game):
@@ -1664,12 +1674,13 @@ class Analyze():
         while game:
             gameCnt += 1
             
-            # Analyze games by player
-            if self.player is not None:            
+            # Analyze games by player            
+            if self.player is not None or self.playerandopp is not None:
+                playerName = self.player or self.playerandopp
                 wplayer = game.headers['White']
                 bplayer = game.headers['Black']
 
-                if self.player != wplayer and self.player != bplayer:
+                if playerName != wplayer and playerName != bplayer:
                     game = chess.pgn.read_game(pgnHandle)
                     continue
             
@@ -1760,16 +1771,31 @@ class Analyze():
                                        None, False, None, None, 0, 0,
                                        None, threatMove)
                         gameNode = nextNode
-                        continue                        
-                
-                # Analyze specific color or side to move
-                if self.color is not None:
-                    if side and self.color == 'black' or not side and self.color == 'white':
-                        self.WriteNotation(side, fmvn, sanMove, self.bookMove,
-                                       None, False, None, None, 0, 0,
-                                       None, threatMove)
-                        gameNode = nextNode
                         continue
+                    
+                # Analyze specific color or side to move                
+                if self.color is not None:
+                    isEvaluatePos = False
+                    if self.playerandopp is None:
+                        if side and self.color == 'black' or not side and self.color == 'white':
+                            self.WriteNotation(side, fmvn, sanMove, self.bookMove,
+                                           None, False, None, None, 0, 0,
+                                           None, threatMove)
+                            gameNode = nextNode
+                            continue
+                    else:
+                        # Analyze position of a player by color and its opp
+                        if self.playerandopp == wplayer and self.color == 'white':
+                            isEvaluatePos = True
+                        elif self.playerandopp == bplayer and self.color == 'black':
+                            isEvaluatePos = True
+                            
+                    if not isEvaluatePos:
+                        self.WriteNotation(side, fmvn, sanMove, self.bookMove,
+                                           None, False, None, None, 0, 0,
+                                           None, threatMove)
+                        gameNode = nextNode
+                        continue                            
                 
                 print('side: %s, move_num: %d' % ('White' if side else 'Black',
                                                   fmvn))
@@ -1867,6 +1893,8 @@ class Analyze():
             pColor = None
             if self.player is not None:
                 pColor = 'white' if self.player == wplayer else 'black'
+            elif self.playerandopp is not None:
+                pColor = 'white' if self.playerandopp == wplayer else 'black'
             self.WriteTerminationMarker(pColor, res)
             
             # Read next game
@@ -2269,11 +2297,22 @@ def main():
     parser.add_argument('--wordycomment', action='store_true',
                         help='There are more words in the move comments such as '
                         'better is, planning, excellent is, Cool is and others.')
-    parser.add_argument("--player", 
-                        help='enter player name to analyze, (default=None) ',
-                        default=None, required=False)
     parser.add_argument("--color", 
                         help='enter color of player to analyze, (default=None) ',
+                        default=None, required=False)
+    
+    
+    
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("--player", 
+                        help='enter player name to analyze, (default=None). '
+                        'Player opponent moves are not analyzed. '
+                        'If you use --player do not use --playerandopp.',
+                        default=None, required=False)
+    group.add_argument("--playerandopp", 
+                        help='enter player name to analyze. Player opponent moves '
+                        'are also analyzed, (default=None). '
+                        'If you use --playerandopp do not use --player.',
                         default=None, required=False)
 
     args = parser.parse_args()
@@ -2300,6 +2339,7 @@ def main():
                '-puzzle': 'puzzle.epd',
                '-wordy': args.wordycomment,
                '-player': args.player,
+               '-playerandopp': args.playerandopp,
                '-color': args.color
                }
     
