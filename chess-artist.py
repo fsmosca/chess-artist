@@ -46,7 +46,7 @@ sr = random.SystemRandom()
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = 'v0.15'
+APP_VERSION = 'v1.0.rc1'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -1727,6 +1727,15 @@ class Analyze():
                 self.kingSafetyIsGood = False
                 self.mobilityIsGood = False
                 self.matIsSacrificed = False
+                
+                # If --player is specified
+                if self.player is not None:
+                    if side and self.player == bplayer or not side and self.player == wplayer:
+                        self.WriteNotation(side, fmvn, sanMove, self.bookMove,
+                                       None, False, None, None, 0, 0,
+                                       None, threatMove)
+                        gameNode = nextNode
+                        continue                        
                 
                 # Analyze specific color or side to move
                 if self.color is not None:
