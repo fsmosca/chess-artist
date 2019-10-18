@@ -2,13 +2,23 @@
 A python script and exe file that can analyze games in the pgn file, annotate epd file, test engine on chess puzzles or problems and can generate chess puzzles.
 
 ## A. Requirements
+### 1. Python 2.7
+* chess-artist.py version <= 1.0.rc5
 * [Python 2.7](https://www.python.org/downloads/release/python-2715/)
 * [Python-chess v0.21.2](https://github.com/niklasf/python-chess)
-* UCI chess engines
+* UCI chess engine (preferably Stockfish version >= 10)
 * PGN file
 * EPD file
 
 Without using python 2.7 and python source file, just download the exe file in releases link at https://github.com/fsmosca/chess-artist/releases
+
+### 2. Python 3.7
+* chess-artist.py version >= 2.0 (ToDo)
+* [Python 3.7](https://www.python.org/downloads/)
+* [Python-chess version >= v0.28.3](https://github.com/niklasf/python-chess)
+* UCI chess engine (preferably Stockfish version >= 10)
+* PGN file
+* EPD file
 
 ## B. Command lines
 ### 1. Analyze games in pgn file
