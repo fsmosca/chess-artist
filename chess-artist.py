@@ -99,6 +99,8 @@ class Analyze():
         self.playerandopp = opt['-playerandopp']
         self.color = opt['-color']
         self.loss = opt['-loss']
+        self.minScoreStopAnalysis = opt['-min-score-stop-analysis']
+        self.maxScoreStopAnalysis = opt['-max-score-stop-analysis']
         self.bookMove = None
         self.passedPawnIsGood = False
         self.whitePassedPawnCommentCnt = 0
@@ -1663,7 +1665,16 @@ class Analyze():
                         logging.info('White sacs 3 pawn')
                         return -3
                     
-        return 0            
+        return 0 
+    
+    @staticmethod
+    def relative_score(side, score):
+        """
+        Return score in side pov.
+        
+        :score: is wpov in pawn unit        
+        """
+        return score if side else -score
     
     def AnnotatePgn(self):
         """ Parse the pgn file and annotate the games """
@@ -1844,7 +1855,9 @@ class Analyze():
                 # (4) Analyze the position with the engine. Only do this
                 # if posScore is not winning or lossing (more than 3.0 pawns).
                 engBestMove, engBestScore, pvLine = None, None, None
-                if abs(posScore) < DECISIVE_SCORE  and self.jobType == 'analyze':
+                if Analyze.relative_score(side, posScore) < self.maxScoreStopAnalysis and \
+                        Analyze.relative_score(side, posScore) > self.minScoreStopAnalysis and \
+                        self.jobType == 'analyze':
                     engBestMove, engBestScore, complexityNumber, moveChanges,\
                     pvLine = self.GetSearchScoreBeforeMove(curFen, side)
                         
@@ -2327,6 +2340,18 @@ def main():
                         'lost his/her game. Example to analyze lost games by '
                         'Mangnus, use: chess-artist.exe --player "Carlsen, Magnus" '
                         '--loss ... other options')
+    parser.add_argument("--min-score-stop-analysis", 
+                        help='enter a value in pawn unit to stop the engine analysis, (default=-3.0) '
+                        'If the score of the game move is -3.0 or less '
+                        'chess-artist would no longer analyze the position to look '
+                        'for alternative move.',
+                        default=-3.0, type=float, required=False)
+    parser.add_argument("--max-score-stop-analysis", 
+                        help='enter a value in pawn unit to stop the engine analysis, (default=3.0) '
+                        'If the score of the game move is 3 or more '
+                        'chess-artist would no longer analyze the position to look '
+                        'for alternative move.',
+                        default=3.0, type=float, required=False)
 
     args = parser.parse_args()
     
@@ -2354,7 +2379,9 @@ def main():
                '-player': args.player,
                '-playerandopp': args.playerandopp,
                '-color': args.color,
-               '-loss': args.loss
+               '-loss': args.loss,
+               '-min-score-stop-analysis': args.min_score_stop_analysis,
+               '-max-score-stop-analysis': args.max_score_stop_analysis
                }
     
     if args.log:
