@@ -18,7 +18,7 @@ sr = random.SystemRandom()
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = 'v2.0'
+APP_VERSION = 'v2.1'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -71,6 +71,7 @@ class Analyze():
         self.playerandopp = opt['-playerandopp']
         self.color = opt['-color']
         self.loss = opt['-loss']
+        self.draw = opt['-draw']
         self.minScoreStopAnalysis = opt['-min-score-stop-analysis']
         self.maxScoreStopAnalysis = opt['-max-score-stop-analysis']
         self.bookMove = None
@@ -1682,13 +1683,25 @@ class Analyze():
                     game = chess.pgn.read_game(pgnHandle)
                     continue
                 
-                if self.loss:
+                if self.loss and not self.draw:
                     gameResult = game.headers['Result']
                     if not (playerName == wplayer and gameResult == '0-1' or \
                             playerName == bplayer and gameResult == '1-0'):
                         game = chess.pgn.read_game(pgnHandle)
-                        continue                        
-            
+                        continue
+                elif not self.loss and self.draw:
+                    gameResult = game.headers['Result']
+                    if not (playerName == wplayer and gameResult == '1/2-1/2' or \
+                            playerName == bplayer and gameResult == '1/2-1/2'):
+                        game = chess.pgn.read_game(pgnHandle)
+                        continue
+                elif self.loss and self.draw:
+                    gameResult = game.headers['Result']
+                    if not (playerName == wplayer and gameResult != '1-0' or \
+                            playerName == bplayer and gameResult != '0-1'):
+                        game = chess.pgn.read_game(pgnHandle)
+                        continue                       
+
             # Reset passed pawn comment every game. Passed pawn comment is
             # only done once for white and once for black per game
             self.whitePassedPawnCommentCnt = 0
@@ -2323,6 +2336,11 @@ def main():
                         'lost his/her game. Example to analyze lost games by '
                         'Mangnus, use: chess-artist.exe --player "Carlsen, Magnus" '
                         '--loss ... other options')
+    parser.add_argument('--draw', action='store_true',
+                        help='This is used to analyze games where a player '
+                        'has drawn his/her game. Example to analyze drawn games by '
+                        'Mangnus, use: chess-artist.exe --player "Carlsen, Magnus" '
+                        '--draw ... other options')
     parser.add_argument("--min-score-stop-analysis", 
                         help='enter a value in pawn unit to stop the engine analysis, (default=-3.0) '
                         'If the score of the game move is -3.0 or less '
@@ -2364,7 +2382,8 @@ def main():
                '-color': args.color,
                '-loss': args.loss,
                '-min-score-stop-analysis': args.min_score_stop_analysis,
-               '-max-score-stop-analysis': args.max_score_stop_analysis
+               '-max-score-stop-analysis': args.max_score_stop_analysis,
+               '-draw': args.draw
                }
     
     if args.log:
