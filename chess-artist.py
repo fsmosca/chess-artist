@@ -1,33 +1,5 @@
 """
-A. Program name
 Chess Artist
-
-B. Program description
-It is a python script that can annotate a chess pgn file with
-static evaluation of an engine.
-
-C. License notice
-This program is free software, you can redistribute it and/or modify
-it under the terms of the GPLv3 License as published by the
-Free Software Foundation.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY. See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License (LICENSE)
-along with this program, if not visit https://www.gnu.org/licenses/gpl.html
-
-D. Dependent modules and/or programs
-1. python-chess
-https://pypi.python.org/pypi/python-chess
-
-E. Programming language
-1. Python v2.7.11
-https://www.python.org/
-
-F. Other
-1. See also the README.txt and README.md for some useful informations.
 """
 
 
@@ -46,7 +18,7 @@ sr = random.SystemRandom()
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = 'v1.0'
+APP_VERSION = 'v2.0'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -854,7 +826,8 @@ class Analyze():
         """ Returns the engine id name """
         engineIdName = self.eng[0:-4]
         p = subprocess.Popen(self.eng, stdin=subprocess.PIPE,
-                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                             universal_newlines=True, bufsize=1)
         self.Send(p, 'uci')
         for eline in iter(p.stdout.readline, ''):
             line = eline.strip()
@@ -877,7 +850,8 @@ class Analyze():
         
         # Run the engine.
         p = subprocess.Popen(self.eng, stdin=subprocess.PIPE,
-                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                             universal_newlines=True, bufsize=1)
 
         # Setup fen and send eval command, the engine should be Stockfish
         # or Brainfish that supports eval command
@@ -936,7 +910,8 @@ class Analyze():
         """
         logging.info('Checking for a good passer')
         p = subprocess.Popen(self.eng, stdin=subprocess.PIPE,
-                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                             universal_newlines=True, bufsize=1)
         self.Send(p, 'uci')
         self.ReadEngineReply(p, 'uci')
         self.Send(p, 'ucinewgame')
@@ -986,7 +961,8 @@ class Analyze():
         MOBILITY_THRESHOLD = 0.5
         logging.info('Checking if side to move has a good mobility')
         p = subprocess.Popen(self.eng, stdin=subprocess.PIPE,
-                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                             universal_newlines=True, bufsize=1)
         self.Send(p, 'uci')
         self.ReadEngineReply(p, 'uci')
         self.Send(p, 'ucinewgame')
@@ -1104,7 +1080,8 @@ class Analyze():
 
         # Run the engine.
         p = subprocess.Popen(self.eng, stdin=subprocess.PIPE,
-                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                             universal_newlines=True, bufsize=1)
 
         # Send command to engine.
         p.stdin.write("uci\n")
@@ -1154,7 +1131,8 @@ class Analyze():
         logging.debug('Get threat move.')
         bestMove = None
         p = subprocess.Popen(self.eng, stdin=subprocess.PIPE,
-                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                             universal_newlines=True, bufsize=1)
         self.Send(p, 'uci')
         self.ReadEngineReply(p, 'uci')
         self.SetEngineOptions(p, self.engineOptions)
@@ -1199,7 +1177,8 @@ class Analyze():
         isGetComplexityNumber = self.jobType == 'analyze' and\
                                 self.moveTime >= COMPLEXITY_MINIMUM_TIME
         p = subprocess.Popen(self.eng, stdin=subprocess.PIPE,
-                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                             universal_newlines=True, bufsize=1)
         self.Send(p, 'uci')
         self.ReadEngineReply(p, 'uci')
         self.SetEngineOptions(p, self.engineOptions)
@@ -1384,7 +1363,8 @@ class Analyze():
         scoreCp = None
         
         p = subprocess.Popen(self.eng, stdin=subprocess.PIPE,
-                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                             universal_newlines=True, bufsize=1)
         self.Send(p, 'uci')
         self.ReadEngineReply(p, 'uci')
         self.SetEngineOptions(p, self.engineOptions)
@@ -1440,7 +1420,8 @@ class Analyze():
 
         # Run the engine, only works with python 2
         p = subprocess.Popen(self.eng, stdin=subprocess.PIPE,
-                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                             universal_newlines=True, bufsize=1)
         self.Send(p, 'uci')
         self.ReadEngineReply(p, 'uci')
         self.SetEngineOptions(p, self.engineOptions)
@@ -1510,7 +1491,8 @@ class Analyze():
 
         # Run the engine.
         p = subprocess.Popen(self.eng, stdin=subprocess.PIPE,
-                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                             universal_newlines=True, bufsize=1)
         self.Send(p, 'uci')
         self.ReadEngineReply(p, 'uci')
         self.SetEngineOptions(p, self.engineOptions)
@@ -2190,7 +2172,8 @@ class Analyze():
                     
                     # Analyze the current fen                    
                     p = subprocess.Popen(self.eng, stdin=subprocess.PIPE,
-                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                             universal_newlines=True, bufsize=1)
                     self.Send(p, 'uci')
                     self.ReadEngineReply(p, 'uci')
                     self.SetEngineOptions(p, self.engineOptions)
