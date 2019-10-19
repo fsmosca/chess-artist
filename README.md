@@ -3,7 +3,7 @@ A python script and exe file that can analyze games in the pgn file, annotate ep
 
 ## A. Requirements
 ### 1. Python 2.7
-* chess-artist.py version <= 1.0.rc5
+* chess-artist.py version <= 1.0
 * [Python 2.7](https://www.python.org/downloads/release/python-2715/)
 * [Python-chess v0.21.2](https://github.com/niklasf/python-chess)
 * UCI chess engine (preferably Stockfish version >= 10)
