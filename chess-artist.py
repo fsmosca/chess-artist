@@ -46,7 +46,7 @@ sr = random.SystemRandom()
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = 'v1.0.rc5'
+APP_VERSION = 'v1.0'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -1834,7 +1834,6 @@ class Analyze():
 
                 # (3) Get the posScore or the score of the player move.
                 # Can be by static eval or search score of the engine
-                posScore = None
                 if self.evalType == 'static':
                     staticScore = self.GetStaticEvalAfterMove(nextFen)
                     posScore = staticScore
@@ -1845,8 +1844,7 @@ class Analyze():
                 # (4) Analyze the position with the engine. Only do this
                 # if posScore is not winning or lossing (more than 3.0 pawns).
                 engBestMove, engBestScore, pvLine = None, None, None
-                if (posScore is None or abs(posScore) < DECISIVE_SCORE) and\
-                        self.jobType == 'analyze':
+                if abs(posScore) < DECISIVE_SCORE  and self.jobType == 'analyze':
                     engBestMove, engBestScore, complexityNumber, moveChanges,\
                     pvLine = self.GetSearchScoreBeforeMove(curFen, side)
                         
