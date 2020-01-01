@@ -18,7 +18,7 @@ sr = random.SystemRandom()
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = 'v2.1'
+APP_VERSION = 'v2.2'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -842,30 +842,23 @@ class Analyze():
         return engineIdName
     
     def IsKingSafetyGood(self, nextFen, side):
-        """ Returns True if king safety of side not to move is bad.
-            Example line to be parsed:
-                      King safety |  3.01  3.87 |  0.08  0.39 |  2.92  3.48
+        """ 
+        Returns True if king safety of side not to move is bad. This is only
+        applicable for Stockfish or Brainfish engines.
+        Example line to be parsed:
+            King safety |  3.01  3.87 |  0.08  0.39 |  2.92  3.48
         """
-        logging.info('Check king safety')        
-        # (1) Get the king safety based on curFen
+        logging.info('Check king safety')
         
-        # Run the engine.
         p = subprocess.Popen(self.eng, stdin=subprocess.PIPE,
                              stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                              universal_newlines=True, bufsize=1)
-
-        # Setup fen and send eval command, the engine should be Stockfish
-        # or Brainfish that supports eval command
-        p.stdin.write('uci\n')
-        for eline in iter(p.stdout.readline, ''):
-            line = eline.strip()
-            if 'uciok' in line:
-                break           
         
-        # (2) Get the king safety based on nextFen        
-        p.stdin.write('ucinewgame\n')
-        p.stdin.write('position fen %s\n' % nextFen)
-        p.stdin.write('eval\n')
+        self.Send(p, 'uci')
+        self.ReadEngineReply(p, 'uci')      
+        self.Send(p, 'ucinewgame')
+        self.Send(p, 'position fen %s' % nextFen)
+        self.Send(p, 'eval')
         
         # Parse the output
         kingSafetyCommentNext = None
@@ -878,7 +871,7 @@ class Analyze():
             if 'bestmove ' in line:
                 break
 
-        p.stdin.write('quit\n')
+        self.Send(p, 'quit')
         p.communicate()
         
         if kingSafetyCommentNext is None:
@@ -1072,43 +1065,28 @@ class Analyze():
             value = engOptionValue.strip()
             self.Send(p, 'setoption name %s' % value)
 
-    def GetStaticEvalAfterMove(self, pos):
-        """ Returns static eval by running the engine,
-            setup position pos and send eval command.
+    def GetStaticEvalAfterMove(self, fen):
+        """ 
+        Returns static eval by running the engine, setup position fen and
+        send eval command. This is only applicable for Stockfish engine or
+        engines that returns similar output when given an eval command.
         """
         logging.info('Get search score after making the game move.')
         score = TEST_SEARCH_SCORE
 
-        # Run the engine.
         p = subprocess.Popen(self.eng, stdin=subprocess.PIPE,
                              stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                              universal_newlines=True, bufsize=1)
 
         # Send command to engine.
-        p.stdin.write("uci\n")
-
-        # Parse engine replies.
-        for eline in iter(p.stdout.readline, ''):
-            line = eline.strip()
-            if "uciok" in line:
-                break
-
-        # Set engine options
+        self.Send(p, 'uci')
+        self.ReadEngineReply(p, 'uci')
         self.SetEngineOptions(p, self.engineOptions)
-                
-        # Send command to engine.
-        p.stdin.write("isready\n")
-        
-        # Parse engine replies.
-        for eline in iter(p.stdout.readline, ''):
-            line = eline.strip()
-            if "readyok" in line:
-                break
-                
-        # Send commands to engine.
-        p.stdin.write("ucinewgame\n")
-        p.stdin.write("position fen " + pos + "\n")
-        p.stdin.write("eval\n")
+        self.Send(p, 'isready')
+        self.ReadEngineReply(p, 'isready')
+        self.Send(p, 'ucinewgame')
+        self.Send(p, 'position fen %s' % fen)
+        self.Send(p, 'eval')
 
         # Parse the output and extract the engine static eval.
         for eline in iter(p.stdout.readline, ''):        
@@ -1116,10 +1094,11 @@ class Analyze():
             if 'total evaluation' in line.lower():
                 first = line.split('(')[0]
                 score = float(first.split()[2])
+                logging.info('fen: %s, static score: %0.2f' % (fen, score))
                 break
                 
         # Quit the engine
-        p.stdin.write('quit\n')
+        self.Send(p, 'quit')
         p.communicate()
         assert score != TEST_SEARCH_SCORE,\
                'Error! something is wrong in static eval calculation.'
@@ -1127,7 +1106,8 @@ class Analyze():
 
     def GetThreatMove(self, fen):
         """ 
-        Returns threat move after pushing a null move and search.
+        Returns threat move after pushing a null move and searching the
+        subsequent position.
         """
         logging.debug('Get threat move.')
         bestMove = None
@@ -1146,6 +1126,8 @@ class Analyze():
         newFen = b.fen()
         
         self.Send(p, 'ucinewgame')
+        self.Send(p, 'isready')
+        self.ReadEngineReply(p, 'isready')
         self.Send(p, 'position fen %s' % newFen)
         self.Send(p, 'go movetime %d' % self.moveTime)
 
@@ -1186,6 +1168,8 @@ class Analyze():
         self.Send(p, 'isready')
         self.ReadEngineReply(p, 'isready')
         self.Send(p, 'ucinewgame')
+        self.Send(p, 'isready')
+        self.ReadEngineReply(p, 'isready')
         self.Send(p, 'position fen %s' % fen)
         self.Send(p, 'go movetime %d' % self.moveTime)
 
@@ -1370,7 +1354,10 @@ class Analyze():
         self.ReadEngineReply(p, 'uci')
         self.SetEngineOptions(p, self.engineOptions)
         self.Send(p, 'isready')
+        self.ReadEngineReply(p, 'isready')
         self.Send(p, 'ucinewgame')
+        self.Send(p, 'isready')
+        self.ReadEngineReply(p, 'isready')
         self.Send(p, 'position fen %s' % fen)
         self.Send(p, 'go movetime %d' % self.moveTime)
 
@@ -1429,6 +1416,8 @@ class Analyze():
         self.Send(p, 'isready')
         self.ReadEngineReply(p, 'isready')
         self.Send(p, 'ucinewgame')
+        self.Send(p, 'isready')
+        self.ReadEngineReply(p, 'isready')
         self.Send(p, 'position fen %s' % fen)
         
         if self.moveTime > 0:
@@ -1485,7 +1474,9 @@ class Analyze():
         return depthSearched, self.moveTime/1000, bestMove, scoreCp
 
     def GetEpdEngineStaticScore(self, fen):
-        """ Returns ce and Ae opcodes. """
+        """ 
+        Returns ce and Ae opcodes. This is only applicable for Stockfish.
+        """
 
         # Initialize
         scoreP = TEST_SEARCH_SCORE
@@ -1508,7 +1499,7 @@ class Analyze():
             line = eline.strip()                  
 
             # Break search
-            if 'Total Evaluation: ' in line:
+            if 'total evaluation: ' in line.lower():
                 first = line.split('(')[0]
                 scoreP = float(first.split()[2])
                 break
@@ -2193,6 +2184,8 @@ class Analyze():
                     self.Send(p, 'isready')
                     self.ReadEngineReply(p, 'isready')
                     self.Send(p, 'ucinewgame')
+                    self.Send(p, 'isready')
+                    self.ReadEngineReply(p, 'isready')
                     self.Send(p, 'position fen %s' % fen)
                     
                     start_time = time.time()
