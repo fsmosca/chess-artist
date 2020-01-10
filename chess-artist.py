@@ -18,7 +18,7 @@ sr = random.SystemRandom()
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = 'v2.2'
+APP_VERSION = 'v2.3'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -90,6 +90,7 @@ class Analyze():
         self.matIsSacrificed = False
         self.blunderCnt = {'w': 0, 'b': 0}
         self.badCnt = {'w': 0, 'b': 0}
+        self.variantTag = None
         
     def Send(self, p, msg):
         """ Send msg to engine """
@@ -1051,6 +1052,10 @@ class Analyze():
 
     def SetEngineOptions(self, p, engOptionValue):
         """ Set engine options for uci engines """
+        
+        if self.variantTag in ['chess960', 'chess 960']:
+            self.Send(p, 'setoption name UCI_Chess960 value true')
+            
         # If nothing is defined, means that the user relies on the default
         if engOptionValue is None:
             return
@@ -1663,6 +1668,15 @@ class Analyze():
         # Loop thru the games.
         while game:
             gameCnt += 1
+            
+            self.variantTag = None            
+            try:
+                self.variantTag = game.headers["Variant"]
+                logging.info(f'game Variant tag: {self.variantTag}')
+            except KeyError:
+                logging.info('There is no Variant tag in the game header.')
+            except:
+                logging.exception('Error in getting game variant tag value')
             
             # Analyze games by player            
             if self.player is not None or self.playerandopp is not None:
