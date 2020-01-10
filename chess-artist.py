@@ -18,7 +18,7 @@ sr = random.SystemRandom()
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = 'v2.3'
+APP_VERSION = 'v2.4'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -869,7 +869,7 @@ class Analyze():
             if 'King safety ' in line:
                 kingSafetyCommentNext = line
                 break
-            if 'bestmove ' in line:
+            if 'total evaluation:' in line.lower():
                 break
 
         self.Send(p, 'quit')
@@ -922,7 +922,7 @@ class Analyze():
             if 'Passed ' in line:
                 passedPawnComment = line
                 break
-            if 'bestmove ' in line:
+            if 'total evaluation:' in line.lower():
                 break
 
         self.Send(p, 'quit')
