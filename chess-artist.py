@@ -18,7 +18,7 @@ sr = random.SystemRandom()
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = 'v2.4'
+APP_VERSION = 'v2.5'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -1860,9 +1860,13 @@ class Analyze():
                         self.jobType == 'analyze':
                     engBestMove, engBestScore, complexityNumber, moveChanges,\
                     pvLine = self.GetSearchScoreBeforeMove(curFen, side)
-                        
-                    print('Game move: %s (%0.2f), Engine bestmove: %s (%0.2f)'\
-                          % (sanMove, posScore, engBestMove, engBestScore))
+
+                    if sanMove == engBestMove:
+                        print('Game move: %s (%0.2f), Engine bestmove: %s (%0.2f)' % (
+                            sanMove, posScore, engBestMove, posScore))
+                    else:
+                        print('Game move: %s (%0.2f), Engine bestmove: %s (%0.2f)' % (
+                            sanMove, posScore, engBestMove, engBestScore))
                     
                 # (5) If game is over by checkmate and stalemate after a move              
                 isGameOver = nextNode.board().is_checkmate() or\
