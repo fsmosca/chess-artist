@@ -1,0 +1,122 @@
+[Event "World Fischer Random 2019"]
+[Site "Hovikodden NOR"]
+[Date "2019.11.02"]
+[Round "3.5"]
+[White "Carlsen, Magnus"]
+[Black "So, Wesley"]
+[Result "1/2-1/2"]
+[Variant "chess 960"]
+[SetUp "1"]
+[FEN "nrkbqnbr/pppppppp/8/8/8/8/PPPPPPPP/NRKBQNBR w HBhb - 0 1"]
+[WhiteTitle "GM"]
+[BlackTitle "GM"]
+[WhiteElo "2876"]
+[BlackElo "2767"]
+[WhiteFideId "1503014"]
+[BlackFideId "5202213"]
+[EventDate "2019.10.04"]
+
+1. Nb3 f5 2. f3 Nb6 3. e4 fxe4 4. fxe4 e5 5. Ne3 Ne6 6. c3 Bg5 7. Bc2 O-O-O 8.
+O-O-O Bf7 9. Kb1 Bh5 10. Rc1 Rf8 11. h4 Bxe3 12. Bxe3 Nf4 13. Rg1 Bg4 14. Bxf4
+Rxf4 15. g3 Rf6 16. d4 d6 17. Bd3 Kb8 18. Ka1 Qf7 19. d5 Rf3 20. Bb1 Rf8 21. c4
+Nd7 22. Qb4 b6 23. Na5 Nc5 24. Nc6+ Kb7 25. Na5+ Ka8 26. Nc6 Kb7 27. Na5+ Ka8
+28. Nc6 1/2-1/2
+
+[Event "World Fischer Random 2019"]
+[Site "Hovikodden NOR"]
+[Date "2019.11.02"]
+[Round "3.5"]
+[White "Nepomniachtchi, Ian"]
+[Black "Caruana, Fabiano"]
+[Result "1-0"]
+[Variant "chess 960"]
+[SetUp "1"]
+[FEN "nrkbqnbr/pppppppp/8/8/8/8/PPPPPPPP/NRKBQNBR w HBhb - 0 1"]
+[WhiteTitle "GM"]
+[BlackTitle "GM"]
+[WhiteElo "2776"]
+[BlackElo "2812"]
+[WhiteFideId "4168119"]
+[BlackFideId "2020009"]
+[EventDate "2019.10.04"]
+
+1. f4 Nb6 2. Nb3 f6 3. Qg3 g6 4. e4 c6 5. Be3 Bc7 6. Qf2 O-O-O 7. d3 Kb8 8. Nfd2
+d5 9. a4 dxe4 10. a5 Nc8 11. dxe4 e5 12. f5 gxf5 13. exf5 Bd5 14. Re1 h5 15. Ra1
+Nd7 16. Ra4 a6 17. Be2 Nd6 18. Qf1 c5 19. Rh4 Rc8 20. Rd1 Qg8 21. g3 e4 22. Nxc5
+Ne5 23. Ndb3 Ndc4 24. Bxc4 Nxc4 25. Bf4 Rh7 26. Kb1 Ka8 27. Ne6 Bxe6 28. fxe6
+Bxf4 29. Qxf4 f5 30. Rd7 Rh6 31. e7 Rf6 32. Rxh5 Qe8 33. Rc7 e3 34. Rxc8+ Qxc8
+35. Qxc4 1-0
+
+[Event "World Fischer Random 2019"]
+[Site "Hovikodden NOR"]
+[Date "2019.11.02"]
+[Round "3.6"]
+[White "So, Wesley"]
+[Black "Carlsen, Magnus"]
+[Result "1-0"]
+[Variant "chess 960"]
+[SetUp "1"]
+[FEN "nrkbqnbr/pppppppp/8/8/8/8/PPPPPPPP/NRKBQNBR w HBhb - 0 1"]
+[WhiteTitle "GM"]
+[BlackTitle "GM"]
+[WhiteElo "2767"]
+[BlackElo "2876"]
+[WhiteFideId "5202213"]
+[BlackFideId "1503014"]
+[EventDate "2019.10.04"]
+
+1. f4 Nb6 2. Nb3 d5 3. e4 dxe4 4. Qxe4 Nfd7 5. Ne3 c6 6. Bf2 Bc7 7. Nf5 e6 8.
+Nxg7 Qf8 9. Nh5 h6 10. Be2 Bh7 11. Qf3 Rg8 12. Bd3 Bg6 13. Bxg6 fxg6 14. Ng3
+Bxf4 15. O-O g5 16. Ne2 e5 17. g3 O-O-O 18. gxf4 exf4 19. Bxb6 axb6 20. Rbe1 Ne5
+21. Qc3 Qd6 22. Ned4 g4 23. Nf5 Nf3+ 24. Kh1 Qd7 25. Ne7+ Kb8 26. Nxg8 Nxe1 27.
+Qe5+ Ka8 28. Nf6 Qf7 29. Rxf4 1-0
+
+[Event "World Fischer Random 2019"]
+[Site "Hovikodden NOR"]
+[Date "2019.11.02"]
+[Round "3.6"]
+[White "Caruana, Fabiano"]
+[Black "Nepomniachtchi, Ian"]
+[Result "1/2-1/2"]
+[Variant "chess 960"]
+[SetUp "1"]
+[FEN "nrkbqnbr/pppppppp/8/8/8/8/PPPPPPPP/NRKBQNBR w HBhb - 0 1"]
+[WhiteTitle "GM"]
+[BlackTitle "GM"]
+[WhiteElo "2812"]
+[BlackElo "2776"]
+[WhiteFideId "2020009"]
+[BlackFideId "4168119"]
+[EventDate "2019.10.04"]
+
+1. Nb3 Nb6 2. f4 c6 3. e4 Bc7 4. Be3 f6 5. d3 h5 6. Nfd2 d5 7. Bf3 Nfd7 8. O-O-O
+e5 9. exd5 Nxd5 10. fxe5 Nxe5 11. Bxa7 Ra8 12. Bf2 Nb4 13. Kb1 Rxa2 14. d4 c5
+15. dxe5 Qa4 16. Qe4 Rxb2+ 17. Kxb2 Bxe5+ 18. Bd4 Qa2+ 19. Kc3 cxd4+ 20. Kxb4
+Bd6+ 21. Nc5 Bxc5+ 22. Kxc5 Qa7+ 23. Kb5 Qa6+ 24. Kc5 Qa7+ 25. Kb5 Qa6+ 1/2-1/2
+
+[Event "World Fischer Random 2019"]
+[Site "Hovikodden NOR"]
+[Date "2019.11.02"]
+[Round "3.7"]
+[White "Caruana, Fabiano"]
+[Black "Nepomniachtchi, Ian"]
+[Result "0-1"]
+[Variant "chess 960"]
+[SetUp "1"]
+[FEN "nrkbrnbq/pppppppp/8/8/8/8/PPPPPPPP/NRKBRNBQ w EBeb - 0 1"]
+[WhiteTitle "GM"]
+[BlackTitle "GM"]
+[WhiteElo "2812"]
+[BlackElo "2776"]
+[WhiteFideId "2020009"]
+[BlackFideId "4168119"]
+[EventDate "2019.10.04"]
+
+1. f4 Nb6 2. Nb3 f6 3. e4 e5 4. f5 c6 5. g4 Bc7 6. d3 O-O-O 7. Bf3 Kb8 8. Nfd2
+d5 9. exd5 Bxd5 10. Ne4 h5 11. h3 Nfd7 12. Be3 hxg4 13. hxg4 Bxb3 14. axb3 Nd5
+15. Bd2 Qf8 16. O-O-O Nc5 17. b4 Nxe4 18. Rxe4 a6 19. Rde1 Bb6 20. Qg2 Nc7 21.
+g5 Nb5 22. gxf6 gxf6 23. Rg4 Rd4 24. Be4 Red8 25. c3 R4d7 26. Rg6 Qf7 27. Bh6
+Nd6 28. Kc2 Nxe4 29. dxe4 Qa2 30. Bc1 a5 31. bxa5 Bxa5 32. Qe2 Rd6 33. Rg3 c5
+34. Qb5 Rb6 35. Qxc5 Qa4+ 36. Kb1 Rc8 37. Qd5 Bxc3 38. Re2 Bd4 39. Rg8 Rc6 40.
+Rxc8+ Kxc8 41. Rg2 Kb8 42. Qg8+ Ka7 43. Re2 Qd1 44. Qa2+ Kb6 0-1
+
