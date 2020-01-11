@@ -18,7 +18,7 @@ sr = random.SystemRandom()
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = 'v2.7'
+APP_VERSION = 'v2.8'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -414,13 +414,13 @@ class Analyze():
                     # Else if there is threat move
                     else:
                         if moveNag == '$0':
-                            f.write('{, %s %s} %d. %s {%+0.2f} ' % (
-                                    sr.choice(PLAN_COMMENT), threatMove,
-                                    moveNumber, sanMove, posScore))
+                            f.write('%d. %s {%+0.2f, %s %s} ' % (
+                                moveNumber, sanMove, posScore,
+                                sr.choice(PLAN_COMMENT), threatMove))
                         else:
-                            f.write('{, %s %s} %d. %s %s {%+0.2f} ' % (
-                                    sr.choice(PLAN_COMMENT), threatMove,
-                                    moveNumber, sanMove, moveNag, posScore))
+                            f.write('%d. %s %s {%+0.2f, %s %s} ' % (
+                                moveNumber, sanMove, moveNag, posScore,
+                                sr.choice(PLAN_COMMENT), threatMove))
             # Else if side to move is black
             else:
                 if sanMove != engMove:
@@ -509,15 +509,16 @@ class Analyze():
                             else:
                                 f.write('%d... %s %s {%+0.2f} ' % (
                                         moveNumber, sanMove, moveNag, posScore))
+                    # Else if there is threat move
                     else:
                         if moveNag == '$0':
-                            f.write('{, %s %s} %d... %s {%+0.2f} ' % (
-                                    sr.choice(PLAN_COMMENT), threatMove,
-                                    moveNumber, sanMove, posScore))
+                            f.write('%d... %s {%+0.2f, %s %s} ' % (
+                                moveNumber, sanMove, posScore,
+                                sr.choice(PLAN_COMMENT), threatMove))
                         else:
-                            f.write('{, %s %s} %d... %s %s {%+0.2f} ' % (
-                                    sr.choice(PLAN_COMMENT), threatMove,
-                                    moveNumber, sanMove, moveNag, posScore))
+                            f.write('%d... %s %s {%+0.2f, %s %s} ' % (
+                                moveNumber, sanMove, moveNag, posScore,
+                                sr.choice(PLAN_COMMENT), threatMove))
 
                 # Format output, don't write movetext in one long line.
                 if self.writeCnt >= 2:
@@ -608,20 +609,22 @@ class Analyze():
                                 moveNumber, sanMove, moveNag, posScore,
                                 moveNumber, bookMove, BOOK_COMMENT,
                                 varComment, pvLine, engScore))
+                # Else if game and engine move are the same
                 else:
                     moveNag = self.GetGoodNag(side, posScore, engScore,
                                               complexityNumber, moveChanges)
                     if threatMove is not None:
                         if moveNag == '$0':
-                            f.write('{, %s %s} %d. %s {%+0.2f} (%d. %s {%s}) ' % (
-                                    sr.choice(PLAN_COMMENT), threatMove,
-                                    moveNumber, sanMove, posScore,
-                                    moveNumber, bookMove, BOOK_COMMENT))
+                            f.write('%d. %s {%+0.2f, %s %s} (%d. %s {%s}) ' % (
+                                moveNumber, sanMove, posScore,
+                                sr.choice(PLAN_COMMENT), threatMove,
+                                moveNumber, bookMove, BOOK_COMMENT))
                         else:
-                            f.write('{, %s %s} %d. %s %s {%+0.2f} (%d. %s {%s}) ' % (
-                                    sr.choice(PLAN_COMMENT), threatMove,
-                                    moveNumber, sanMove, moveNag, posScore,
-                                    moveNumber, bookMove, BOOK_COMMENT))
+                            f.write('%d. %s %s {%+0.2f, %s %s} (%d. %s {%s}) ' % (
+                                moveNumber, sanMove, moveNag, posScore,
+                                sr.choice(PLAN_COMMENT), threatMove,
+                                moveNumber, bookMove, BOOK_COMMENT))
+                    # Else if there is no threat move
                     else:
                         if moveNag == '$0':
                             f.write('%d. %s {%+0.2f} (%d. %s {%s}) ' %(
@@ -660,6 +663,7 @@ class Analyze():
                                 moveNumber, sanMove, moveNag, posScore,
                                 moveNumber, bookMove, BOOK_COMMENT,
                                 varComment, pvLine, engScore))
+                # Else if game and engine move are the same
                 else:
                     moveNag = self.GetGoodNag(
                             side, posScore, engScore, complexityNumber,
@@ -667,14 +671,14 @@ class Analyze():
                     moveNag = '$0' if self.moveTime < 20000 else moveNag
                     if threatMove is not None:
                         if moveNag == '$0':
-                            f.write('{, %s %s} %d... %s {%+0.2f} (%d... %s {%s}) ' % (
+                            f.write('%d... %s {%+0.2f, %s %s} (%d... %s {%s}) ' % (
+                                moveNumber, sanMove, posScore, 
                                 sr.choice(PLAN_COMMENT), threatMove,
-                                moveNumber, sanMove, posScore, moveNumber,
-                                bookMove, BOOK_COMMENT))
+                                moveNumber, bookMove, BOOK_COMMENT))
                         else:
-                            f.write('{, %s %s} %d... %s %s {%+0.2f} (%d... %s {%s}) ' % (
-                                sr.choice(PLAN_COMMENT), threatMove,
+                            f.write('%d... %s %s {%+0.2f, %s %s} (%d... %s {%s}) ' % (
                                 moveNumber, sanMove, moveNag, posScore,
+                                sr.choice(PLAN_COMMENT), threatMove,
                                 moveNumber, bookMove, BOOK_COMMENT))
                     else:
                         if moveNag == '$0':
@@ -1039,22 +1043,22 @@ class Analyze():
         
         MgMobilityValue = float(mobilityComment.split()[8])
         EgMobilityValue = float(mobilityComment.split()[9])
-        logging.info('mgmob: %0.2f, egmob: %0.2f' % (MgMobilityValue,
-                                                     EgMobilityValue))
+        logging.info('side: %s, mgmob: %0.2f, egmob: %0.2f' % (
+            'white' if side else 'black', MgMobilityValue, EgMobilityValue))
+        logging.info(f'Good mobility threshold: {MOBILITY_THRESHOLD}')
         
         if side:
             if MgMobilityValue >= MOBILITY_THRESHOLD and \
                     EgMobilityValue >= MOBILITY_THRESHOLD:
-                logging.info('white net mg mobility value of %0.2f is good' % MgMobilityValue)
-                logging.info('white net eg mobility value of %0.2f is good' % EgMobilityValue)
+                logging.info('The side to move has good mobility.')
                 return True
         else:
             if MgMobilityValue <= -MOBILITY_THRESHOLD and \
                     EgMobilityValue <= -MOBILITY_THRESHOLD:
-                logging.info('black net mg mobility value of %0.2f is good' % MgMobilityValue)
-                logging.info('black net eg mobility value of %0.2f is good' % EgMobilityValue)
+                logging.info('The side to move has good mobility.')
                 return True
-
+            
+        logging.info('The side to move mobility has not passed the good mobility threshold.')
         return False
     
     def GetPolyglotBookMove(self, fen):
@@ -1826,7 +1830,7 @@ class Analyze():
             res = game.headers['Result']
             
             self.matBal = Analyze.SaveMaterialBalance(game)
-            logging.info('Material blance wpov:')
+            logging.info('Material balance wpov:')
             logging.info('%s' % self.matBal)
 
             # Loop thru the moves within this game.
@@ -1837,8 +1841,8 @@ class Analyze():
                 fmvn = board.fullmove_number
                 curFen = board.fen()
                 nextNode = gameNode.variation(0)
-                logging.info('game_move: %s, san: %s, iscap: %d' % (
-                        nextNode.move, nextNode.san(), board.is_capture(nextNode.move)))
+                logging.info('game_move: %s, san: %s' % (
+                        nextNode.move, nextNode.san()))
                 nextFen = nextNode.board().fen()
                 sanMove = nextNode.san()
                 complexityNumber, moveChanges = 0, 0
@@ -1938,10 +1942,10 @@ class Analyze():
                 # move is the same and the position is complex and the engine
                 # score is not winning or lossing and not white first move
                 if moveChanges >= 3 and sanMove == engBestMove \
-                        and not gameNode.board().is_check() \
+                        and not nextNode.board().is_check() \
                         and abs(engBestScore) <= 2.0 \
                         and not (fmvn == 1 and side):                        
-                    threatMove = self.GetThreatMove(curFen)
+                    threatMove = self.GetThreatMove(nextFen)
                     
                 # (5.2) Check if passed pawn of side to move is good.
                 if any(s in engineIdName.lower() for s in ['stockfish', 'brainfish']):
@@ -1960,7 +1964,9 @@ class Analyze():
                         elif not side and self.blackKingSafetyCommentCnt == 0:
                             self.kingSafetyIsGood = self.IsKingSafetyGood(nextFen, not side)
                             
-                # (5.4) Check if mobility of side to move is good.
+                # (5.4) Check if mobility of side to move is good. We analyze
+                # the fen after the game move is made on the board, to get the
+                # impact of the move on piece mobility.
                 if any(s in engineIdName.lower() for s in ['stockfish', 'brainfish']):
                     if abs(posScore) <= 3.0:
                         if side and self.whiteMobilityCommentCnt == 0:
