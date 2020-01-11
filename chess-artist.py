@@ -18,7 +18,7 @@ sr = random.SystemRandom()
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = 'v2.8'
+APP_VERSION = 'v2.9'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -1729,12 +1729,18 @@ class Analyze():
         while game:
             gameCnt += 1
             
+            # Get variant name in pgn tag, try to cover as wide as possible.
+            # Lichess: Chess960
+            # Chess.com: Chess960
+            # Winboard/Xboard: fischerandom
+            # WeekInChess: chess 960
             self.variantTag = None            
             try:
                 variantTag = game.headers["Variant"]
-                if variantTag in ['chess960', 'chess 960']:
+                logging.info(f'Actual game Variant tag is {variantTag}.')
+                if variantTag in ['Chess960', 'fischerandom', 'chess 960', 'chess960']:
                     self.variantTag = 'chess960'
-                logging.info(f'game Variant tag: {self.variantTag}')
+                    logging.info(f'Set variant tag to {self.variantTag}.')
             except KeyError:
                 logging.info('There is no Variant tag in the game header.')
             except:
