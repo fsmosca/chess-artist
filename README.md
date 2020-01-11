@@ -47,6 +47,58 @@ Will analyze games inside sample.pgn and output the analyzed games in out_sample
 #### h) Analyze lost games of Movsesian, Sergei, also analyze moves of its opponent, using --playerandopp option
 `chess-artist.exe --infile iommast19.pgn --outfile sergie_loses.pgn --enginefile Stockfish.exe --eval search --job analyze --movetime 5000 --playerandopp "Movsesian, Sergei" --loss`
 
+#### i) Sample analyzed Fischer Random Chess game
+```
+[Event "World Fischer Random 2019"]
+[Site "Hovikodden NOR"]
+[Date "2019.11.02"]
+[Round "3.5"]
+[White "Carlsen, Magnus"]
+[Black "So, Wesley"]
+[Result "1/2-1/2"]
+[BlackElo "2767"]
+[BlackFideId "5202213"]
+[BlackTitle "GM"]
+[EventDate "2019.10.04"]
+[FEN "nrkbqnbr/pppppppp/8/8/8/8/PPPPPPPP/NRKBQNBR w HBhb - 0 1"]
+[SetUp "1"]
+[Variant "chess960"]
+[WhiteElo "2876"]
+[WhiteFideId "1503014"]
+[WhiteTitle "GM"]
+[Annotator "engine: Stockfish 2019-12-30 64 POPCNT, prog: Chess Artist v2.6"]
+
+{Hash 256mb, Threads 2, analysis 60.0s per position, move score is in pawn unit,
+positive is good for white and negative is good for black}
+1. Nb3 $1 {-0.13} 1... f5 $6 {+0.55} (1...f6 {-0.03}) 
+2. f3 {+0.12} (2. f4 {+0.39}) 2... Nb6 {+0.53} 
+3. e4 $6 {-0.19} (3. c3 {+0.60}) 3... fxe4 $5 {+0.46} 
+4. fxe4 {-0.07, with a better piece mobility} 4... e5 {+0.52} 
+5. Ne3 $6 {-0.30} (5. Bf3 {+0.48}) 5... Ne6 $6 {+0.35} (5...d6 {-0.24}) 
+6. c3 $6 {-0.33} (6. d3 {+0.60}) 6... Bg5 $6 {+0.61} (6...a5 7. Nxa5 Nf4 8. Qf1 Ra8 {-0.17}) 
+7. Bc2 $2 {+0.00} (7. h4 {+0.69}) 7... O-O-O $6 {+0.52} (7...Bf7 {+0.10}) 
+8. O-O-O $2 {-0.13} (8. g3 Bf7 9. h4 Bxe3 10. Bxe3 {+0.55}) 8... Bf7 $5 {+0.41} 
+9. Kb1 $6 {-0.32} (9. h4 {+0.38}) 9... Bh5 $5 {+0.35} 
+10. Rc1 $5 {-0.12} {, planning h4} 10... Rf8 $3 {+0.36} 
+11. h4 {+0.00} (11. Nf5 {+0.35}) {, with the idea of hxg5} 11... Bxe3 $3 {+0.14} 
+12. Bxe3 {-0.05} 12... Nf4 $6 {+0.39} (12...Kb8 {-0.20}) 
+13. Rg1 $6 {-0.67} (13. Bxf4 Rxf4 14. d3 Kb8 15. g3 {+0.17}) 13... Bg4 $2 {+0.09} (13...Ne2 14. Bg5 Nxg1 15. Qxg1 Kb8 {-0.86}) 
+{, followed by d6} 14. Bxf4 $3 {-0.29} 14... Rxf4 {+0.00} 
+{, with the idea of d6} 15. g3 $3 {-0.42} {, planning gxf4} 15... Rf6 $3 {-0.09} 
+16. d4 {-0.31} (16. Qe3 Qe7 17. Rgf1 Rdf8 18. Rxf6 {-0.20}) 16... d6 {-0.10} (16...Qe7 17. Bd3 d6 18. Rf1 Rxf1 {-0.27}) 
+17. Bd3 $6 {-0.63} (17. Nd2 Qb5 18. Qe3 Qe2 19. Qg5 {+0.00}) 17... Kb8 $5 {-0.22} 
+18. Ka1 {-0.48} (18. Nd2 {-0.23}) 18... Qf7 {-0.13} (18...Qe7 {-0.60}) 
+19. d5 $2 {-0.84} (19. Qe3 {-0.15}) {, planning c4} 19... Rf3 $3 {-0.66} 
+20. Bb1 $2 {-1.23} (20. Qd2 {-0.57}) 20... Rf8 $2 {-0.28} (20...Nc4 21. Nd2 Nxd2 22. Qxd2 Rf8 {-1.28}) 
+21. c4 {-0.69} 21... Nd7 {-0.45} 
+22. Qb4 $4 {-1.81} (22. c5 Nxc5 23. Nxc5 dxc5 24. Rxc5 {-0.51}) 22... b6 $5 {-0.92} 
+23. Na5 {-2.74} (23. Rce1 Rf2 24. Rc1 Ka8 25. Qa4 {-1.54}) 23... Nc5 {-2.43} 
+24. Nc6+ {-3.28} 24... Kb7 {-2.89} (24...Ka8 25. Rc3 Rxc3 26. Qxc3 a5 {-3.16}) 
+25. Na5+ {-3.74} 25... Ka8 {-2.88} 
+26. Nc6 {-3.67} 26... Kb7 {-3.00} 27. Na5+ {-3.60} 27... Ka8 {-3.11} 
+28. Nc6 {-3.38} {WhiteBlunder=1, BlackBunder=0, WhiteBad=4, BlackBad=2} 1/2-1/2
+```
+
 ### 2. Test engine with test suite
 #### Use movetime of 500ms
 `python chess-artist.py --infile wacnew.epd --outfile result_wacnew.txt --enginefile stockfish_10.exe --engineoptions "Hash value 128, Threads value 1" --eval search --job test --movetime 500`<br><br>
