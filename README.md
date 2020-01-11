@@ -62,41 +62,41 @@ Will analyze games inside sample.pgn and output the analyzed games in out_sample
 [EventDate "2019.10.04"]
 [FEN "nrkbqnbr/pppppppp/8/8/8/8/PPPPPPPP/NRKBQNBR w HBhb - 0 1"]
 [SetUp "1"]
-[Variant "chess960"]
+[Variant "chess 960"]
 [WhiteElo "2876"]
 [WhiteFideId "1503014"]
 [WhiteTitle "GM"]
-[Annotator "engine: Stockfish 2019-12-30 64 POPCNT, prog: Chess Artist v2.6"]
+[Annotator "engine: Stockfish 2019-12-30 64 POPCNT, prog: Chess Artist v2.9"]
 
-{Hash 256mb, Threads 2, analysis 60.0s per position, move score is in pawn unit,
+{Hash 256mb, Threads 2, analysis 15.0s per position, move score is in pawn unit,
 positive is good for white and negative is good for black}
-1. Nb3 $1 {-0.13} 1... f5 $6 {+0.55} (1...f6 {-0.03}) 
-2. f3 {+0.12} (2. f4 {+0.39}) 2... Nb6 {+0.53} 
-3. e4 $6 {-0.19} (3. c3 {+0.60}) 3... fxe4 $5 {+0.46} 
-4. fxe4 {-0.07, with a better piece mobility} 4... e5 {+0.52} 
-5. Ne3 $6 {-0.30} (5. Bf3 {+0.48}) 5... Ne6 $6 {+0.35} (5...d6 {-0.24}) 
-6. c3 $6 {-0.33} (6. d3 {+0.60}) 6... Bg5 $6 {+0.61} (6...a5 7. Nxa5 Nf4 8. Qf1 Ra8 {-0.17}) 
-7. Bc2 $2 {+0.00} (7. h4 {+0.69}) 7... O-O-O $6 {+0.52} (7...Bf7 {+0.10}) 
-8. O-O-O $2 {-0.13} (8. g3 Bf7 9. h4 Bxe3 10. Bxe3 {+0.55}) 8... Bf7 $5 {+0.41} 
-9. Kb1 $6 {-0.32} (9. h4 {+0.38}) 9... Bh5 $5 {+0.35} 
-10. Rc1 $5 {-0.12} {, planning h4} 10... Rf8 $3 {+0.36} 
-11. h4 {+0.00} (11. Nf5 {+0.35}) {, with the idea of hxg5} 11... Bxe3 $3 {+0.14} 
-12. Bxe3 {-0.05} 12... Nf4 $6 {+0.39} (12...Kb8 {-0.20}) 
-13. Rg1 $6 {-0.67} (13. Bxf4 Rxf4 14. d3 Kb8 15. g3 {+0.17}) 13... Bg4 $2 {+0.09} (13...Ne2 14. Bg5 Nxg1 15. Qxg1 Kb8 {-0.86}) 
-{, followed by d6} 14. Bxf4 $3 {-0.29} 14... Rxf4 {+0.00} 
-{, with the idea of d6} 15. g3 $3 {-0.42} {, planning gxf4} 15... Rf6 $3 {-0.09} 
-16. d4 {-0.31} (16. Qe3 Qe7 17. Rgf1 Rdf8 18. Rxf6 {-0.20}) 16... d6 {-0.10} (16...Qe7 17. Bd3 d6 18. Rf1 Rxf1 {-0.27}) 
-17. Bd3 $6 {-0.63} (17. Nd2 Qb5 18. Qe3 Qe2 19. Qg5 {+0.00}) 17... Kb8 $5 {-0.22} 
-18. Ka1 {-0.48} (18. Nd2 {-0.23}) 18... Qf7 {-0.13} (18...Qe7 {-0.60}) 
-19. d5 $2 {-0.84} (19. Qe3 {-0.15}) {, planning c4} 19... Rf3 $3 {-0.66} 
-20. Bb1 $2 {-1.23} (20. Qd2 {-0.57}) 20... Rf8 $2 {-0.28} (20...Nc4 21. Nd2 Nxd2 22. Qxd2 Rf8 {-1.28}) 
-21. c4 {-0.69} 21... Nd7 {-0.45} 
-22. Qb4 $4 {-1.81} (22. c5 Nxc5 23. Nxc5 dxc5 24. Rxc5 {-0.51}) 22... b6 $5 {-0.92} 
-23. Na5 {-2.74} (23. Rce1 Rf2 24. Rc1 Ka8 25. Qa4 {-1.54}) 23... Nc5 {-2.43} 
-24. Nc6+ {-3.28} 24... Kb7 {-2.89} (24...Ka8 25. Rc3 Rxc3 26. Qxc3 a5 {-3.16}) 
-25. Na5+ {-3.74} 25... Ka8 {-2.88} 
-26. Nc6 {-3.67} 26... Kb7 {-3.00} 27. Na5+ {-3.60} 27... Ka8 {-3.11} 
-28. Nc6 {-3.38} {WhiteBlunder=1, BlackBunder=0, WhiteBad=4, BlackBad=2} 1/2-1/2
+1. Nb3 $6 {-0.16} (1. c3 {+0.80}) 1... f5 $6 {+0.46} (1...Nb6 2. e4 e5 3. c3 Ra8 {+0.00}) 
+2. f3 $3 {-0.11, planning Bxa7} 2... Nb6 {+0.46} 
+3. e4 {+0.00} 3... fxe4 {+0.39} 
+4. fxe4 {-0.19, with a better piece mobility} 4... e5 {+0.40} 
+5. Ne3 $6 {-0.33} (5. Bf3 Ne6 6. O-O-O d6 7. d3 {+0.39}) 5... Ne6 $1 {+0.51, followed by h5} 
+6. c3 $6 {-0.44} (6. d3 {+0.41}) 6... Bg5 $6 {+0.71} (6...Ra8 {-0.45}) 
+7. Bc2 $3 {+0.20, followed by h4} 7... O-O-O $6 {+0.64} (7...Bf7 8. h4 Bxe3 9. Bxe3 O-O-O {-0.09}) 
+8. O-O-O $2 {-0.07} (8. a4 {+0.53}) 8... Bf7 $1 {+0.41, with the idea of Bh5} 
+9. Kb1 {+0.00} (9. h4 Bxe3 10. Qxe3 d6 11. d3 {+0.45}) 9... Bh5 $3 {+0.17, followed by Bxd1} 
+10. Rc1 {+0.00} 10... Rf8 {+0.11} (10...Kb8 11. h4 Bxe3 12. Bxe3 d6 {+0.00}) 
+11. h4 {-0.13} (11. Nf5 {+0.21}) 11... Bxe3 $5 {+0.05} 
+12. Bxe3 $5 {-0.27} 12... Nf4 $3 {+0.11, with the idea of Nxg2} 
+13. Rg1 $6 {-0.45} (13. Bxf4 Rxf4 14. g3 Rf6 15. Rf1 {+0.17}) 13... Bg4 $2 {+0.00} (13...Ne2 14. Bg5 Nxg1 15. Qxg1 Kb8 {-0.59}) 
+14. Bxf4 $6 {-0.49} (14. g3 Ne2 15. Bg5 Nxc1 16. Kxc1 {-0.10}) 14... Rxf4 {-0.01} 
+15. g3 $6 {-0.47} (15. d4 d6 16. g3 Rf6 17. Nd2 {-0.10}) 15... Rf6 {+0.00} (15...Rf8 16. Rf1 Rxf1 17. Qxf1 d6 {-0.36}) 
+16. d4 {-0.45} (16. Qe3 d6 17. Rgf1 Qf7 18. Rxf6 {-0.19}) 16... d6 $3 {-0.10, with the idea of Qb5} 
+17. Bd3 $6 {-0.43} (17. Nd2 Qb5 18. Qe3 Qe2 19. Qg5 {+0.00}) 17... Kb8 $2 {-0.06} (17...Qf7 {-0.66}) 
+18. Ka1 $6 {-0.51} (18. Qd2 Qe7 19. Qg5 h5 20. Rgf1 {-0.09}) 18... Qf7 {-0.15} (18...Rf3 19. Bc2 Nc4 20. Qe2 Ne3 {-0.44}) 
+19. d5 $2 {-1.13} (19. Qe3 {-0.15}) 19... Rf3 $1 {-0.85} (19...Nd7 {-0.84}) 
+20. Bb1 $2 {-1.38} (20. Qd2 {-0.38}) 20... Rf8 $2 {-0.58} (20...Nc4 21. Nd2 Nxd2 22. Qxd2 Rf8 {-1.30}) 
+21. c4 {-0.69} 21... Nd7 $5 {-0.48} 
+22. Qb4 $4 {-1.52} (22. c5 Nxc5 23. Nxc5 dxc5 24. Rxc5 {-0.47}) 22... b6 {-1.39} 
+23. Na5 $4 {-2.57} (23. a3 {-1.13}) 23... Nc5 {-2.24} 
+24. Nc6+ {-3.26} 24... Kb7 {-2.69} (24...Ka8 {-3.11}) 
+25. Na5+ {-3.07} 25... Ka8 {-2.60} 
+26. Nc6 {-3.47} 26... Kb7 $2 {-2.56} (26...Bd7 {-3.26}) 
+27. Na5+ {-3.32} 27... Ka8 {-3.15} 28. Nc6 {-3.22} {WhiteBlunder=2, BlackBunder=0, WhiteBad=3, BlackBad=4} 1/2-1/2
 ```
 
 ### 2. Test engine with test suite
