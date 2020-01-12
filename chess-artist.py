@@ -18,7 +18,7 @@ sr = random.SystemRandom()
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = 'v2.9'
+APP_VERSION = 'v2.10'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -1471,7 +1471,6 @@ class Analyze():
         scoreCp = TEST_SEARCH_SCORE
         depthSearched = TEST_SEARCH_DEPTH
 
-        # Run the engine, only works with python 2
         p = subprocess.Popen(self.eng, stdin=subprocess.PIPE,
                              stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                              universal_newlines=True, bufsize=1)
@@ -2156,6 +2155,20 @@ class Analyze():
         cntCorrect = 0
         cntValidEpd = 0
         
+        p = subprocess.Popen(self.eng, stdin=subprocess.PIPE,
+                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                             universal_newlines=True, bufsize=1)
+        self.Send(p, 'uci')
+        self.ReadEngineReply(p, 'uci')
+        self.SetEngineOptions(p, self.engineOptions)
+        self.Send(p, 'isready')
+        self.ReadEngineReply(p, 'isready')
+        self.Send(p, 'ucinewgame')
+        self.Send(p, 'isready')
+        self.ReadEngineReply(p, 'isready')
+        
+        t0 = time.perf_counter()
+        
         # Open the epd file for reading.
         with open(self.infn, 'r') as f:
             for lines in f:
@@ -2197,14 +2210,43 @@ class Analyze():
                     print('has no bm and am opcodes - skipped.\n')
                     continue
 
-                # Get engine analysis, we are only interested on bm.
-                _, _, bm, _ = self.GetEpdEngineSearchScore(fen)
+                # Get engine bestmove.
+                self.Send(p, 'ucinewgame')
+                self.Send(p, 'position fen %s' % fen)
+                
+                # Set time or depth limit                
+                if self.moveTime > 0:
+                    if self.depth > 0:
+                        self.Send(p, 'go movetime %d depth %d' % (self.moveTime, self.depth))
+                    else:
+                        self.Send(p, 'go movetime %d' % self.moveTime)
+                elif self.depth > 0:
+                    self.Send(p, 'go depth %d' % self.depth)
+                else:
+                    self.Send(p, 'quit')
+                    p.communicate()
+                    raise Exception('depth or movetime must have values that are more than zero.')
+                    return
+                
+                for eline in iter(p.stdout.readline, ''):        
+                    line = eline.strip()
+                    
+                    # Selects which engine output will be saved in log file.
+                    if 'bestmove' in line or \
+                            'depth' in line and 'score' in line and 'pv' in line:
+                        logging.debug('<< %s' % line)                    
+
+                    if 'bestmove ' in line:                        
+                        bm = Analyze.UciToSanMove(fen, line.split()[1], self.variantTag)
+                        break
                 
                 # The percentage correct is based on valid epd only
                 cntValidEpd += 1
 
                 # Show progress in console.
                 print('engine bm: %s' %(bm))
+                
+                logging.info(f'engine bm: {bm}')
 
                 # If engine bm is in the epdBm list then increment cntCorrect.
                 # If not, check if engine bm is not in epdAm list, if so
@@ -2212,8 +2254,13 @@ class Analyze():
                 isCorrect = self.IsCorrectEngineBm(bm, epdBm, epdAm)
                 if isCorrect:
                     cntCorrect += 1
+                logging.info('correct: %s' % ('Yes' if isCorrect else 'No'))
+                logging.info('num correct: %d / %d' % (cntCorrect, cntValidEpd))
                 print('correct: %s' % ('Yes' if isCorrect else 'No'))
-                print('num correct: %d' % (cntCorrect))
+                print('num correct: %d / %d' % (cntCorrect, cntValidEpd))
+                
+        self.Send(p, 'quit')
+        p.communicate()
 
         # Print test summary.
         pctCorrect = 0.0
@@ -2221,17 +2268,21 @@ class Analyze():
             pctCorrect = (100.0 * cntCorrect)/cntValidEpd
 
         # Print summary to console
-        print(':: EPD %s TEST RESULTS ::\n' %(self.infn))
+        print(':: EPD %s TEST RESULTS ::' % self.infn)
+        print('Engine                : %s' % self.engIdName)
+        print('Time/pos (sec)        : %0.1f\n' % (self.moveTime/1000.0))
         print('Total epd lines       : %d' %(cntEpd))
         print('Total tested positions: %d' %(cntValidEpd))
         print('Total correct         : %d' %(cntCorrect))
-        print('Correct percentage    : %0.2f' %(pctCorrect))
+        print('Correct percentage    : %0.2f\n' %(pctCorrect))
+        
+        print('Elapse (sec)          : %0.2f' % (time.perf_counter() - t0))
 
         # Write to output file, that was specified in -outfile option.
         with open(self.outfn, 'a') as f:
             f.write(':: EPD %s TEST RESULTS ::\n' %(self.infn))
-            f.write('Engine        : %s\n' %(self.engIdName))
-            f.write('Time/pos (sec): %0.1f\n\n' %(self.moveTime/1000.0))
+            f.write('Engine                : %s\n' %(self.engIdName))
+            f.write('Time/pos (sec)        : %0.1f\n\n' %(self.moveTime/1000.0))
             f.write('Total epd lines       : %d\n' %(cntEpd))
             f.write('Total tested positions: %d\n' %(cntValidEpd))
             f.write('Total correct         : %d\n' %(cntCorrect))
