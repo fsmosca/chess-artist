@@ -18,7 +18,7 @@ sr = random.SystemRandom()
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = 'v2.10'
+APP_VERSION = 'v2.11'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -2298,6 +2298,23 @@ class Analyze():
         bestmove is higher than score at pvmove then save this as a test
         position.
         """
+        
+        PUZZLE_CP_SCORE_MARGIN = 25
+        WIN_CP_SCORE_THRESHOLD = 200
+        MIN_FULLMOVE_NUMBER = 12
+        
+        p = subprocess.Popen(self.eng, stdin=subprocess.PIPE,
+                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                 universal_newlines=True, bufsize=1)
+        self.Send(p, 'uci')
+        self.ReadEngineReply(p, 'uci')
+        self.SetEngineOptions(p, self.engineOptions)
+        self.Send(p, 'isready')
+        self.ReadEngineReply(p, 'isready')
+        self.Send(p, 'ucinewgame')
+        self.Send(p, 'isready')
+        self.ReadEngineReply(p, 'isready')
+                    
         print('Creating test positions ...')
         with open(self.infn) as h:
             game = chess.pgn.read_game(h)
@@ -2309,7 +2326,7 @@ class Analyze():
                     
                     nextNode = gameNode.variation(0)
                     
-                    if fmvn < 12:
+                    if fmvn < MIN_FULLMOVE_NUMBER:
                         gameNode = nextNode
                         continue
 
@@ -2318,19 +2335,8 @@ class Analyze():
                     
                     bestMove, bestScore, pvMove, pvScore = \
                             None, -MAX_SCORE, None, -MAX_SCORE
-                    
-                    # Analyze the current fen                    
-                    p = subprocess.Popen(self.eng, stdin=subprocess.PIPE,
-                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                             universal_newlines=True, bufsize=1)
-                    self.Send(p, 'uci')
-                    self.ReadEngineReply(p, 'uci')
-                    self.SetEngineOptions(p, self.engineOptions)
-                    self.Send(p, 'isready')
-                    self.ReadEngineReply(p, 'isready')
-                    self.Send(p, 'ucinewgame')
-                    self.Send(p, 'isready')
-                    self.ReadEngineReply(p, 'isready')
+                            
+                    self.Send(p, 'ucinewgame')                 
                     self.Send(p, 'position fen %s' % fen)
                     
                     start_time = time.time()
@@ -2361,7 +2367,7 @@ class Analyze():
                                     pvScore = self.MateDistanceToValue(mateInN)
                                     
                                 # Don't save winning or losing positions
-                                if abs(pvScore) > 1000:
+                                if abs(pvScore) > WIN_CP_SCORE_THRESHOLD:
                                     break
                             else:
                                 if 'score cp ' in line:
@@ -2378,25 +2384,32 @@ class Analyze():
                             bestMove = line.split()[1]
                             logging.debug('<< %s' % line)
                             break
-            
-                    self.Send(p, 'quit')
-                    p.communicate()
+                        
+                    # Read next game if pos is lossing or winning
+                    if abs(pvScore) > WIN_CP_SCORE_THRESHOLD:
+                        print('Read next game')
+                        break
                     
                     logging.info('bestPv: %s, pvScore: %d' % (pvMove, pvScore))
                     logging.info('bestmove: %s, bestScore: %d' % (bestMove, bestScore))
                     
                     # Compare pv move in the first half of the search and bestmove
-                    if bestMove != pvMove and bestScore >= pvScore + 10:
+                    if bestMove != pvMove and bestScore >= pvScore + PUZZLE_CP_SCORE_MARGIN:
+                        print('save fen in puzzle.epd')
                         with open(self.puzzlefn, 'a') as f:
-                            f.write('%s bm %s; Ubm %s;\n' % (
+                            f.write('%s bm %s; Ubm %s; Ae "%s";\n' % (
                                     board.epd(),
                                     board.san(chess.Move.from_uci(bestMove)),
-                                    bestMove))
+                                    bestMove,
+                                    self.engIdName))
                     
                     gameNode = nextNode
                     
                 game = chess.pgn.read_game(h)    
-            
+        
+        self.Send(p, 'quit')
+        p.communicate()   
+
 
 def main():
     parser = argparse.ArgumentParser(prog='%s %s' % (APP_NAME, APP_VERSION),
