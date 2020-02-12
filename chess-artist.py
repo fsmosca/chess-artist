@@ -18,7 +18,7 @@ sr = random.SystemRandom()
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = 'v2.11'
+APP_VERSION = 'v2.12'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -74,6 +74,7 @@ class Analyze():
         self.draw = opt['-draw']
         self.minScoreStopAnalysis = opt['-min-score-stop-analysis']
         self.maxScoreStopAnalysis = opt['-max-score-stop-analysis']
+        self.engineName = opt['-enginename']
         self.bookMove = None
         self.passedPawnIsGood = False
         self.whitePassedPawnCommentCnt = 0
@@ -885,7 +886,11 @@ class Analyze():
     
     def GetEngineIdName(self):
         """ Returns the engine id name """
+        if self.engineName is not None:
+            return self.engineName
+        
         engineIdName = self.eng[0:-4]
+        
         p = subprocess.Popen(self.eng, stdin=subprocess.PIPE,
                              stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                              universal_newlines=True, bufsize=1)
@@ -899,6 +904,7 @@ class Analyze():
                 break
         self.Send(p, 'quit')
         p.communicate()
+        
         return engineIdName
     
     def IsKingSafetyGood(self, nextFen, side):
@@ -2425,6 +2431,9 @@ def main():
     parser.add_argument('-e', '--enginefile', 
                         help='input engine filename', 
                         required=True)
+    parser.add_argument('--enginename', 
+                        help='input uci engine id name, if not specified ' + 
+                        'engine id name will be used.', required=False)
     parser.add_argument('-n', '--engineoptions', 
         help='input engine options, like threads, hash and others ' +
         'example: --engineoptions "Hash value 128, Threads value 1"', 
@@ -2534,7 +2543,8 @@ def main():
                '-loss': args.loss,
                '-min-score-stop-analysis': args.min_score_stop_analysis,
                '-max-score-stop-analysis': args.max_score_stop_analysis,
-               '-draw': args.draw
+               '-draw': args.draw,
+               '-enginename': args.enginename
                }
     
     if args.log:
