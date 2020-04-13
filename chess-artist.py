@@ -18,7 +18,7 @@ sr = random.SystemRandom()
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = 'v2.12'
+APP_VERSION = 'v2.13'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -1756,6 +1756,14 @@ class Analyze():
                 playerName = self.player or self.playerandopp
                 wplayer = game.headers['White']
                 bplayer = game.headers['Black']
+                
+                # If color is specified
+                if self.color == 'white' and playerName == bplayer:
+                    game = chess.pgn.read_game(pgnHandle)
+                    continue
+                elif self.color == 'black' and playerName == wplayer:
+                    game = chess.pgn.read_game(pgnHandle)
+                    continue
 
                 if playerName != wplayer and playerName != bplayer:
                     game = chess.pgn.read_game(pgnHandle)
@@ -1778,7 +1786,21 @@ class Analyze():
                     if not (playerName == wplayer and gameResult != '1-0' or \
                             playerName == bplayer and gameResult != '0-1'):
                         game = chess.pgn.read_game(pgnHandle)
-                        continue                       
+                        continue
+            else:
+                # Only analyze games with draw results
+                if self.draw and not self.loss:
+                    gameResult = game.headers['Result']
+                    if not (gameResult == '1/2-1/2'):
+                        game = chess.pgn.read_game(pgnHandle)
+                        continue
+                    
+                # Analyze games except draws
+                if not self.draw and self.loss:
+                    gameResult = game.headers['Result']
+                    if gameResult == '1/2-1/2' or gameResult == '*':
+                        game = chess.pgn.read_game(pgnHandle)
+                        continue
 
             # Reset passed pawn comment every game. Passed pawn comment is
             # only done once for white and once for black per game
@@ -2477,7 +2499,8 @@ def main():
                         help='There are more words in the move comments such as '
                         'better is, planning, excellent is, Cool is and others.')
     parser.add_argument("--color", 
-                        help='enter color of player to analyze, (default=None) ',
+                        help='enter color of player to analyze, (default=None) '
+                        'can be white or black',
                         default=None, required=False)
     
     group = parser.add_mutually_exclusive_group()
@@ -2495,12 +2518,16 @@ def main():
                         help='This is used to analyze games where a player '
                         'lost his/her game. Example to analyze lost games by '
                         'Mangnus, use: chess-artist.exe --player "Carlsen, Magnus" '
-                        '--loss ... other options')
+                        '--loss ... other options. '
+                        'To analyze all games with non-draw results: '
+                        'chess-artist.exe --loss ... other options')
     parser.add_argument('--draw', action='store_true',
                         help='This is used to analyze games where a player '
                         'has drawn his/her game. Example to analyze drawn games by '
                         'Mangnus, use: chess-artist.exe --player "Carlsen, Magnus" '
-                        '--draw ... other options')
+                        '--draw ... other options. '
+                        'To analyze all games with draw results: '
+                        'chess-artist.exe --draw ... other options')
     parser.add_argument("--min-score-stop-analysis", 
                         help='enter a value in pawn unit to stop the engine analysis, (default=-3.0) '
                         'If the score of the game move is -3.0 or less '
