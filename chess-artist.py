@@ -18,7 +18,7 @@ sr = random.SystemRandom()
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = 'v2.14'
+APP_VERSION = 'v2.15'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -765,27 +765,22 @@ class Analyze():
             return
 
         # (1) Write sanMove, posScore
-        isWritePosScore = posScore is not None and bookMove is None and \
-                engMove is None
+        isWritePosScore = posScore is not None and bookMove is None and engMove is None
         if isWritePosScore:
             self.WritePosScore(side, fmvn, sanMove, posScore)
             return
 
         # (2) Write sanMove, posScore, bookMove
-        isWritePosScoreBook = posScore is not None and\
-                              bookMove is not None and\
-                              engMove is None
+        isWritePosScoreBook = posScore is not None and bookMove is not None and engMove is None
         if isWritePosScoreBook:
             self.WritePosScoreBookMove(side, fmvn, sanMove, bookMove, posScore)
             return
 
         # (3) Write sanMove, posScore and engMove
-        isWritePosScoreEngMove = posScore is not None and bookMove is None and\
-                engMove is not None
+        isWritePosScoreEngMove = posScore is not None and bookMove is None and engMove is not None
         if isWritePosScoreEngMove:
-            self.WritePosScoreEngMove(side, fmvn, sanMove, posScore, engMove,
-                                      engScore, complexityNumber,
-                                      moveChanges, pvLine, threatMove)
+            self.WritePosScoreEngMove(
+                side, fmvn, sanMove, posScore, engMove, engScore, complexityNumber, moveChanges, pvLine, threatMove)
             return
 
         # (4) Write sanMove, posScore, bookMove and engMove
@@ -1938,12 +1933,12 @@ class Analyze():
                     gameNode = nextNode
                     continue
 
-                # (2) Probe the book file and save the best book move  
+                # (2) Probe the book file and add the book move as comment to the player move.
                 if fmvn <= BOOK_MOVE_LIMIT and self.bookFile is not None:
                     self.bookMove = self.GetPolyglotBookMove(curFen)
 
-                # (3) Get the posScore or the score of the player move.
-                # Can be by static eval or search score of the engine
+                # (3) Get the posScore or the score of the player move according to the analyzing engine.
+                # This can be static eval or search score.
                 if self.evalType == 'static':
                     staticScore = self.GetStaticEvalAfterMove(nextFen)
                     posScore = staticScore
@@ -1951,15 +1946,14 @@ class Analyze():
                     searchScore = self.GetSearchScoreAfterMove(nextFen, side)
                     posScore = searchScore
 
-                # (4) Analyze the position with the engine. Only do this
-                # if posScore is not winning or lossing (more than 3.0 pawns).
+                # (4) Analyze the position with the engine. Save engine's best move, score, pv line and complexity.
                 engBestMove, engBestScore, pvLine = None, None, None
                 if Analyze.relative_score(side, posScore) < self.maxScoreStopAnalysis and \
                         Analyze.relative_score(side, posScore) > self.minScoreStopAnalysis and \
                         self.jobType == 'analyze':
-                    engBestMove, engBestScore, complexityNumber, moveChanges,\
-                    pvLine = self.GetSearchScoreBeforeMove(curFen, side)
+                    engBestMove, engBestScore, complexityNumber, moveChanges, pvLine = self.GetSearchScoreBeforeMove(curFen, side)
 
+                    # Update info in console.
                     if sanMove == engBestMove:
                         print('Game move: %s (%0.2f), Engine bestmove: %s (%0.2f)' % (
                             sanMove, posScore, engBestMove, posScore))
@@ -1967,17 +1961,14 @@ class Analyze():
                         print('Game move: %s (%0.2f), Engine bestmove: %s (%0.2f)' % (
                             sanMove, posScore, engBestMove, engBestScore))
                     
-                # (5) If game is over by checkmate and stalemate after a move              
-                isGameOver = nextNode.board().is_checkmate() or\
-                        nextNode.board().is_stalemate()
+                # (5) Check if game is over.
+                isGameOver = nextNode.board().is_checkmate() or nextNode.board().is_stalemate()
 
                 # (5.1) Calculate the threat move if game move and engine best
                 # move is the same and the position is complex and the engine
                 # score is not winning or lossing and not white first move
-                if moveChanges >= 3 and sanMove == engBestMove \
-                        and not nextNode.board().is_check() \
-                        and abs(engBestScore) <= 2.0 \
-                        and not (fmvn == 1 and side):                        
+                if moveChanges >= 3 and sanMove == engBestMove and not nextNode.board().is_check() \
+                        and abs(engBestScore) <= 2.0 and not (fmvn == 1 and side):
                     threatMove = self.GetThreatMove(nextFen)
                     
                 # (5.2) Check if passed pawn of side to move is good.
