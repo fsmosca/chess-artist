@@ -18,7 +18,7 @@ sr = random.SystemRandom()
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = 'v2.13'
+APP_VERSION = 'v2.14'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -1081,7 +1081,7 @@ class Analyze():
             for entry in reader.find_all(board):
                 if entry.weight > bestWeight:
                     bestWeight = entry.weight
-                    bestMove = str(entry.move())
+                    bestMove = str(entry.move)
                 
         polyMove = bestMove
                 
@@ -2529,13 +2529,13 @@ def main():
                         'To analyze all games with draw results: '
                         'chess-artist.exe --draw ... other options')
     parser.add_argument("--min-score-stop-analysis", 
-                        help='enter a value in pawn unit to stop the engine analysis, (default=-3.0) '
+                        help='enter a value in pawn unit to stop the engine analysis, (default=-3.0). '
                         'If the score of the game move is -3.0 or less '
                         'chess-artist would no longer analyze the position to look '
                         'for alternative move.',
                         default=-3.0, type=float, required=False)
     parser.add_argument("--max-score-stop-analysis", 
-                        help='enter a value in pawn unit to stop the engine analysis, (default=3.0) '
+                        help='enter a value in pawn unit to stop the engine analysis, (default=3.0). '
                         'If the score of the game move is 3 or more '
                         'chess-artist would no longer analyze the position to look '
                         'for alternative move.',
