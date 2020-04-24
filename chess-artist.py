@@ -18,7 +18,7 @@ sr = random.SystemRandom()
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = 'v2.16'
+APP_VERSION = 'v2.17'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -68,7 +68,7 @@ class Analyze():
         self.puzzlefn = opt['-puzzle']
         self.wordyComment = opt['-wordy']
         self.player = opt['-player']
-        self.playerandopp = opt['-playerandopp']
+        self.playerAndOpp = opt['-player-and-opp']
         self.color = opt['-color']
         self.loss = opt['-loss']
         self.draw = opt['-draw']
@@ -1590,7 +1590,7 @@ class Analyze():
         Write termination marker in the output game.
         """
         with open(self.outfn, 'a') as f:
-            if self.playerandopp is not None:
+            if self.playerAndOpp is not None:
                 if ((self.color == 'white' and playerColor == 'white') or
                         (self.color == 'black' and playerColor == 'black')):
                     f.write('{WhiteBlunder=%d, BlackBunder=%d, WhiteBad=%d, BlackBad=%d} %s\n\n' % (
@@ -1747,8 +1747,8 @@ class Analyze():
                 logging.exception('Error in getting game variant tag value')
             
             # Analyze games by player            
-            if self.player is not None or self.playerandopp is not None:
-                playerName = self.player or self.playerandopp
+            if self.player is not None or self.playerAndOpp is not None:
+                playerName = self.player or self.playerAndOpp
                 wplayer = game.headers['White']
                 bplayer = game.headers['Black']
                 
@@ -1894,7 +1894,7 @@ class Analyze():
                 # Analyze specific color or side to move                
                 if self.color is not None:
                     isEvaluatePos = False
-                    if self.playerandopp is None:
+                    if self.playerAndOpp is None:
                         if side and self.color == 'black' or not side and self.color == 'white':
                             self.WriteNotation(side, fmvn, sanMove, self.bookMove,
                                            None, False, None, None, 0, 0,
@@ -1903,9 +1903,9 @@ class Analyze():
                             continue
                     else:
                         # Analyze position of a player by color and its opp
-                        if self.playerandopp == wplayer and self.color == 'white':
+                        if self.playerAndOpp == wplayer and self.color == 'white':
                             isEvaluatePos = True
-                        elif self.playerandopp == bplayer and self.color == 'black':
+                        elif self.playerAndOpp == bplayer and self.color == 'black':
                             isEvaluatePos = True
                             
                     if not isEvaluatePos:
@@ -2016,8 +2016,8 @@ class Analyze():
             pColor = None
             if self.player is not None:
                 pColor = 'white' if self.player == wplayer else 'black'
-            elif self.playerandopp is not None:
-                pColor = 'white' if self.playerandopp == wplayer else 'black'
+            elif self.playerAndOpp is not None:
+                pColor = 'white' if self.playerAndOpp == wplayer else 'black'
             self.WriteTerminationMarker(pColor, res)
             
             # Read next game
@@ -2496,12 +2496,12 @@ def main():
     group.add_argument("--player",
                        help=('enter player name to analyze, (default=None). '
                              'Player opponent moves are not analyzed. '
-                             'If you use --player do not use --playerandopp.'),
+                             'If you use --player do not use --player-and-opp.'),
                        default=None, required=False)
-    group.add_argument("--playerandopp",
+    group.add_argument("--player-and-opp",
                        help=('enter player name to analyze. Player opponent moves '
                              'are also analyzed, (default=None). '
-                             'If you use --playerandopp do not use --player.'),
+                             'If you use --player-and-opp do not use --player.'),
                        default=None, required=False)
     parser.add_argument('--loss', action='store_true',
                         help=('This is used to analyze games where a player '
@@ -2556,7 +2556,7 @@ def main():
                '-puzzle': 'puzzle.epd',
                '-wordy': args.wordycomment,
                '-player': args.player,
-               '-playerandopp': args.playerandopp,
+               '-player-and-opp': args.player_and_opp,
                '-color': args.color,
                '-loss': args.loss,
                '-min-score-stop-analysis': args.min_score_stop_analysis,
