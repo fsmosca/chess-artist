@@ -44,8 +44,8 @@ Will analyze games inside sample.pgn and output the analyzed games in out_sample
 #### g) Analyze games of Carlsen, Magnus where he is black
 `python chess-artist.py --infile iommast19.pgn --outfile magnus_black.pgn --enginefile Stockfish.exe --eval search --job analyze --movetime 2000 --movestart 12 --moveend 20 --player "Carlsen, Magnus" --color black`
 
-#### h) Analyze lost games of Movsesian, Sergei, also analyze moves of its opponent, using --playerandopp option
-`chess-artist.exe --infile iommast19.pgn --outfile sergie_loses.pgn --enginefile Stockfish.exe --eval search --job analyze --movetime 5000 --playerandopp "Movsesian, Sergei" --loss`
+#### h) Analyze lost games of Movsesian, Sergei, also analyze moves of its opponent, using --player-and-opp option
+`chess-artist.exe --infile iommast19.pgn --outfile sergie_loses.pgn --enginefile Stockfish.exe --eval search --job analyze --movetime 5000 --player-and-opp "Movsesian, Sergei" --loss`
 
 #### i) Sample analyzed Fischer Random Chess game
 ```
