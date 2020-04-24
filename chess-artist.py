@@ -18,7 +18,7 @@ sr = random.SystemRandom()
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = 'v2.15'
+APP_VERSION = 'v2.16'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -148,8 +148,8 @@ class Analyze():
             return moveNag
 
         # (1) Very good !!
-        if moveChanges >= veryGoodMoveChangesThreshold\
-                and complexityNumber >= 15 * veryGoodMoveChangesThreshold:
+        if (moveChanges >= veryGoodMoveChangesThreshold and
+                complexityNumber >= 15 * veryGoodMoveChangesThreshold):
             moveNag = '$3'
 
         # (1.1) Very good !!, also for very high move changes
@@ -784,9 +784,9 @@ class Analyze():
             return
 
         # (4) Write sanMove, posScore, bookMove and engMove
-        isWritePosScoreBookEngMove = posScore is not None and\
-                              bookMove is not None and\
-                              engMove is not None
+        isWritePosScoreBookEngMove = (posScore is not None and
+                                      bookMove is not None and
+                                      engMove is not None)
         if isWritePosScoreBookEngMove:
             self.WritePosScoreBookMoveEngMove(
                 side, fmvn, sanMove, bookMove, posScore, engMove, engScore,
@@ -794,26 +794,26 @@ class Analyze():
             return
 
         # (5) Write sanMove, bookMove
-        isWriteBook = posScore is None and\
-                      bookMove is not None and\
-                      engMove is None
+        isWriteBook = (posScore is None and
+                       bookMove is not None and
+                       engMove is None)
         if isWriteBook:
             self.WriteBookMove(side, fmvn, sanMove, bookMove)
             return
 
         # (6) Write sanMove, bookMove and engMove
-        isWriteBookEngMove = posScore is None and\
-                              bookMove is not None and\
-                              engMove is not None
+        isWriteBookEngMove = (posScore is None and
+                              bookMove is not None and
+                              engMove is not None)
         if isWriteBookEngMove:
             self.WriteBookMoveEngMove(
                 side, fmvn, sanMove, bookMove, engMove, engScore, pvLine)
             return
 
         # (7) Write sanMove, engMove
-        isWriteEngMove = posScore is None and\
-                              bookMove is None and\
-                              engMove is not None
+        isWriteEngMove = (posScore is None and
+                          bookMove is None and
+                          engMove is not None)
         if isWriteEngMove:
             self.WriteEngMove(side, fmvn, sanMove, engMove, engScore, pvLine)
             return          
@@ -1049,13 +1049,13 @@ class Analyze():
         logging.info(f'Good mobility threshold: {MOBILITY_THRESHOLD}')
         
         if side:
-            if MgMobilityValue >= MOBILITY_THRESHOLD and \
-                    EgMobilityValue >= MOBILITY_THRESHOLD:
+            if (MgMobilityValue >= MOBILITY_THRESHOLD and
+                    EgMobilityValue >= MOBILITY_THRESHOLD):
                 logging.info('The side to move has good mobility.')
                 return True
         else:
-            if MgMobilityValue <= -MOBILITY_THRESHOLD and \
-                    EgMobilityValue <= -MOBILITY_THRESHOLD:
+            if (MgMobilityValue <= -MOBILITY_THRESHOLD and
+                    EgMobilityValue <= -MOBILITY_THRESHOLD):
                 logging.info('The side to move has good mobility.')
                 return True
             
@@ -1165,8 +1165,7 @@ class Analyze():
         # Quit the engine
         self.Send(p, 'quit')
         p.communicate()
-        assert score != TEST_SEARCH_SCORE,\
-               'Error! something is wrong in static eval calculation.'
+        assert score != TEST_SEARCH_SCORE, 'Error! something is wrong in static eval calculation.'
         return score
 
     def GetThreatMove(self, fen):
@@ -1223,8 +1222,8 @@ class Analyze():
         savedMove = []
         complexityNumber = 0
         moveChanges = 0
-        isGetComplexityNumber = self.jobType == 'analyze' and\
-                                self.moveTime >= COMPLEXITY_MINIMUM_TIME
+        isGetComplexityNumber = (self.jobType == 'analyze' and
+                                 self.moveTime >= COMPLEXITY_MINIMUM_TIME)
         p = subprocess.Popen(self.eng, stdin=subprocess.PIPE,
                              stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                              universal_newlines=True, bufsize=1)
@@ -1243,8 +1242,9 @@ class Analyze():
             line = eline.strip()
             # Save pv move per depth
             if isGetComplexityNumber:
-                if 'info depth ' in line and ' pv ' in line and not\
-                   'upperbound' in line and not 'lowerbound' in line:
+                if ('info depth ' in line and ' pv ' in line and
+                        not 'upperbound' in line and
+                        not 'lowerbound' in line):
                     logging.debug('<< %s' % line)
                     
                     # Get the depth
@@ -1256,8 +1256,9 @@ class Analyze():
                     savedMove.append([searchDepth, pvMove])
 
             # Save pv line
-            if 'info depth ' in line and ' pv ' in line and not\
-                   'upperbound' in line and not 'lowerbound' in line:
+            if ('info depth ' in line and ' pv ' in line and
+                    not 'upperbound' in line and
+                    not 'lowerbound' in line):
                 splitLine = line.split()
                 pvIndex = splitLine.index('pv')
                 pvLine = splitLine[pvIndex+1:pvIndex+6]
@@ -1500,8 +1501,8 @@ class Analyze():
         # Parse the output and extract the engine search, depth and bestmove
         for eline in iter(p.stdout.readline, ''):        
             line = eline.strip()
-            if 'bestmove' in line or \
-                    'depth' in line and 'score' in line and 'pv' in line:
+            if ('bestmove' in line or
+                    ('depth' in line and 'score' in line and 'pv' in line)):
                 logging.debug('<< %s' % line)
                 
             if 'score cp ' in line:
@@ -1574,8 +1575,7 @@ class Analyze():
         p.communicate()
 
         # Verify values to be returned
-        assert scoreP != TEST_SEARCH_SCORE,\
-               'Error!, engine failed to return its static eval.'
+        assert scoreP != TEST_SEARCH_SCORE, 'Error!, engine failed to return its static eval.'
 
         # Convert to side POV
         if fen.split()[1] == 'b':
@@ -1591,8 +1591,8 @@ class Analyze():
         """
         with open(self.outfn, 'a') as f:
             if self.playerandopp is not None:
-                if self.color == 'white' and playerColor == 'white' or \
-                        self.color == 'black' and playerColor == 'black':
+                if ((self.color == 'white' and playerColor == 'white') or
+                        (self.color == 'black' and playerColor == 'black')):
                     f.write('{WhiteBlunder=%d, BlackBunder=%d, WhiteBad=%d, BlackBad=%d} %s\n\n' % (
                                 self.blunderCnt['w'], self.blunderCnt['b'],
                                 self.badCnt['w'], self.badCnt['b'], res))
@@ -1766,20 +1766,20 @@ class Analyze():
                 
                 if self.loss and not self.draw:
                     gameResult = game.headers['Result']
-                    if not (playerName == wplayer and gameResult == '0-1' or \
-                            playerName == bplayer and gameResult == '1-0'):
+                    if not ((playerName == wplayer and gameResult == '0-1') or
+                            (playerName == bplayer and gameResult == '1-0')):
                         game = chess.pgn.read_game(pgnHandle)
                         continue
                 elif not self.loss and self.draw:
                     gameResult = game.headers['Result']
-                    if not (playerName == wplayer and gameResult == '1/2-1/2' or \
-                            playerName == bplayer and gameResult == '1/2-1/2'):
+                    if not ((playerName == wplayer and gameResult == '1/2-1/2') or
+                            (playerName == bplayer and gameResult == '1/2-1/2')):
                         game = chess.pgn.read_game(pgnHandle)
                         continue
                 elif self.loss and self.draw:
                     gameResult = game.headers['Result']
-                    if not (playerName == wplayer and gameResult != '1-0' or \
-                            playerName == bplayer and gameResult != '0-1'):
+                    if not ((playerName == wplayer and gameResult != '1-0') or
+                            (playerName == bplayer and gameResult != '0-1')):
                         game = chess.pgn.read_game(pgnHandle)
                         continue
             else:
@@ -1842,10 +1842,11 @@ class Analyze():
                     
                     # Don't write Hash in the comment if the analyzing engine
                     # is Lc0 or Leela Chess Zero
-                    scoreLegend = 'move score is in pawn unit,\n' + \
-                    'positive is good for white and negative is good for black'
-                    if 'lc0' in engineIdName.lower() or\
-                            'leela chess zero' in engineIdName.lower():
+                    scoreLegend = ('move score is in pawn unit,\n'
+                                   'positive is good for white and negative '
+                                   'is good for black')
+                    if ('lc0' in engineIdName.lower() or
+                            'leela chess zero' in engineIdName.lower()):
                         f.write('{Threads %s, analysis %0.1fs per position, %s}\n' % (
                                 threadsValue, self.moveTime/1000.0,
                                 scoreLegend))
@@ -1948,9 +1949,9 @@ class Analyze():
 
                 # (4) Analyze the position with the engine. Save engine's best move, score, pv line and complexity.
                 engBestMove, engBestScore, pvLine = None, None, None
-                if Analyze.relative_score(side, posScore) < self.maxScoreStopAnalysis and \
-                        Analyze.relative_score(side, posScore) > self.minScoreStopAnalysis and \
-                        self.jobType == 'analyze':
+                if (Analyze.relative_score(side, posScore) < self.maxScoreStopAnalysis and
+                        Analyze.relative_score(side, posScore) > self.minScoreStopAnalysis and
+                        self.jobType == 'analyze'):
                     engBestMove, engBestScore, complexityNumber, moveChanges, pvLine = self.GetSearchScoreBeforeMove(curFen, side)
 
                     # Update info in console.
@@ -1967,8 +1968,9 @@ class Analyze():
                 # (5.1) Calculate the threat move if game move and engine best
                 # move is the same and the position is complex and the engine
                 # score is not winning or lossing and not white first move
-                if moveChanges >= 3 and sanMove == engBestMove and not nextNode.board().is_check() \
-                        and abs(engBestScore) <= 2.0 and not (fmvn == 1 and side):
+                if (moveChanges >= 3 and sanMove == engBestMove and
+                        not nextNode.board().is_check() and
+                        abs(engBestScore) <= 2.0 and not (fmvn == 1 and side)):
                     threatMove = self.GetThreatMove(nextFen)
                     
                 # (5.2) Check if passed pawn of side to move is good.
@@ -2251,8 +2253,8 @@ class Analyze():
                     line = eline.strip()
                     
                     # Selects which engine output will be saved in log file.
-                    if 'bestmove' in line or \
-                            'depth' in line and 'score' in line and 'pv' in line:
+                    if ('bestmove' in line or
+                            ('depth' in line and 'score' in line and 'pv' in line)):
                         logging.debug('<< %s' % line)                    
 
                     if 'bestmove ' in line:                        
@@ -2352,8 +2354,7 @@ class Analyze():
                     fen = board.fen()
                     print('analyzing fen %s ...' % fen)
                     
-                    bestMove, bestScore, pvMove, pvScore = \
-                            None, -MAX_SCORE, None, -MAX_SCORE
+                    bestMove, bestScore, pvMove, pvScore = None, -MAX_SCORE, None, -MAX_SCORE
                             
                     self.Send(p, 'ucinewgame')                 
                     self.Send(p, 'position fen %s' % fen)
@@ -2364,9 +2365,9 @@ class Analyze():
                     for eline in iter(p.stdout.readline, ''):       
                         line = eline.strip()
                         
-                        if 'info depth ' in line and ' pv ' in line and not\
-                           'upperbound' in line and not 'lowerbound' in line\
-                           and 'score' in line:
+                        if ('info depth ' in line and ' pv ' in line and
+                                not 'upperbound' in line and not 'lowerbound' in line and
+                                'score' in line):
                             logging.debug('<< %s' % line)
                             
                             splitLine = line.split()
@@ -2431,10 +2432,11 @@ class Analyze():
 
 
 def main():
-    parser = argparse.ArgumentParser(prog='%s %s' % (APP_NAME, APP_VERSION),
-                description='Read pgn and analyze games in it or analyze ' +
-                'epd file or test engines with epd test suites',
-                epilog='%(prog)s')
+    parser = argparse.ArgumentParser(
+        prog='%s %s' % (APP_NAME, APP_VERSION),
+        description=('Read pgn and analyze games in it or analyze '
+                     'epd file or test engines with epd test suites'),
+        epilog='%(prog)s')
     parser.add_argument('-i', '--infile', 
                         help='input pgn or EPD filename', 
                         required=True)
@@ -2445,91 +2447,89 @@ def main():
                         help='input engine filename', 
                         required=True)
     parser.add_argument('--enginename', 
-                        help='input uci engine id name, if not specified ' + 
-                        'engine id name will be used.', required=False)
-    parser.add_argument('-n', '--engineoptions', 
-        help='input engine options, like threads, hash and others ' +
-        'example: --engineoptions "Hash value 128, Threads value 1"', 
+                        help=('input uci engine id name, if not specified '
+                              'engine id name will be used.'), required=False)
+    parser.add_argument(
+        '-n', '--engineoptions',
+        help=('input engine options, like threads, hash and others '
+              'example: --engineoptions "Hash value 128, Threads value 1"'),
+        required=False)
+    parser.add_argument('--bookfile', help='input book filename',
                         required=False)
-    parser.add_argument('--bookfile', 
-                        help='input book filename',
-                        required=False)
-    parser.add_argument('--eval', 
-                        help='eval can be static or search. static ' + 
-        'uses static evaluation of Stockfish', 
-                        choices=['static','search'],
-                        required=True)
-    parser.add_argument("--movetime", 
-                        help='input analysis time per position in ms, ' + 
-                        '(default=1000)', default=1000,
-                        type=int, required=False)
+    parser.add_argument(
+        '--eval', help=('eval can be static or search. static '
+                        'uses static evaluation of Stockfish'),
+        choices=['static','search'], required=True)
+    parser.add_argument("--movetime",
+                        help=('input analysis time per position in ms, '
+                              '(default=1000)'),
+                        default=1000, type=int, required=False)
     parser.add_argument("--depth", 
                         help='input analysis depth, (default=0)', default=0,
                         type=int, required=False)
     parser.add_argument("--movestart", 
-                        help='input move number to start the analysis, ' + 
-                        'this is used when analyzing games, (default=8)',
+                        help=('input move number to start the analysis, '
+                              'this is used when analyzing games, (default=8)'),
                         default=8, type=int, required=False)
     parser.add_argument("--moveend", 
-                        help='input move number to end the analysis, '
-                        'this is used when analyzing games, (default=1000)',
+                        help=('input move number to end the analysis, '
+                              'this is used when analyzing games, (default=1000)'),
                         default=1000, type=int, required=False)
     parser.add_argument('--log', action='store_true',
                         help='Save log to chess_artist_log.txt')
     parser.add_argument('--job', 
-                        help='type of jobs to execute, can be analyze or '
-                        'test or createpuzzle. '
-                        'To create puzzle: '
-                        '--infile games.pgn --job createpuzzle, '
-                        'To analyze pgn: --infile games.pgn --job analyze, '
-                        'To annotate epd: --infile positions.epd --job analyze, '
-                        'To test engine with epd: --infile test.epd --job test',
-                        choices=['analyze', 'test', 'createpuzzle'],
-                        required=True)
+                        help=('type of jobs to execute, can be analyze or '
+                              'test or createpuzzle. To create puzzle: '
+                              '--infile games.pgn --job createpuzzle, '
+                              'To analyze pgn: --infile games.pgn --job analyze, '
+                              'To annotate epd: --infile positions.epd --job analyze, '
+                              'To test engine with epd: --infile test.epd --job test'),
+                        choices=['analyze', 'test', 'createpuzzle'], required=True)
     parser.add_argument('--wordycomment', action='store_true',
-                        help='There are more words in the move comments such as '
-                        'better is, planning, excellent is, Cool is and others.')
+                        help=('There are more words in the move comments such as '
+                              'better is, planning, excellent is, Cool is and others.'))
     parser.add_argument("--color", 
-                        help='enter color of player to analyze, (default=None) '
-                        'can be white or black',
-                        default=None, required=False)
-    
+                        help=('enter color of player to analyze, (default=None) '
+                              'can be white or black'),default=None, required=False)
+
     group = parser.add_mutually_exclusive_group()
-    group.add_argument("--player", 
-                        help='enter player name to analyze, (default=None). '
-                        'Player opponent moves are not analyzed. '
-                        'If you use --player do not use --playerandopp.',
-                        default=None, required=False)
-    group.add_argument("--playerandopp", 
-                        help='enter player name to analyze. Player opponent moves '
-                        'are also analyzed, (default=None). '
-                        'If you use --playerandopp do not use --player.',
-                        default=None, required=False)
+    group.add_argument("--player",
+                       help=('enter player name to analyze, (default=None). '
+                             'Player opponent moves are not analyzed. '
+                             'If you use --player do not use --playerandopp.'),
+                       default=None, required=False)
+    group.add_argument("--playerandopp",
+                       help=('enter player name to analyze. Player opponent moves '
+                             'are also analyzed, (default=None). '
+                             'If you use --playerandopp do not use --player.'),
+                       default=None, required=False)
     parser.add_argument('--loss', action='store_true',
-                        help='This is used to analyze games where a player '
-                        'lost his/her game. Example to analyze lost games by '
-                        'Mangnus, use: chess-artist.exe --player "Carlsen, Magnus" '
-                        '--loss ... other options. '
-                        'To analyze all games with non-draw results: '
-                        'chess-artist.exe --loss ... other options')
+                        help=('This is used to analyze games where a player '
+                              'lost his/her game. Example to analyze lost games by '
+                              'Mangnus, use: chess-artist.exe --player "Carlsen, Magnus" '
+                              '--loss ... other options. '
+                              'To analyze all games with non-draw results: '
+                              'chess-artist.exe --loss ... other options'))
     parser.add_argument('--draw', action='store_true',
-                        help='This is used to analyze games where a player '
-                        'has drawn his/her game. Example to analyze drawn games by '
-                        'Mangnus, use: chess-artist.exe --player "Carlsen, Magnus" '
-                        '--draw ... other options. '
-                        'To analyze all games with draw results: '
-                        'chess-artist.exe --draw ... other options')
+                        help=('This is used to analyze games where a player '
+                              'has drawn his/her game. Example to analyze drawn games by '
+                              'Mangnus, use: chess-artist.exe --player "Carlsen, Magnus" '
+                              '--draw ... other options. '
+                              'To analyze all games with draw results: '
+                              'chess-artist.exe --draw ... other options'))
     parser.add_argument("--min-score-stop-analysis", 
-                        help='enter a value in pawn unit to stop the engine analysis, (default=-3.0). '
-                        'If the score of the game move is -3.0 or less '
-                        'chess-artist would no longer analyze the position to look '
-                        'for alternative move.',
+                        help=('enter a value in pawn unit to stop the engine '
+                              'analysis, (default=-3.0). If the score of the '
+                              'game move is -3.0 or less chess-artist would '
+                              'no longer analyze the position to look for '
+                              'alternative move.'),
                         default=-3.0, type=float, required=False)
     parser.add_argument("--max-score-stop-analysis", 
-                        help='enter a value in pawn unit to stop the engine analysis, (default=3.0). '
-                        'If the score of the game move is 3 or more '
-                        'chess-artist would no longer analyze the position to look '
-                        'for alternative move.',
+                        help=('enter a value in pawn unit to stop the engine '
+                              'analysis, (default=3.0). If the score of the '
+                              'game move is 3 or more chess-artist would no '
+                              'longer analyze the position to look for '
+                              'alternative move.'),
                         default=3.0, type=float, required=False)
 
     args = parser.parse_args()
