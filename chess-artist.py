@@ -4,7 +4,6 @@ Chess Artist
 
 
 import os
-import sys
 import subprocess
 import argparse
 import random
@@ -18,7 +17,7 @@ sr = random.SystemRandom()
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = 'v2.17'
+APP_VERSION = 'v2.18'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -2593,8 +2592,7 @@ def main():
             logging.info('There is error in command line.')
             print('There is error in command line.')
 
-    print('Done!!\n')  
-    sys.exit(0)
+    print('Done!!\n')
 
 
 if __name__ == "__main__":
