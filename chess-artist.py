@@ -17,7 +17,7 @@ sr = random.SystemRandom()
 
 # Constants
 APP_NAME = 'Chess Artist'
-APP_VERSION = 'v2.18'
+APP_VERSION = 'v2.19'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -1314,41 +1314,58 @@ class Analyze():
         return bestMove, scoreP, complexityNumber, moveChanges, pvLineSan
 
     def GetComplexityNumber(self, savedMove, fen):
-        """ Returns complexity number and move changes counts
-            savedMove = [[depth1, move1],[depth2, move2]]
+        """
+        Calculate complexity number of a position and root move changes counts.
+        Complexity number is high if there are queen and more material on the
+        board. It is decreased if center is blocked.
+
+        Also count how many times the engine's root best move changes. If there
+        are more move changes that means the engine has a difficult time in
+        selecting the best move in the position. Possibly such position is also
+        difficult for human.
+
+        Complexity number and root move changes are used to create the move
+        annotation symbols such as !?, ! and !!. If the position has a high
+        complexity number or high root move changes and if the game move and
+        analyzing engine's best move are the same, then the game move can get
+        move annotation symbols.
+
+        savedMove: [[depth1, move1],[depth2, move2]]
+        Returns: complexity number and move changes counts
         """
         logging.info('Get Complexity number.')
-        complexityNumber, moveChanges = 0, 0
-        lastMove = None
-        lastDepth = 0
+        complexityNumber, moveChanges, lastMove, lastDepth = 0, 0, None, 0
+
+        logging.info('Analysis data to evaluate:')
         for n in savedMove:
             depth = n[0]
             move = n[1]
+            logging.info(f'depth: {depth}, move: {move}')
+
+            # Typically for Stockfish and other alpha-beta engines, start
+            # calculating the complexity number if depth is 10 or more.
+            # Todo: Detect analyzing engine that uses NN like Lc0.
             if depth >= 10:
                 if move != lastMove and depth != lastDepth:
                     complexityNumber += depth
                     moveChanges += 1
+                    logging.info('There is complexity and root move change.')
             lastDepth = depth
             lastMove = move
 
         # Increase complexityNumber when there are queens, and high mat values
         if complexityNumber > 0:
             wmat, bmat, queens, pawns = Analyze.GetMaterialInfo(fen)
-            if queens > 0:
-                complexityNumber += 5
+            complexityNumber += 5 if queens > 0 else 0
                 
             # High piece values remaining and 2 pawns is at least exchanged
-            if wmat + bmat >= 46 and pawns <= 14:
-                complexityNumber += 5
+            complexityNumber += 5 if wmat + bmat >= 46 and pawns <= 14 else 0
 
         # Reduce complexity number when center is closed
-        if self.IsCenterClosed(fen):
-            complexityNumber -= 10
-            if complexityNumber < 0:
-                complexityNumber = 0
+        complexityNumber -= 10 if self.IsCenterClosed(fen) else 0
+        complexityNumber = max(0, complexityNumber)
                 
-        logging.info('Complexity number: %d' % complexityNumber)
-                
+        logging.info(f'Complexity number: {complexityNumber}, move changes: {moveChanges}')
         return complexityNumber, moveChanges
 
     def IsCenterClosed(self, fen):
