@@ -1609,14 +1609,14 @@ class Analyze():
             if self.playerAndOpp is not None:
                 if ((self.color == 'white' and playerColor == 'white') or
                         (self.color == 'black' and playerColor == 'black')):
-                    f.write('{WhiteBlunder=%d, BlackBunder=%d, WhiteBad=%d, BlackBad=%d} %s\n\n' % (
+                    f.write('{WhiteBlunder=%d, BlackBlunder=%d, WhiteBad=%d, BlackBad=%d} %s\n\n' % (
                                 self.blunderCnt['w'], self.blunderCnt['b'],
                                 self.badCnt['w'], self.badCnt['b'], res))
                 else:
                     f.write('%s\n\n' % (res))
             else:
                 if self.color is None and self.player is None:
-                    f.write('{WhiteBlunder=%d, BlackBunder=%d, WhiteBad=%d, BlackBad=%d} %s\n\n' % (
+                    f.write('{WhiteBlunder=%d, BlackBlunder=%d, WhiteBad=%d, BlackBad=%d} %s\n\n' % (
                             self.blunderCnt['w'], self.blunderCnt['b'],
                             self.badCnt['w'], self.badCnt['b'], res))
                 elif self.color is not None and self.player is not None:

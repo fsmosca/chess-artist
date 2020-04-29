@@ -96,7 +96,7 @@ positive is good for white and negative is good for black}
 24. Nc6+ {-3.26} 24... Kb7 {-2.69} (24...Ka8 {-3.11}) 
 25. Na5+ {-3.07} 25... Ka8 {-2.60} 
 26. Nc6 {-3.47} 26... Kb7 $2 {-2.56} (26...Bd7 {-3.26}) 
-27. Na5+ {-3.32} 27... Ka8 {-3.15} 28. Nc6 {-3.22} {WhiteBlunder=2, BlackBunder=0, WhiteBad=3, BlackBad=4} 1/2-1/2
+27. Na5+ {-3.32} 27... Ka8 {-3.15} 28. Nc6 {-3.22} {WhiteBlunder=2, BlackBlunder=0, WhiteBad=3, BlackBad=4} 1/2-1/2
 ```
 
 ### 2. Test engine with test suite
