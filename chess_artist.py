@@ -14,7 +14,6 @@ import chess.polyglot
 
 sr = random.SystemRandom()
 
-
 # Constants
 APP_NAME = 'Chess Artist'
 APP_VERSION = 'v2.19'
@@ -42,6 +41,10 @@ BETTER = ['Better', 'Preferable', 'More useful', 'Worthier', 'Superior',
 BOOK_COMMENT = 'Polyglot book'
 PLAN_COMMENT = ['with the idea of', 'planning', 'followed by']
     
+
+def choice(comments):
+    return sr.choice(comments)
+
 
 def DeleteFile(fn):
     """ Delete fn file """
@@ -241,9 +244,9 @@ class Analyze():
             posScore = -1 * posScore
         varComment = ''
         if engScore - posScore > 5 * DRAW_SCORE:
-            varComment = '%s is' % sr.choice(BEST)
+            varComment = '%s is' % choice(BEST)
         elif engScore - posScore > DRAW_SCORE:
-            varComment = '%s is' % sr.choice(BETTER)
+            varComment = '%s is' % choice(BETTER)
         return varComment
 
     def WriteSanMove(self, side, moveNumber, sanMove):
@@ -416,11 +419,11 @@ class Analyze():
                         if moveNag == '$0':
                             f.write('%d. %s {%+0.2f, %s %s} ' % (
                                 moveNumber, sanMove, posScore,
-                                sr.choice(PLAN_COMMENT), threatMove))
+                                choice(PLAN_COMMENT), threatMove))
                         else:
                             f.write('%d. %s %s {%+0.2f, %s %s} ' % (
                                 moveNumber, sanMove, moveNag, posScore,
-                                sr.choice(PLAN_COMMENT), threatMove))
+                                choice(PLAN_COMMENT), threatMove))
             # Else if side to move is black
             else:
                 if sanMove != engMove:
@@ -514,11 +517,11 @@ class Analyze():
                         if moveNag == '$0':
                             f.write('%d... %s {%+0.2f, %s %s} ' % (
                                 moveNumber, sanMove, posScore,
-                                sr.choice(PLAN_COMMENT), threatMove))
+                                choice(PLAN_COMMENT), threatMove))
                         else:
                             f.write('%d... %s %s {%+0.2f, %s %s} ' % (
                                 moveNumber, sanMove, moveNag, posScore,
-                                sr.choice(PLAN_COMMENT), threatMove))
+                                choice(PLAN_COMMENT), threatMove))
 
                 # Format output, don't write movetext in one long line.
                 if self.writeCnt >= 2:
@@ -617,12 +620,12 @@ class Analyze():
                         if moveNag == '$0':
                             f.write('%d. %s {%+0.2f, %s %s} (%d. %s {%s}) ' % (
                                 moveNumber, sanMove, posScore,
-                                sr.choice(PLAN_COMMENT), threatMove,
+                                choice(PLAN_COMMENT), threatMove,
                                 moveNumber, bookMove, BOOK_COMMENT))
                         else:
                             f.write('%d. %s %s {%+0.2f, %s %s} (%d. %s {%s}) ' % (
                                 moveNumber, sanMove, moveNag, posScore,
-                                sr.choice(PLAN_COMMENT), threatMove,
+                                choice(PLAN_COMMENT), threatMove,
                                 moveNumber, bookMove, BOOK_COMMENT))
                     # Else if there is no threat move
                     else:
@@ -673,12 +676,12 @@ class Analyze():
                         if moveNag == '$0':
                             f.write('%d... %s {%+0.2f, %s %s} (%d... %s {%s}) ' % (
                                 moveNumber, sanMove, posScore, 
-                                sr.choice(PLAN_COMMENT), threatMove,
+                                choice(PLAN_COMMENT), threatMove,
                                 moveNumber, bookMove, BOOK_COMMENT))
                         else:
                             f.write('%d... %s %s {%+0.2f, %s %s} (%d... %s {%s}) ' % (
                                 moveNumber, sanMove, moveNag, posScore,
-                                sr.choice(PLAN_COMMENT), threatMove,
+                                choice(PLAN_COMMENT), threatMove,
                                 moveNumber, bookMove, BOOK_COMMENT))
                     else:
                         if moveNag == '$0':
@@ -2522,28 +2525,28 @@ def main():
     parser.add_argument('--loss', action='store_true',
                         help=('This is used to analyze games where a player '
                               'lost his/her game. Example to analyze lost games by '
-                              'Mangnus, use: chess-artist.exe --player "Carlsen, Magnus" '
+                              'Mangnus, use: chess_artist.exe --player "Carlsen, Magnus" '
                               '--loss ... other options. '
                               'To analyze all games with non-draw results: '
-                              'chess-artist.exe --loss ... other options'))
+                              'chess_artist.exe --loss ... other options'))
     parser.add_argument('--draw', action='store_true',
                         help=('This is used to analyze games where a player '
                               'has drawn his/her game. Example to analyze drawn games by '
-                              'Mangnus, use: chess-artist.exe --player "Carlsen, Magnus" '
+                              'Mangnus, use: chess_artist.exe --player "Carlsen, Magnus" '
                               '--draw ... other options. '
                               'To analyze all games with draw results: '
-                              'chess-artist.exe --draw ... other options'))
+                              'chess_artist.exe --draw ... other options'))
     parser.add_argument("--min-score-stop-analysis", 
                         help=('enter a value in pawn unit to stop the engine '
                               'analysis, (default=-3.0). If the score of the '
-                              'game move is -3.0 or less chess-artist would '
+                              'game move is -3.0 or less chess_artist would '
                               'no longer analyze the position to look for '
                               'alternative move.'),
                         default=-3.0, type=float, required=False)
     parser.add_argument("--max-score-stop-analysis", 
                         help=('enter a value in pawn unit to stop the engine '
                               'analysis, (default=3.0). If the score of the '
-                              'game move is 3 or more chess-artist would no '
+                              'game move is 3 or more chess_artist would no '
                               'longer analyze the position to look for '
                               'alternative move.'),
                         default=3.0, type=float, required=False)
