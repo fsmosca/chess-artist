@@ -927,7 +927,7 @@ class Analyze():
             if 'King safety ' in line:
                 kingSafetyCommentNext = line
                 break
-            if 'total evaluation:' in line.lower():
+            if 'final evaluation:' in line.lower() or 'total evaluation:' in line.lower():
                 break
 
         self.Send(p, 'quit')
@@ -980,7 +980,7 @@ class Analyze():
             if 'Passed ' in line:
                 passedPawnComment = line
                 break
-            if 'total evaluation:' in line.lower():
+            if 'final evaluation:' in line.lower() or 'total evaluation:' in line.lower():
                 break
 
         self.Send(p, 'quit')
@@ -1030,7 +1030,7 @@ class Analyze():
             
             if 'Mobility ' in line:
                 mobilityComment = line
-            if 'total evaluation:' in line.lower():
+            if 'final evaluation:' in line.lower() or 'total evaluation:' in line.lower():
                 break
 
         self.Send(p, 'quit')
@@ -1154,7 +1154,7 @@ class Analyze():
         # Parse the output and extract the engine static eval.
         for eline in iter(p.stdout.readline, ''):        
             line = eline.strip()
-            if 'total evaluation' in line.lower():
+            if 'final evaluation:' in line.lower() or 'total evaluation:' in line.lower():
                 first = line.split('(')[0]
                 score = float(first.split()[2])
                 logging.info('fen: %s, static score: %0.2f' % (fen, score))
@@ -1580,7 +1580,7 @@ class Analyze():
             line = eline.strip()                  
 
             # Break search
-            if 'total evaluation: ' in line.lower():
+            if 'final evaluation:' in line.lower() or 'total evaluation:' in line.lower():
                 first = line.split('(')[0]
                 scoreP = float(first.split()[2])
                 break
