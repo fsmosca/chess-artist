@@ -3,17 +3,17 @@ A python script and exe file that can analyze games in the pgn file, annotate ep
 
 ## A. Requirements
 ### 1. Python 2.7
-* chess-artist.py version <= 1.0
+* chess_artist.py version <= 1.0
 * [Python 2.7](https://www.python.org/downloads/release/python-2715/)
 * [Python-chess v0.21.2](https://github.com/niklasf/python-chess)
 * UCI chess engine (preferably Stockfish version >= 10)
 * PGN file
 * EPD file
 
-Without using python 2.7 and python source file, just download the exe file in releases link at https://github.com/fsmosca/chess-artist/releases
+Without using python 2.7 and python source file, just download the exe file in releases link at https://github.com/fsmosca/chess_artist/releases
 
 ### 2. Python 3.7
-* chess-artist.py version >= 2.0
+* chess_artist.py version >= 2.0
 * [Python 3.7](https://www.python.org/downloads/)
 * [Python-chess version >= v0.28.3](https://github.com/niklasf/python-chess)
 * UCI chess engine (preferably Stockfish version >= 10)
@@ -23,29 +23,29 @@ Without using python 2.7 and python source file, just download the exe file in r
 ## B. Command lines
 ### 1. Analyze games in pgn file
 #### a) Basic command line
-`chess-artist.exe --infile sample.pgn --outfile out_sample.pgn --enginefile engine\stockfish\windows\stockfish_10_x64_popcnt.exe --eval search --job analyze --movetime 2000`
+`chess_artist.exe --infile sample.pgn --outfile out_sample.pgn --enginefile engine\stockfish\windows\stockfish_10_x64_popcnt.exe --eval search --job analyze --movetime 2000`
 
 #### b) Add options to engine, use --engineoptions
-`python chess-artist.py --infile sample.pgn --outfile out_sample.pgn --enginefile Stockfish.exe --engineoptions "Hash value 128, Threads value 1" --eval search --job analyze --movetime 2000`<br><br>
-Will analyze games inside sample.pgn and output the analyzed games in out_sample.pgn. It uses engine Stockfish.exe with Hash 128MB and Threads 1 at 2000 millisec or 2 sec analysis time per position. chess-artist.py and Stockfish.exe engine must be in same directory.<br>
+`python chess_artist.py --infile sample.pgn --outfile out_sample.pgn --enginefile Stockfish.exe --engineoptions "Hash value 128, Threads value 1" --eval search --job analyze --movetime 2000`<br><br>
+Will analyze games inside sample.pgn and output the analyzed games in out_sample.pgn. It uses engine Stockfish.exe with Hash 128MB and Threads 1 at 2000 millisec or 2 sec analysis time per position. chess_artist.py and Stockfish.exe engine must be in same directory.<br>
 
 #### c) Analyze game with polyglot book
-`python chess-artist.py --infile sample.pgn --outfile out_sample.pgn --enginefile Stockfish.exe --engineoptions "Hash value 128, Threads value 1" --bookfile gm2600.bin --eval search --job analyze --movetime 2000`
+`python chess_artist.py --infile sample.pgn --outfile out_sample.pgn --enginefile Stockfish.exe --engineoptions "Hash value 128, Threads value 1" --bookfile gm2600.bin --eval search --job analyze --movetime 2000`
 
-#### d) Analyze game with polyglot book in book dir at chess-artist folder
-`python chess-artist.py --infile sample.pgn --outfile out_sample.pgn --enginefile Stockfish.exe --engineoptions "Hash value 128, Threads value 1" --bookfile book/book.bin --eval search --job analyze --movetime 2000`
+#### d) Analyze game with polyglot book in book dir at chess_artist folder
+`python chess_artist.py --infile sample.pgn --outfile out_sample.pgn --enginefile Stockfish.exe --engineoptions "Hash value 128, Threads value 1" --bookfile book/book.bin --eval search --job analyze --movetime 2000`
 
 #### e) Analyze between move 12 to move 20
-`python chess-artist.py --infile sample.pgn --outfile out_sample.pgn --enginefile Stockfish.exe --eval search --job analyze --movetime 2000 --movestart 12 --moveend 20`
+`python chess_artist.py --infile sample.pgn --outfile out_sample.pgn --enginefile Stockfish.exe --eval search --job analyze --movetime 2000 --movestart 12 --moveend 20`
 
 #### f) Analyze certain player name say Carlsen, Magnus
-`python chess-artist.py --infile sample.pgn --outfile out_sample.pgn --enginefile Stockfish.exe --eval search --job analyze --movetime 2000 --movestart 12 --moveend 20 --player "Carlsen, Magnus"`
+`python chess_artist.py --infile sample.pgn --outfile out_sample.pgn --enginefile Stockfish.exe --eval search --job analyze --movetime 2000 --movestart 12 --moveend 20 --player "Carlsen, Magnus"`
 
 #### g) Analyze games of Carlsen, Magnus where he is black
-`python chess-artist.py --infile iommast19.pgn --outfile magnus_black.pgn --enginefile Stockfish.exe --eval search --job analyze --movetime 2000 --movestart 12 --moveend 20 --player "Carlsen, Magnus" --color black`
+`python chess_artist.py --infile iommast19.pgn --outfile magnus_black.pgn --enginefile Stockfish.exe --eval search --job analyze --movetime 2000 --movestart 12 --moveend 20 --player "Carlsen, Magnus" --color black`
 
 #### h) Analyze lost games of Movsesian, Sergei, also analyze moves of its opponent, using --player-and-opp option
-`chess-artist.exe --infile iommast19.pgn --outfile sergie_loses.pgn --enginefile Stockfish.exe --eval search --job analyze --movetime 5000 --player-and-opp "Movsesian, Sergei" --loss`
+`chess_artist.exe --infile iommast19.pgn --outfile sergie_loses.pgn --enginefile Stockfish.exe --eval search --job analyze --movetime 5000 --player-and-opp "Movsesian, Sergei" --loss`
 
 #### i) Sample analyzed Fischer Random Chess game
 ```
@@ -101,7 +101,7 @@ positive is good for white and negative is good for black}
 
 ### 2. Test engine with test suite
 #### Use movetime of 500ms
-`python chess-artist.py --infile wacnew.epd --outfile result_wacnew.txt --enginefile stockfish_10.exe --engineoptions "Hash value 128, Threads value 1" --eval search --job test --movetime 500`<br><br>
+`python chess_artist.py --infile wacnew.epd --outfile result_wacnew.txt --enginefile stockfish_10.exe --engineoptions "Hash value 128, Threads value 1" --eval search --job test --movetime 500`<br><br>
 Output file result_wacnew.txt<br>
 ```
 :: EPD wacnew.epd TEST RESULTS ::
@@ -123,11 +123,11 @@ Total correct         : 274
 Correct percentage    : 91.33
 ```
 #### Use depth of 10 without movetime
-`python chess-artist.py --infile wacnew.epd --outfile result_wacnew.txt --enginefile stockfish_10.exe --engineoptions "Hash value 128, Threads value 1" --eval search --job test --depth 10 --movetime 0`
+`python chess_artist.py --infile wacnew.epd --outfile result_wacnew.txt --enginefile stockfish_10.exe --engineoptions "Hash value 128, Threads value 1" --eval search --job test --depth 10 --movetime 0`
 
 ### 3. Annotate the epd file
 #### Use Stockfish to annotate epd file at movetime 30s or 30000ms
-`python2 chess-artist.py --infile repertoire.epd --outfile out_repertoire.epd --enginefile stockfish_10.exe --engineoptions "Hash value 128, Threads value 1" --eval search --job analyze --movetime 30000`
+`python2 chess_artist.py --infile repertoire.epd --outfile out_repertoire.epd --enginefile stockfish_10.exe --engineoptions "Hash value 128, Threads value 1" --eval search --job analyze --movetime 30000`
 
 Example output:
 ```
@@ -135,10 +135,10 @@ rn1q1rk1/pbp2ppp/1p1ppn2/6B1/2PP4/P1Q1P3/1P3PPP/R3KBNR w KQ - c0 "Nimzo-Indian";
 rnbq1rk1/pp2ppbp/6p1/2p5/3PP3/2P2N2/P4PPP/1RBQKB1R w K - c0 "Gruenfeld"; acd 26; acs 30; bm Be2; ce +74; Ae "Stockfish 10 64 POPCNT";
 ```
 #### Use Stockfish to annotate epd file with depth equals 16 and no movetime
-`python2 chess-artist.py --infile repertoire.epd --outfile out_repertoire.epd --enginefile stockfish_10.exe --engineoptions "Hash value 128, Threads value 1" --eval search --job analyze --depth 16 --movetime 0`
+`python2 chess_artist.py --infile repertoire.epd --outfile out_repertoire.epd --enginefile stockfish_10.exe --engineoptions "Hash value 128, Threads value 1" --eval search --job analyze --depth 16 --movetime 0`
 
 ### 4. Generate chess puzzles or test positions
-`chess-artist.exe --infile iommast19.pgn --outfile out_iommast19.pgn --enginefile C:\chess\engines\stockfish_19100908_x64_modern.exe --engineoptions "Hash value 128" --movestart 8 --movetime 10000 --job createpuzzle --eval search`  
+`chess_artist.exe --infile iommast19.pgn --outfile out_iommast19.pgn --enginefile C:\chess\engines\stockfish_19100908_x64_modern.exe --engineoptions "Hash value 128" --movestart 8 --movetime 10000 --job createpuzzle --eval search`  
 
 positions are saved in puzzle.epd  
 
