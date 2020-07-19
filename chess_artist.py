@@ -119,12 +119,12 @@ class Analyze():
 
         return False
 
-    def Getboard(self, fen):
+    def Getboard(self, fen, isChess960=False):
         if self.variantTag is None or self.variantTag == 'chess960':
             return chess.Board(fen, chess960=True if self.variantTag == 'chess960' else False)
         else:
             if self.variantTag == 'Atomic':
-                return chess.variant.AtomicBoard(fen, chess960=True if self.variantTag == 'chess960' else False)
+                return chess.variant.AtomicBoard(fen, chess960=isChess960)
             else:
                 raise Exception(f'Variant {self.variantTag} is not supported.')
 
