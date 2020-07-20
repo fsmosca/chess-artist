@@ -2381,6 +2381,19 @@ class Analyze():
         with open(self.infn) as h:
             game = chess.pgn.read_game(h)
             while game:
+                try:
+                    variantTag = game.headers["Variant"]
+                    logging.info(f'Actual game Variant tag is {variantTag}.')
+                    if variantTag in ['Chess960', 'fischerandom', 'chess 960', 'chess960']:
+                        self.variantTag = 'chess960'
+                    else:
+                        self.variantTag = variantTag
+                    logging.info(f'Set variant tag to {self.variantTag}.')
+                except KeyError:
+                    logging.info('There is no Variant tag in the game header.')
+                except:
+                    logging.exception('Error in getting game variant tag value')
+                    
                 gameNode = game        
                 while gameNode.variations:
                     board = gameNode.board()
@@ -2457,12 +2470,13 @@ class Analyze():
                     # Compare pv move in the first half of the search and bestmove
                     if bestMove != pvMove and bestScore >= pvScore + PUZZLE_CP_SCORE_MARGIN:
                         print('save fen in puzzle.epd')
+                        epdLine = f'{board.epd()} bm {board.san(chess.Move.from_uci(bestMove))};'
+                        epdLine += f' Ubm {bestMove}; Ae "{self.engIdName}";'
+                        print(self.variantTag)
+                        if self.variantTag is not None:
+                            epdLine += f' variant "{self.variantTag.lower()}";'
                         with open(self.puzzlefn, 'a') as f:
-                            f.write('%s bm %s; Ubm %s; Ae "%s";\n' % (
-                                    board.epd(),
-                                    board.san(chess.Move.from_uci(bestMove)),
-                                    bestMove,
-                                    self.engIdName))
+                            f.write(f'{epdLine}\n')
                     
                     gameNode = nextNode
                     
