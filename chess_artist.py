@@ -91,6 +91,7 @@ class Analyze():
         self.blunderCnt = {'w': 0, 'b': 0}
         self.badCnt = {'w': 0, 'b': 0}
         self.variantTag = None
+        self.game960 = opt['-game960']
         
     def Send(self, p, msg):
         """ Send msg to engine """
@@ -119,12 +120,12 @@ class Analyze():
 
         return False
 
-    def Getboard(self, fen, isChess960=False):
+    def Getboard(self, fen):
         if self.variantTag is None or self.variantTag == 'chess960':
             return chess.Board(fen, chess960=True if self.variantTag == 'chess960' else False)
         else:
             if self.variantTag == 'Atomic':
-                return chess.variant.AtomicBoard(fen, chess960=isChess960)
+                return chess.variant.AtomicBoard(fen, chess960=self.game960)
             else:
                 raise Exception(f'Variant {self.variantTag} is not supported.')
 
@@ -2586,6 +2587,8 @@ def main():
                               'longer analyze the position to look for '
                               'alternative move.'),
                         default=3.0, type=float, required=False)
+    parser.add_argument('--game960', action='store_true',
+                        help='A flag to enable chess960 of a variant game which will be used for python-chess.')
 
     args = parser.parse_args()
     
@@ -2617,7 +2620,8 @@ def main():
                '-min-score-stop-analysis': args.min_score_stop_analysis,
                '-max-score-stop-analysis': args.max_score_stop_analysis,
                '-draw': args.draw,
-               '-enginename': args.enginename
+               '-enginename': args.enginename,
+               '-game960': args.game960
                }
     
     if args.log:
