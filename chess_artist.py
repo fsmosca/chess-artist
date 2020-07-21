@@ -2473,9 +2473,10 @@ class Analyze():
                         print('save fen in puzzle.epd')
                         epdLine = f'{board.epd()} bm {board.san(chess.Move.from_uci(bestMove))};'
                         epdLine += f' Ubm {bestMove}; Ae "{self.engIdName}";'
-                        print(self.variantTag)
                         if self.variantTag is not None:
                             epdLine += f' variant "{self.variantTag.lower()}";'
+                            if self.variantTag != 'chess960' and self.game960:
+                                epdLine += ' Variant1 "chess960";'
                         with open(self.puzzlefn, 'a') as f:
                             f.write(f'{epdLine}\n')
                     
