@@ -149,5 +149,6 @@ The Ubm refers to best move in uci move format.
 ## C. Credits
 * [Python-Chess](https://github.com/niklasf/python-chess)
 * [Stockfish](https://github.com/official-stockfish/Stockfish)
+* [Multi Variant Stockfish](https://github.com/ddugovic/Stockfish)
 * [TheWeekInChess](https://theweekinchess.com/)
 
