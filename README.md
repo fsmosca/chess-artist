@@ -8,7 +8,7 @@ Either use the windows exe file or use the python source and required modules.
 https://github.com/fsmosca/chess-artist/releases
 
 ### 2. Use python source and modules
-* Install python
+* Install python >= 3.8
 * Install python-chess  
 
   new:
