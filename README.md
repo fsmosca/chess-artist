@@ -19,8 +19,11 @@ https://github.com/fsmosca/chess-artist/releases
     
   or  
   * pip install -r requirements.txt
+  
+## B. Help
+Use the command line: `python chess_artist.py -h` or see [here](https://github.com/fsmosca/chess-artist/wiki/Help).
 
-## B. Command lines
+## C. Command lines
 ### 1. Analyze games in pgn file
 #### a) Basic command line
 `python chess_artist.py --infile ./PGN/sample.pgn --outfile out_sample.pgn --enginefile ./Engine/stockfish/stockfish_12_x64_modern.exe --eval search --job analyze --movetime 1000`
@@ -152,7 +155,7 @@ r3kb1r/pp3pq1/1np1b2p/3pP3/3P2p1/2NB2P1/PPQ2PPN/2KR3R w kq - bm Kb1; Ubm c1b1;
 
 The Ubm refers to best move in uci move format.
 
-## C. Credits
+## D. Credits
 * [Python-Chess](https://github.com/niklasf/python-chess)
 * [Stockfish](https://github.com/official-stockfish/Stockfish)
 * [Multi Variant Stockfish](https://github.com/ddugovic/Stockfish)
