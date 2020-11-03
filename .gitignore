@@ -24,3 +24,9 @@ Output/*
 # Ignore text files, except README.txt
 *.txt
 !README.txt
+
+# Pycharm
+*.idea
+
+# Virtual
+*venv
