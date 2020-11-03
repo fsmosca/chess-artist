@@ -11,6 +11,7 @@ import logging
 import time
 import chess.pgn
 import chess.polyglot
+import chess.variant
 
 sr = random.SystemRandom()
 
@@ -90,6 +91,7 @@ class Analyze():
         self.blunderCnt = {'w': 0, 'b': 0}
         self.badCnt = {'w': 0, 'b': 0}
         self.variantTag = None
+        self.game960 = opt['-game960']
         
     def Send(self, p, msg):
         """ Send msg to engine """
@@ -105,11 +107,34 @@ class Analyze():
                 break
             if command == 'isready' and 'readyok' in line:
                 break
-    
-    @staticmethod
-    def UciToSanMove(fen, uciMove, variant):
+
+    def GameOver(self, board):
+        """
+        Todo: Study game ends of every variant. Check is_variant_end().
+        """
+        if self.variantTag is None or self.variantTag == 'chess960':
+            return board.is_checkmate() or board.is_stalemate()
+        else:
+            if self.variantTag == 'Atomic':
+                return board.is_variant_end()
+
+        return False
+
+    def Getboard(self, fen):
+        if self.variantTag is None or self.variantTag == 'chess960':
+            return chess.Board(fen, chess960=True if self.variantTag == 'chess960' else False)
+        else:
+            if self.variantTag == 'Atomic':
+                return chess.variant.AtomicBoard(fen, chess960=self.game960)
+            else:
+                raise Exception(f'Variant {self.variantTag} is not supported.')
+
+        return None
+
+    def UciToSanMove(self, fen, uciMove):
         """ Returns san move given fen and uci move """
-        board = chess.Board(fen, chess960=True if variant == 'chess960' else False)
+        board = self.Getboard(fen)
+
         return board.san(chess.Move.from_uci(uciMove))
 
     def PrintEngineIdName(self):
@@ -1067,7 +1092,7 @@ class Analyze():
             return polyMove
 
         # Find the move with highest book weight
-        board = chess.Board(fen, chess960=True if self.variantTag == 'chess960' else False)
+        board = self.Getboard(fen)
         bestWeight = -1
         bestMove = None        
         with chess.polyglot.open_reader(self.bookFile) as reader:
@@ -1079,7 +1104,7 @@ class Analyze():
         polyMove = bestMove
                 
         if polyMove is not None:
-            polyMove = Analyze.UciToSanMove(fen, polyMove, self.variantTag)
+            polyMove = self.UciToSanMove(fen, polyMove)
         
         return polyMove
 
@@ -1183,7 +1208,7 @@ class Analyze():
         self.ReadEngineReply(p, 'isready')
 
         # Push null move
-        b = chess.Board(fen, chess960=True if self.variantTag == 'chess960' else False)
+        b = self.Getboard(fen)
         b.push(chess.Move.null())
         newFen = b.fen()
         
@@ -1203,7 +1228,7 @@ class Analyze():
         p.communicate()
 
         if bestMove is not None:
-            bestMove = Analyze.UciToSanMove(newFen, bestMove, self.variantTag)
+            bestMove = self.UciToSanMove(newFen, bestMove)
             logging.info(f'threat move: {bestMove}')
         
         return bestMove
@@ -1288,8 +1313,8 @@ class Analyze():
             pvLine.append(bestMove)
 
         try:
-            board = chess.Board(fen, chess960=True if self.variantTag == 'chess960' else False)
-            
+            board = self.Getboard(fen)
+
             if len(pvLine) % 2 == 0:
                 logging.info('pvLine is even, %s' % pvLine)               
                 pvLine = pvLine[:-1]
@@ -1305,7 +1330,7 @@ class Analyze():
         if isGetComplexityNumber:
             complexityNumber, moveChanges = self.GetComplexityNumber(
                     savedMove, fen)
-        bestMove = Analyze.UciToSanMove(fen, bestMove, self.variantTag)
+        bestMove = self.UciToSanMove(fen, bestMove)
         if not side:
             scoreCp = -1 * scoreCp
 
@@ -1546,7 +1571,7 @@ class Analyze():
         p.communicate()
 
         # Convert uci move to san move format.
-        bestMove = Analyze.UciToSanMove(fen, bestMove, self.variantTag)
+        bestMove = self.UciToSanMove(fen, bestMove)
 
         # Verify values to be returned
         assert depthSearched != TEST_SEARCH_DEPTH, 'Error the engine does not search at all.'
@@ -1749,13 +1774,14 @@ class Analyze():
             # Chess.com: Chess960
             # Winboard/Xboard: fischerandom
             # WeekInChess: chess 960
-            self.variantTag = None            
             try:
                 variantTag = game.headers["Variant"]
                 logging.info(f'Actual game Variant tag is {variantTag}.')
                 if variantTag in ['Chess960', 'fischerandom', 'chess 960', 'chess960']:
                     self.variantTag = 'chess960'
-                    logging.info(f'Set variant tag to {self.variantTag}.')
+                else:
+                    self.variantTag = variantTag
+                logging.info(f'Set variant tag to {self.variantTag}.')
             except KeyError:
                 logging.info('There is no Variant tag in the game header.')
             except:
@@ -1978,7 +2004,7 @@ class Analyze():
                             sanMove, posScore, engBestMove, engBestScore))
                     
                 # (5) Check if game is over.
-                isGameOver = nextNode.board().is_checkmate() or nextNode.board().is_stalemate()
+                isGameOver = self.GameOver(nextNode.board())
 
                 # (5.1) Calculate the threat move if game move and engine best
                 # move is the same and the position is complex and the engine
@@ -2066,8 +2092,9 @@ class Analyze():
                 print('epd %d: %s' %(cntEpd, epd))
 
                 # If this position has no legal move then we skip it.
-                pos = chess.Board(fen, chess960=True if self.variantTag == 'chess960' else False)
-                isGameOver = pos.is_checkmate() or pos.is_stalemate()
+                pos = self.Getboard(fen)
+                isGameOver = self.GameOver(pos)
+
                 if isGameOver:
                     # Show warning in console.
                     print('Warning! epd \"%s\"' %(epd))
@@ -2228,8 +2255,8 @@ class Analyze():
                 print('FEN %d: %s' %(cntEpd, fen))
 
                 # If this position has no legal move then we skip it.
-                pos = chess.Board(fen, chess960=True if self.variantTag == 'chess960' else False)
-                isGameOver = pos.is_checkmate() or pos.is_stalemate()
+                pos = self.Getboard(fen)
+                isGameOver = self.GameOver(pos)
                 if isGameOver:
                     # Show warning in console.
                     print('Warning! epd \"%s\"' %(epd))
@@ -2273,7 +2300,7 @@ class Analyze():
                         logging.debug('<< %s' % line)                    
 
                     if 'bestmove ' in line:                        
-                        bm = Analyze.UciToSanMove(fen, line.split()[1], self.variantTag)
+                        bm = self.UciToSanMove(fen, line.split()[1])
                         break
                 
                 # The percentage correct is based on valid epd only
@@ -2336,7 +2363,7 @@ class Analyze():
         """
         
         PUZZLE_CP_SCORE_MARGIN = 25
-        WIN_CP_SCORE_THRESHOLD = 200
+        WIN_CP_SCORE_THRESHOLD = 5000
         MIN_FULLMOVE_NUMBER = 12
         
         p = subprocess.Popen(self.eng, stdin=subprocess.PIPE,
@@ -2355,6 +2382,19 @@ class Analyze():
         with open(self.infn) as h:
             game = chess.pgn.read_game(h)
             while game:
+                try:
+                    variantTag = game.headers["Variant"]
+                    logging.info(f'Actual game Variant tag is {variantTag}.')
+                    if variantTag in ['Chess960', 'fischerandom', 'chess 960', 'chess960']:
+                        self.variantTag = 'chess960'
+                    else:
+                        self.variantTag = variantTag
+                    logging.info(f'Set variant tag to {self.variantTag}.')
+                except KeyError:
+                    logging.info('There is no Variant tag in the game header.')
+                except:
+                    logging.exception('Error in getting game variant tag value')
+                    
                 gameNode = game        
                 while gameNode.variations:
                     board = gameNode.board()
@@ -2431,12 +2471,14 @@ class Analyze():
                     # Compare pv move in the first half of the search and bestmove
                     if bestMove != pvMove and bestScore >= pvScore + PUZZLE_CP_SCORE_MARGIN:
                         print('save fen in puzzle.epd')
+                        epdLine = f'{board.epd()} bm {board.san(chess.Move.from_uci(bestMove))};'
+                        epdLine += f' Ubm {bestMove}; Ae "{self.engIdName}";'
+                        if self.variantTag is not None:
+                            epdLine += f' variant "{self.variantTag.lower()}";'
+                            if self.variantTag != 'chess960' and self.game960:
+                                epdLine += ' Variant1 "chess960";'
                         with open(self.puzzlefn, 'a') as f:
-                            f.write('%s bm %s; Ubm %s; Ae "%s";\n' % (
-                                    board.epd(),
-                                    board.san(chess.Move.from_uci(bestMove)),
-                                    bestMove,
-                                    self.engIdName))
+                            f.write(f'{epdLine}\n')
                     
                     gameNode = nextNode
                     
@@ -2546,6 +2588,8 @@ def main():
                               'longer analyze the position to look for '
                               'alternative move.'),
                         default=3.0, type=float, required=False)
+    parser.add_argument('--game960', action='store_true',
+                        help='A flag to enable chess960 of a variant game which will be used for python-chess.')
 
     args = parser.parse_args()
     
@@ -2577,7 +2621,8 @@ def main():
                '-min-score-stop-analysis': args.min_score_stop_analysis,
                '-max-score-stop-analysis': args.max_score_stop_analysis,
                '-draw': args.draw,
-               '-enginename': args.enginename
+               '-enginename': args.enginename,
+               '-game960': args.game960
                }
     
     if args.log:

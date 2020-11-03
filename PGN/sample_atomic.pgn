@@ -1,0 +1,21 @@
+[Event "Hourly Atomic Arena"]
+[Site "https://lichess.org/uTA0c9Tk"]
+[Date "2020.07.19"]
+[White "venom_xz"]
+[Black "AxelGonale"]
+[Result "1-0"]
+[UTCDate "2020.07.19"]
+[UTCTime "02:28:41"]
+[WhiteElo "1977"]
+[BlackElo "2031"]
+[WhiteRatingDiff "+6"]
+[BlackRatingDiff "-15"]
+[Variant "Atomic"]
+[TimeControl "180+0"]
+[ECO "?"]
+[Opening "?"]
+[Termination "Time forfeit"]
+
+1. Nf3 f6 2. e3 d5 3. Ng5 Bg4 4. f3 fxg5 5. d4 e6 6. c3 c6 7. e4 Nf6 8. Bg5 Na6 9. a3 h6 10. b4 g6 11. h4 Qb8 12. g3 dxe4 13. d5 hxg5 14. d6 Bh6 15. f4 O-O 16. Bg2 Qd8 17. Qd4 e5 18. d7 exd4 19. O-O Kh8 20. Nd2 Bxf4 21. Rf7 Rxf7 22. c4 Qf6 23. d8=Q+ Rxd8 24. Nf3 Qb2 25. Nd2 Qc3 26. Re1 Qd4+ 27. Re3 Nb8 28. Kh1 Qa1+ 29. Nb1 Qb2 30. Re2 Qc1+ 31. Re1 Qc2 32. Nd2 Qxd2 33. c5 b5 34. cxb6 a5 35. b5 cxb5 36. g4 g5 37. h5 Kg7 38. h6+ Kh8 39. h7 Nd7 40. Bc6 Ne5 41. Bd7 Nd3 42. a4 Nf2+ 43. Kg2 Ne4 44. Be8 Nd2 45. Bf7 Nf1 46. Bc4 Ne3+ 47. Kh2 Nd1 48. Kg2 Nf2 49. Bd5 Nh1 50. Kf1 Ng3+ 51. Ke1 Ne2 52. Kd1 Nc1 53. Kc2 Ne2 54. Kb1 Nd4 55. Kb2 Nc2 56. Kc3 Ne1 57. Bg8 Nd3 58. Kd4 Nc5 59. Kd5 1-0
+
+
