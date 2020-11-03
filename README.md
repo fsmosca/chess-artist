@@ -9,8 +9,14 @@ https://github.com/fsmosca/chess-artist/releases
 
 ### 2. Use python source and modules
 * Install python
-* Install python-chess
-  * pip install python-chess  
+* Install python-chess  
+
+  new:
+    * pip install python-chess  
+    
+  upgrade:  
+    * pip install --force-reinstall chess  
+    
   or  
   * pip install -r requirements.txt
 
