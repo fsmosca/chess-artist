@@ -9,7 +9,7 @@ generate puzzles.
 
 __author__ = 'fsmosca'
 __script_name__ = 'Chess Artist'
-__version__ = 'v2.20.1'
+__version__ = 'v2.20.2'
 __credits__ = ['alxlk', 'ddugovic', 'huytd', 'python-chess']
 
 
@@ -23,9 +23,9 @@ import chess.pgn
 import chess.polyglot
 import chess.variant
 
-sr = random.SystemRandom()
 
 # Constants
+sr = random.SystemRandom()
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
