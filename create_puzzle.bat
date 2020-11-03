@@ -10,7 +10,7 @@
 
 
 :: Create puzzle from an atomic960 game
-chess_artist.py --game960 --infile pgn\sample_atomic_chess960.pgn --outfile dummy.pgn --enginename "Stockfish_2020-06-13_Multi-Variant" --enginefile D:\github\chess-artist\Engine\Stockfish_2020-06-13_Multi-Variant.exe --engineoptions "Threads value 1, Hash value 128, UCI_Variant value Atomic, UCI_Chess960 value true" --movestart 2 --movetime 10000 --job createpuzzle --eval search --log
+chess_artist.py --game960 --infile ./PGN/sample_atomic_chess960.pgn --outfile dummy.pgn --enginename "Stockfish_2020-06-13_Multi-Variant" --enginefile ./Engine/stockfish/Stockfish_2020-06-13_Multi-Variant.exe --engineoptions "Threads value 1, Hash value 128, UCI_Variant value Atomic, UCI_Chess960 value true" --movestart 2 --movetime 10000 --job createpuzzle --eval search --log
 
 pause
 
