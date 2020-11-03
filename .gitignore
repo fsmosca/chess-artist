@@ -25,8 +25,8 @@ Output/*
 *.txt
 !README.txt
 
-# Virtual env
-venv
-
 # Pycharm
-.idea
+*.idea
+
+# Virtual
+*venv
