@@ -147,14 +147,7 @@ r3kb1r/pp3pq1/1np1b2p/3pP3/3P2p1/2NB2P1/PPQ2PPN/2KR3R w kq - bm Kb1; Ubm c1b1;
 The Ubm refers to best move in uci move format.
 
 ## C. Credits
-* Niklas Fiekas<br>
-https://github.com/niklasf/python-chess  
-_Uses chess.pgn and chess.polyglot modules_
-* Stockfish team  
-https://github.com/official-stockfish/Stockfish  
-_Calculation of passed pawn, king safety and mobility for move comments are from Stockfish engine static evaluation._  
-_Windows Stockfish files can also be found under Engine folder_
-* TheWeekInChess  
-https://theweekinchess.com/  
-_Good source of games with pgn files_
+* [Python-Chess](https://github.com/niklasf/python-chess)
+* [Stockfish](https://github.com/official-stockfish/Stockfish)
+* [TheWeekInChess](https://theweekinchess.com/)
 
