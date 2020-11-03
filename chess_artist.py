@@ -9,7 +9,7 @@ generate puzzles.
 
 __author__ = 'fsmosca'
 __script_name__ = 'Chess Artist'
-__version__ = 'v2.20.0'
+__version__ = 'v2.20.1'
 __credits__ = ['alxlk', 'ddugovic', 'huytd', 'python-chess']
 
 
@@ -1872,7 +1872,7 @@ class Analyze():
 
             # Write the annotator tag.
             with open(self.outfn, 'a+') as f:
-                f.write('[Annotator "engine: %s, prog: %s %s"]\n\n' %(
+                f.write('[Annotator "engine: %s, program: %s %s"]\n\n' %(
                         engineIdName, __script_name__, __version__))
 
             # Before the movetext are written, add a comment of whether
