@@ -1,6 +1,16 @@
 """
 Chess Artist
+
+A python script and exe file that can analyze games in the pgn file,
+annotate epd file, test engine on chess puzzles or problems and can
+generate puzzles.
 """
+
+
+__author__ = 'fsmosca'
+__script_name__ = 'Chess Artist'
+__version__ = 'v2.20.0'
+__credits__ = ['alxlk', 'ddugovic', 'huytd', 'python-chess']
 
 
 import os
@@ -16,8 +26,6 @@ import chess.variant
 sr = random.SystemRandom()
 
 # Constants
-APP_NAME = 'Chess Artist'
-APP_VERSION = 'v2.19'
 BOOK_MOVE_LIMIT = 30
 BOOK_SEARCH_TIME = 200
 MAX_SCORE = 32000
@@ -1865,7 +1873,7 @@ class Analyze():
             # Write the annotator tag.
             with open(self.outfn, 'a+') as f:
                 f.write('[Annotator "engine: %s, prog: %s %s"]\n\n' %(
-                        engineIdName, APP_NAME, APP_VERSION))
+                        engineIdName, __script_name__, __version__))
 
             # Before the movetext are written, add a comment of whether
             # move comments are from static or search score of the engine.
@@ -2490,7 +2498,7 @@ class Analyze():
 
 def main():
     parser = argparse.ArgumentParser(
-        prog='%s %s' % (APP_NAME, APP_VERSION),
+        prog='%s %s' % (__script_name__, __version__),
         description=('Read pgn and analyze games in it or analyze '
                      'epd file or test engines with epd test suites'),
         epilog='%(prog)s')
