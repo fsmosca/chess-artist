@@ -5,7 +5,7 @@ A python script and exe file that can analyze games in the pgn file, annotate ep
 Either use the windows exe file or use the python source and required modules.
 
 ### 1. Download the windows exe file
-https://github.com/fsmosca/chess_artist/releases
+https://github.com/fsmosca/chess-artist/releases
 
 ### 2. Use python source and modules
 * Install python
