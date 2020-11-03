@@ -23,7 +23,7 @@ Without using python 2.7 and python source file, just download the exe file in r
 ## B. Command lines
 ### 1. Analyze games in pgn file
 #### a) Basic command line
-`chess_artist.exe --infile sample.pgn --outfile out_sample.pgn --enginefile engine\stockfish\windows\stockfish_10_x64_popcnt.exe --eval search --job analyze --movetime 2000`
+`python chess_artist.py --infile ./PGN/sample.pgn --outfile out_sample.pgn --enginefile ./Engine/stockfish/stockfish_12_x64_modern.exe --eval search --job analyze --movetime 1000`
 
 #### b) Add options to engine, use --engineoptions
 `python chess_artist.py --infile sample.pgn --outfile out_sample.pgn --enginefile Stockfish.exe --engineoptions "Hash value 128, Threads value 1" --eval search --job analyze --movetime 2000`<br><br>
