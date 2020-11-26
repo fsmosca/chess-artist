@@ -9,7 +9,7 @@ generate puzzles.
 
 __author__ = 'fsmosca'
 __script_name__ = 'Chess Artist'
-__version__ = 'v2.22.0'
+__version__ = 'v2.22.1'
 __credits__ = ['alxlk', 'ddugovic', 'huytd', 'kennyfrc', 'python-chess']
 
 
@@ -2373,7 +2373,6 @@ class Analyze():
         
         PUZZLE_CP_SCORE_MARGIN = 25
         WIN_CP_SCORE_THRESHOLD = 5000
-        MIN_FULLMOVE_NUMBER = 12
         
         p = subprocess.Popen(self.eng, stdin=subprocess.PIPE,
                  stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
@@ -2411,7 +2410,7 @@ class Analyze():
                     
                     nextNode = gameNode.variation(0)
                     
-                    if fmvn < MIN_FULLMOVE_NUMBER:
+                    if fmvn < self.analysisMoveStart:
                         gameNode = nextNode
                         continue
 
