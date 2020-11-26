@@ -9,7 +9,7 @@ generate puzzles.
 
 __author__ = 'fsmosca'
 __script_name__ = 'Chess Artist'
-__version__ = 'v2.21.0'
+__version__ = 'v2.22.0'
 __credits__ = ['alxlk', 'ddugovic', 'huytd', 'kennyfrc', 'python-chess']
 
 
@@ -120,7 +120,7 @@ class Analyze():
         """
         Todo: Study game ends of every variant. Check is_variant_end().
         """
-        if self.variantTag is None or self.variantTag == 'chess960':
+        if self.variantTag is None or self.variantTag.lower() == 'standard' or self.variantTag == 'chess960':
             return board.is_checkmate() or board.is_stalemate()
         else:
             if self.variantTag == 'Atomic':
@@ -129,10 +129,10 @@ class Analyze():
         return False
 
     def Getboard(self, fen):
-        if self.variantTag is None or self.variantTag == 'Standard' or self.variantTag == 'chess960':
+        if self.variantTag is None or self.variantTag.lower() == 'standard' or self.variantTag == 'chess960':
             return chess.Board(fen, chess960=True if self.variantTag == 'chess960' else False)
         else:
-            if self.variantTag == 'Atomic':
+            if self.variantTag.lower() == 'atomic':
                 return chess.variant.AtomicBoard(fen, chess960=self.game960)
             else:
                 raise Exception(f'Variant {self.variantTag} is not supported.')
@@ -1761,12 +1761,7 @@ class Analyze():
         
         :score: is wpov in pawn unit        
         """
-        if side:
-            return score
-        elif score == None:
-            return 0
-        else:
-            return -score
+        return score if side else -score
     
     def AnnotatePgn(self):
         """ Parse the pgn file and annotate the games """
@@ -1988,28 +1983,25 @@ class Analyze():
                     gameNode = nextNode
                     continue
 
+                # (1.2) Check if game is over by checkmate or stalemate.
+                isGameOver = self.GameOver(nextNode.board())
+
                 # (2) Probe the book file and add the book move as comment to the player move.
-                if fmvn <= BOOK_MOVE_LIMIT and self.bookFile is not None:
+                if not isGameOver and fmvn <= BOOK_MOVE_LIMIT and self.bookFile is not None:
                     self.bookMove = self.GetPolyglotBookMove(curFen)
 
                 # (3) Get the posScore or the score of the player move according to the analyzing engine.
                 # This can be static eval or search score.
-                if self.evalType == 'static':
-                    staticScore = self.GetStaticEvalAfterMove(nextFen)
-                    if staticScore == None:
-                        posScore = 0
-                    else:
-                        posScore = staticScore
-                elif self.evalType == 'search':
-                    searchScore = self.GetSearchScoreAfterMove(nextFen, side)
-                    if searchScore == None:
-                        posScore = 0
-                    else:
-                        posScore = searchScore
+                posScore = None
+                if not isGameOver:
+                    if self.evalType == 'static':
+                        posScore = self.GetStaticEvalAfterMove(nextFen)
+                    elif self.evalType == 'search':
+                        posScore = self.GetSearchScoreAfterMove(nextFen, side)
 
                 # (4) Analyze the position with the engine. Save engine's best move, score, pv line and complexity.
                 engBestMove, engBestScore, pvLine = None, None, None
-                if (Analyze.relative_score(side, posScore) < self.maxScoreStopAnalysis and
+                if posScore is None or (Analyze.relative_score(side, posScore) < self.maxScoreStopAnalysis and
                         Analyze.relative_score(side, posScore) > self.minScoreStopAnalysis and
                         self.jobType == 'analyze'):
                     engBestMove, engBestScore, complexityNumber, moveChanges, pvLine = self.GetSearchScoreBeforeMove(curFen, side)
@@ -2017,13 +2009,10 @@ class Analyze():
                     # Update info in console.
                     if sanMove == engBestMove:
                         print('Game move: %s (%0.2f), Engine bestmove: %s (%0.2f)' % (
-                            sanMove, posScore, engBestMove, posScore))
+                            sanMove, engBestScore, engBestMove, engBestScore))
                     else:
                         print('Game move: %s (%0.2f), Engine bestmove: %s (%0.2f)' % (
                             sanMove, posScore, engBestMove, engBestScore))
-                    
-                # (5) Check if game is over.
-                isGameOver = self.GameOver(nextNode.board())
 
                 # (5.1) Calculate the threat move if game move and engine best
                 # move is the same and the position is complex and the engine
@@ -2041,28 +2030,29 @@ class Analyze():
                     elif not side and self.blackPassedPawnCommentCnt == 0:
                         self.passedPawnIsGood = self.IsPassedPawnGood(
                                 curFen, side)
-                        
-                # (5.3) Calculate the king safety of the side to move
-                if any(s in engineIdName.lower() for s in ['stockfish', 'brainfish']):
-                    if not board.is_capture(nextNode.move) and abs(posScore) <= 1.5:
-                        if side and self.whiteKingSafetyCommentCnt == 0:
-                            self.kingSafetyIsGood = self.IsKingSafetyGood(nextFen, not side)
-                        elif not side and self.blackKingSafetyCommentCnt == 0:
-                            self.kingSafetyIsGood = self.IsKingSafetyGood(nextFen, not side)
+
+                if posScore is not None:
+                    # (5.3) Calculate the king safety of the side to move
+                    if any(s in engineIdName.lower() for s in ['stockfish', 'brainfish']):
+                        if not board.is_capture(nextNode.move) and abs(posScore) <= 1.5:
+                            if side and self.whiteKingSafetyCommentCnt == 0:
+                                self.kingSafetyIsGood = self.IsKingSafetyGood(nextFen, not side)
+                            elif not side and self.blackKingSafetyCommentCnt == 0:
+                                self.kingSafetyIsGood = self.IsKingSafetyGood(nextFen, not side)
+
+                    # (5.4) Check if mobility of side to move is good. We analyze
+                    # the fen after the game move is made on the board, to get the
+                    # impact of the move on piece mobility.
+                    if any(s in engineIdName.lower() for s in ['stockfish', 'brainfish']):
+                        if abs(posScore) <= 3.0:
+                            if side and self.whiteMobilityCommentCnt == 0:
+                                self.mobilityIsGood = self.IsMobilityGood(nextFen, side)
+                            elif not side and self.blackMobilityCommentCnt == 0:
+                                self.mobilityIsGood = self.IsMobilityGood(nextFen, side)
                             
-                # (5.4) Check if mobility of side to move is good. We analyze
-                # the fen after the game move is made on the board, to get the
-                # impact of the move on piece mobility.
-                if any(s in engineIdName.lower() for s in ['stockfish', 'brainfish']):
-                    if abs(posScore) <= 3.0:
-                        if side and self.whiteMobilityCommentCnt == 0:
-                            self.mobilityIsGood = self.IsMobilityGood(nextFen, side)
-                        elif not side and self.blackMobilityCommentCnt == 0:
-                            self.mobilityIsGood = self.IsMobilityGood(nextFen, side)
-                            
-                # Check if a move sacrifices material
-                sacMat = Analyze.GetSacrificedMaterial(curFen, self.matBal)
-                self.matIsSacrificed = True if sacMat != 0 else False
+                    # Check if a move sacrifices material
+                    sacMat = Analyze.GetSacrificedMaterial(curFen, self.matBal)
+                    self.matIsSacrificed = True if sacMat != 0 else False
                 
                 # (6) Write moves and comments.
                 self.WriteNotation(side, fmvn, sanMove, self.bookMove,
