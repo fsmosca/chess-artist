@@ -1,6 +1,9 @@
 :: Generate puzzles
 
 
+chess_artist.py --infile ./PGN/skillingopp20.pgn --outfile out_skilling.pgn --enginename "Sf12" --enginefile ./Engine/stockfish/stockfish_12_x64_modern.exe --engineoptions "Threads value 1, Hash value 256" --movestart 12 --movetime 10000 --job createpuzzle --eval search --log
+
+
 :: Example command line
 :: chess_artist.py --infile pgn\tatagpa20.pgn --outfile out_tatagpa20.pgn --enginename "Lc0 v0.23.2 w591097 blas" --enginefile D:\Chess\Engines\Lc0\lc0-v0.23.2-591097-10X128\lc0.exe --engineoptions "Threads value 2, MinibatchSize value 8, MaxPrefetch value 0" --movestart 15 --movetime 10000 --job createpuzzle --eval search --log
 
@@ -10,7 +13,7 @@
 
 
 :: Create puzzle from an atomic960 game
-chess_artist.py --game960 --infile ./PGN/sample_atomic_chess960.pgn --outfile dummy.pgn --enginename "Stockfish_2020-06-13_Multi-Variant" --enginefile ./Engine/stockfish/Stockfish_2020-06-13_Multi-Variant.exe --engineoptions "Threads value 1, Hash value 128, UCI_Variant value Atomic, UCI_Chess960 value true" --movestart 2 --movetime 10000 --job createpuzzle --eval search --log
+:: chess_artist.py --game960 --infile ./PGN/sample_atomic_chess960.pgn --outfile dummy.pgn --enginename "Stockfish_2020-06-13_Multi-Variant" --enginefile ./Engine/stockfish/Stockfish_2020-06-13_Multi-Variant.exe --engineoptions "Threads value 1, Hash value 128, UCI_Variant value Atomic, UCI_Chess960 value true" --movestart 2 --movetime 10000 --job createpuzzle --eval search --log
 
 pause
 
