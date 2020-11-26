@@ -129,7 +129,7 @@ class Analyze():
         return False
 
     def Getboard(self, fen):
-        if self.variantTag is None or self.variantTag == 'chess960':
+        if self.variantTag is None or self.variantTag == 'Standard' or self.variantTag == 'chess960':
             return chess.Board(fen, chess960=True if self.variantTag == 'chess960' else False)
         else:
             if self.variantTag == 'Atomic':
@@ -1761,7 +1761,12 @@ class Analyze():
         
         :score: is wpov in pawn unit        
         """
-        return score if side else -score
+        if side:
+            return score
+        elif score == None:
+            return 0
+        else:
+            return -score
     
     def AnnotatePgn(self):
         """ Parse the pgn file and annotate the games """
@@ -1991,10 +1996,16 @@ class Analyze():
                 # This can be static eval or search score.
                 if self.evalType == 'static':
                     staticScore = self.GetStaticEvalAfterMove(nextFen)
-                    posScore = staticScore
+                    if staticScore == None:
+                        posScore = 0
+                    else:
+                        posScore = staticScore
                 elif self.evalType == 'search':
                     searchScore = self.GetSearchScoreAfterMove(nextFen, side)
-                    posScore = searchScore
+                    if searchScore == None:
+                        posScore = 0
+                    else:
+                        posScore = searchScore
 
                 # (4) Analyze the position with the engine. Save engine's best move, score, pv line and complexity.
                 engBestMove, engBestScore, pvLine = None, None, None
