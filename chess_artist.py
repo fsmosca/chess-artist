@@ -9,7 +9,7 @@ generate puzzles.
 
 __author__ = 'fsmosca'
 __script_name__ = 'Chess Artist'
-__version__ = 'v2.22.1'
+__version__ = 'v2.22.2'
 __credits__ = ['alxlk', 'ddugovic', 'huytd', 'kennyfrc', 'python-chess']
 
 
@@ -100,6 +100,7 @@ class Analyze():
         self.badCnt = {'w': 0, 'b': 0}
         self.variantTag = None
         self.game960 = opt['-game960']
+        self.puzzleScoreMargin = opt['-puzzle-score-margin']
         
     def Send(self, p, msg):
         """ Send msg to engine """
@@ -2370,8 +2371,7 @@ class Analyze():
         bestmove is higher than score at pvmove then save this as a test
         position.
         """
-        
-        PUZZLE_CP_SCORE_MARGIN = 25
+
         WIN_CP_SCORE_THRESHOLD = 5000
         
         p = subprocess.Popen(self.eng, stdin=subprocess.PIPE,
@@ -2477,7 +2477,7 @@ class Analyze():
                     logging.info('bestmove: %s, bestScore: %d' % (bestMove, bestScore))
                     
                     # Compare pv move in the first half of the search and bestmove
-                    if bestMove != pvMove and bestScore >= pvScore + PUZZLE_CP_SCORE_MARGIN:
+                    if bestMove != pvMove and bestScore >= pvScore + self.puzzleScoreMargin:
                         print('save fen in puzzle.epd')
                         epdLine = f'{board.epd()} bm {board.san(chess.Move.from_uci(bestMove))};'
                         epdLine += f' Ubm {bestMove}; Ae "{self.engIdName}";'
@@ -2540,6 +2540,11 @@ def main():
                         help=('input move number to end the analysis, '
                               'this is used when analyzing games, (default=1000)'),
                         default=1000, type=int, required=False)
+    parser.add_argument("--puzzle-score-margin",
+                        help=('if deep score less shallow score is this margin'
+                              ' or more then save the position as puzzle, (default=15 centipawn).'
+                              ' If this is low more positions will be saved.'),
+                        default=15, type=int, required=False)
     parser.add_argument('--log', action='store_true',
                         help='Save log to chess_artist_log.txt')
     parser.add_argument('--job', 
@@ -2630,7 +2635,8 @@ def main():
                '-max-score-stop-analysis': args.max_score_stop_analysis,
                '-draw': args.draw,
                '-enginename': args.enginename,
-               '-game960': args.game960
+               '-game960': args.game960,
+               '-puzzle-score-margin': args.puzzle_score_margin
                }
     
     if args.log:
