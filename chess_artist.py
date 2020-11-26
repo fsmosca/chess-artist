@@ -9,8 +9,8 @@ generate puzzles.
 
 __author__ = 'fsmosca'
 __script_name__ = 'Chess Artist'
-__version__ = 'v2.20.2'
-__credits__ = ['alxlk', 'ddugovic', 'huytd', 'python-chess']
+__version__ = 'v2.21.0'
+__credits__ = ['alxlk', 'ddugovic', 'huytd', 'kennyfrc', 'python-chess']
 
 
 import os
