@@ -9,7 +9,7 @@ generate puzzles.
 
 __author__ = 'fsmosca'
 __script_name__ = 'Chess Artist'
-__version__ = 'v2.23.0'
+__version__ = 'v2.24.0'
 __credits__ = ['alxlk', 'ddugovic', 'huytd', 'kennyfrc', 'python-chess']
 
 
@@ -37,7 +37,7 @@ DRAW_SCORE = +0.15
 SLIGHT_SCORE = +0.75
 MODERATE_SCORE = +1.50
 DECISIVE_SCORE = +3.0
-COMPLEXITY_MINIMUM_TIME = 2000
+COMPLEXITY_MINIMUM_TIME = 1000
 DEFAULT_HASH = 32
 DEFAULT_THREADS = 1
 
