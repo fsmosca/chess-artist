@@ -9,7 +9,7 @@ generate puzzles.
 
 __author__ = 'fsmosca'
 __script_name__ = 'Chess Artist'
-__version__ = 'v2.22.1'
+__version__ = 'v2.23.0'
 __credits__ = ['alxlk', 'ddugovic', 'huytd', 'kennyfrc', 'python-chess']
 
 
@@ -319,7 +319,7 @@ class Analyze():
                             moveNumber, sanMove, posScore))
                     self.whiteMobilityCommentCnt += 1
                 elif self.matIsSacrificed:
-                    f.write('%d. %s {%+0.2f, black had sacrificed material} ' %(
+                    f.write('%d. %s {%+0.2f, with compensation for the sacrificed material} ' %(
                             moveNumber, sanMove, posScore))
                 else:
                     f.write('%d. %s {%+0.2f} ' %(moveNumber, sanMove, posScore))
@@ -337,7 +337,7 @@ class Analyze():
                             moveNumber, sanMove, posScore))
                     self.blackMobilityCommentCnt += 1
                 elif self.matIsSacrificed:
-                    f.write('%d... %s {%+0.2f, white had sacrificed material} ' %(
+                    f.write('%d... %s {%+0.2f, with compensation for the sacrificed material} ' %(
                             moveNumber, sanMove, posScore))
                 else:
                     f.write('%d... %s {%+0.2f} ' % (moveNumber, sanMove, posScore))
@@ -368,19 +368,19 @@ class Analyze():
                     if self.matIsSacrificed:
                         if moveNag == '$0':
                             if varComment == '':
-                                f.write('%d. %s {%+0.2f, black had sacrificed material} (%s {%+0.2f}) ' % (
+                                f.write('%d. %s {%+0.2f, with compensation for the sacrificed material} (%s {%+0.2f}) ' % (
                                     moveNumber, sanMove, posScore, pvLine, engScore))
                             else:
-                                f.write('%d. %s {%+0.2f, black had sacrificed material} ({%s} %s {%+0.2f}) ' % (
+                                f.write('%d. %s {%+0.2f, with compensation for the sacrificed material} ({%s} %s {%+0.2f}) ' % (
                                     moveNumber, sanMove, posScore, varComment,
                                     pvLine, engScore))
                         else:
                             if varComment == '':
-                                f.write('%d. %s %s {%+0.2f, black had sacrificed material} (%s {%+0.2f}) ' % (
+                                f.write('%d. %s %s {%+0.2f, with compensation for the sacrificed material} (%s {%+0.2f}) ' % (
                                     moveNumber, sanMove, moveNag, posScore,
                                     pvLine, engScore))
                             else:
-                                f.write('%d. %s %s {%+0.2f, black had sacrificed material} ({%s} %s {%+0.2f}) ' % (
+                                f.write('%d. %s %s {%+0.2f, with compensation for the sacrificed material} ({%s} %s {%+0.2f}) ' % (
                                     moveNumber, sanMove, moveNag, posScore,
                                     varComment, pvLine, engScore))
                     else:  
@@ -432,10 +432,10 @@ class Analyze():
                                         moveNumber, sanMove, moveNag, posScore))
                         elif self.matIsSacrificed:
                             if moveNag == '$0':
-                                f.write('%d. %s {%+0.2f, black had sacrificed material} ' % (
+                                f.write('%d. %s {%+0.2f, with compensation for the sacrificed material} ' % (
                                         moveNumber, sanMove, posScore))
                             else:
-                                f.write('%d. %s %s {%+0.2f, black had sacrificed material} ' % (
+                                f.write('%d. %s %s {%+0.2f, with compensation for the sacrificed material} ' % (
                                         moveNumber, sanMove, moveNag, posScore))
                         else:
                             if moveNag == '$0':
@@ -465,20 +465,20 @@ class Analyze():
                     if self.matIsSacrificed:
                         if moveNag == '$0':
                             if varComment == '':
-                                f.write('%d... %s {%+0.2f, white had sacrificed material} (%s {%+0.2f}) ' % (
+                                f.write('%d... %s {%+0.2f, with compensation for the sacrificed material} (%s {%+0.2f}) ' % (
                                     moveNumber, sanMove, posScore, pvLine,
                                     engScore))
                             else:
-                                f.write('%d... %s {%+0.2f, white had sacrificed material} ({%s} %s {%+0.2f}) ' % (
+                                f.write('%d... %s {%+0.2f, with compensation for the sacrificed material} ({%s} %s {%+0.2f}) ' % (
                                     moveNumber, sanMove, posScore, varComment,
                                     pvLine, engScore))
                         else:
                             if varComment == '':
-                                f.write('%d... %s %s {%+0.2f, white had sacrificed material} (%s {%+0.2f}) ' % (
+                                f.write('%d... %s %s {%+0.2f, with compensation for the sacrificed material} (%s {%+0.2f}) ' % (
                                     moveNumber, sanMove, moveNag, posScore,
                                     pvLine, engScore))
                             else:
-                                f.write('%d... %s %s {%+0.2f, white had sacrificed material} ({%s} %s {%+0.2f}) ' % (
+                                f.write('%d... %s %s {%+0.2f, with compensation for the sacrificed material} ({%s} %s {%+0.2f}) ' % (
                                     moveNumber, sanMove, moveNag, posScore,
                                     varComment, pvLine, engScore))
                     else:
@@ -530,10 +530,10 @@ class Analyze():
                                         moveNumber, sanMove, moveNag, posScore))
                         elif self.matIsSacrificed:
                             if moveNag == '$0':
-                                f.write('%d... %s {%+0.2f, white had sacrificed material} ' % (
+                                f.write('%d... %s {%+0.2f, with compensation for the sacrificed material} ' % (
                                         moveNumber, sanMove, posScore))
                             else:
-                                f.write('%d... %s %s {%+0.2f, white had sacrificed material} ' % (
+                                f.write('%d... %s %s {%+0.2f, with compensation for the sacrificed material} ' % (
                                         moveNumber, sanMove, moveNag, posScore))
                         else:
                             if moveNag == '$0':
@@ -1708,50 +1708,25 @@ class Analyze():
         :matBal: Is a list of list or [[fen1, matbal1], [fen2, matbal2] ...]
                  where fen1 can be startpos fen
         
-        Pattern [0, 1, 1]: white is ahead so black had sacs material
-        Pattern [0, -1, -1]: black is ahead so white had sacs material
-        0, 1, 1 are material balance wpov from fen1 to fen n, n = total plies.
+        Pattern [1, 1]: white is ahead so black had sacs material
+        Pattern [-1, -1]: black is ahead so white had sacs material
         """
         for i, n in enumerate(matBal):
             fenVal = n[0]
             
             if fen != fenVal:
                 continue
-            
-            # Material balance that starts from 0 and look ahead of 2 plies
-            if matBal[i][1] == 0:
-                if i + 2 < len(matBal):
-                    # White is pawn ahead
-                    if matBal[i+1][1] == 1 and matBal[i+2][1] == 1:
-                        logging.info(fenVal)
-                        logging.info('Black sacs 1 pawn')
-                        return 1
-                    
-                    if matBal[i+1][1] == 2 and matBal[i+2][1] == 2:
-                        logging.info(fenVal)
-                        logging.info('Black sacs 2 pawn')
-                        return 2
-                    
-                    if matBal[i+1][1] == 3 and matBal[i+2][1] == 3:
-                        logging.info(fenVal)
-                        logging.info('Black sacs 3 pawn')
-                        return 3
-                    
-                    # Black is a pawn ahead
-                    if matBal[i+1][1] == -1 and matBal[i+2][1] == -1:
-                        logging.info(fenVal)
-                        logging.info('White sacs 1 pawn')
-                        return -1
-                    
-                    if matBal[i+1][1] == -2 and matBal[i+2][1] == -2:
-                        logging.info(fenVal)
-                        logging.info('White sacs 2 pawn')
-                        return -2
-                    
-                    if matBal[i+1][1] == -3 and matBal[i+2][1] == -3:
-                        logging.info(fenVal)
-                        logging.info('White sacs 3 pawn')
-                        return -3
+
+            # Black is ahead in material.
+            if matBal[i][1] < 0 and i >= 2:
+                if matBal[i - 1][1] < 0 and matBal[i - 2][1] >= 0:
+                    return matBal[i][1]
+            # White is ahead in material.
+            if matBal[i][1] > 0 and i >= 2:
+                if matBal[i - 1][1] > 0 and matBal[i - 2][1] <= 0:
+                    return matBal[i][1]
+
+            return 0
                     
         return 0 
     
@@ -2052,8 +2027,10 @@ class Analyze():
                                     self.mobilityIsGood = self.IsMobilityGood(nextFen, side)
 
                         # Check if a move sacrifices material
-                        sacMat = Analyze.GetSacrificedMaterial(curFen, self.matBal)
-                        self.matIsSacrificed = True if sacMat != 0 else False
+                        self.matIsSacrificed = False
+                        sacMat = Analyze.GetSacrificedMaterial(nextFen, self.matBal)
+                        if abs(sacMat) > 0 and Analyze.relative_score(side, posScore) - abs(sacMat) > 0:
+                            self.matIsSacrificed = True
 
                     # (6) Write moves and comments.
                     self.WriteNotation(side, fmvn, sanMove, self.bookMove,
