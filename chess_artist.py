@@ -9,7 +9,7 @@ generate puzzles.
 
 __author__ = 'fsmosca'
 __script_name__ = 'Chess Artist'
-__version__ = 'v2.22.2'
+__version__ = 'v2.22.1'
 __credits__ = ['alxlk', 'ddugovic', 'huytd', 'kennyfrc', 'python-chess']
 
 
@@ -1768,313 +1768,308 @@ class Analyze():
         """ Parse the pgn file and annotate the games """
         # Get engine id name for the Annotator tag.
         engineIdName = self.engIdName
-        pgnHandle = open(self.infn)
-        game = chess.pgn.read_game(pgnHandle)
-
-        # Used for displaying progress in console.
         gameCnt = 0
 
-        # Loop thru the games.
-        while game:
-            gameCnt += 1
-            
-            # Get variant name in pgn tag, try to cover as wide as possible.
-            # Lichess: Chess960
-            # Chess.com: Chess960
-            # Winboard/Xboard: fischerandom
-            # WeekInChess: chess 960
-            try:
-                variantTag = game.headers["Variant"]
-                logging.info(f'Actual game Variant tag is {variantTag}.')
-                if variantTag in ['Chess960', 'fischerandom', 'chess 960', 'chess960']:
-                    self.variantTag = 'chess960'
-                else:
-                    self.variantTag = variantTag
-                logging.info(f'Set variant tag to {self.variantTag}.')
-            except KeyError:
-                logging.info('There is no Variant tag in the game header.')
-            except:
-                logging.exception('Error in getting game variant tag value')
-            
-            # Analyze games by player            
-            if self.player is not None or self.playerAndOpp is not None:
-                playerName = self.player or self.playerAndOpp
-                wplayer = game.headers['White']
-                bplayer = game.headers['Black']
-                
-                # If color is specified
-                if self.color == 'white' and playerName == bplayer:
-                    game = chess.pgn.read_game(pgnHandle)
-                    continue
-                elif self.color == 'black' and playerName == wplayer:
-                    game = chess.pgn.read_game(pgnHandle)
-                    continue
+        with open(self.infn) as pgnHandle:
+            while True:
+                game = chess.pgn.read_game(pgnHandle)
+                if game is None:
+                    break
 
-                if playerName != wplayer and playerName != bplayer:
-                    game = chess.pgn.read_game(pgnHandle)
-                    continue
-                
-                if self.loss and not self.draw:
-                    gameResult = game.headers['Result']
-                    if not ((playerName == wplayer and gameResult == '0-1') or
-                            (playerName == bplayer and gameResult == '1-0')):
-                        game = chess.pgn.read_game(pgnHandle)
-                        continue
-                elif not self.loss and self.draw:
-                    gameResult = game.headers['Result']
-                    if not ((playerName == wplayer and gameResult == '1/2-1/2') or
-                            (playerName == bplayer and gameResult == '1/2-1/2')):
-                        game = chess.pgn.read_game(pgnHandle)
-                        continue
-                elif self.loss and self.draw:
-                    gameResult = game.headers['Result']
-                    if not ((playerName == wplayer and gameResult != '1-0') or
-                            (playerName == bplayer and gameResult != '0-1')):
-                        game = chess.pgn.read_game(pgnHandle)
-                        continue
-            else:
-                # Only analyze games with draw results
-                if self.draw and not self.loss:
-                    gameResult = game.headers['Result']
-                    if not (gameResult == '1/2-1/2'):
-                        game = chess.pgn.read_game(pgnHandle)
-                        continue
-                    
-                # Analyze games except draws
-                if not self.draw and self.loss:
-                    gameResult = game.headers['Result']
-                    if gameResult == '1/2-1/2' or gameResult == '*':
-                        game = chess.pgn.read_game(pgnHandle)
-                        continue
+                gameCnt += 1
 
-            # Reset passed pawn comment every game. Passed pawn comment is
-            # only done once for white and once for black per game
-            self.whitePassedPawnCommentCnt = 0
-            self.blackPassedPawnCommentCnt = 0
-            self.whiteKingSafetyCommentCnt = 0
-            self.blackKingSafetyCommentCnt = 0
-            self.whiteMobilityCommentCnt = 0
-            self.blackMobilityCommentCnt = 0
-
-            # Initialize blunder/bad move counts in every game
-            self.blunderCnt = {'w': 0, 'b': 0}
-            self.badCnt = {'w': 0, 'b': 0}
-
-            # Used for formatting the output.
-            self.writeCnt = 0
-
-            # Show progress in console.
-            print('Annotating game %d...' %(gameCnt))
-
-            # Save the tag section of the game.
-            for key, value in game.headers.items():
-                with open(self.outfn, 'a+') as f:
-                    f.write('[%s \"%s\"]\n' %(key, value))
-
-            # Write the annotator tag.
-            with open(self.outfn, 'a+') as f:
-                f.write('[Annotator "engine: %s, program: %s %s"]\n\n' %(
-                        engineIdName, __script_name__, __version__))
-
-            # Before the movetext are written, add a comment of whether
-            # move comments are from static or search score of the engine.
-            if self.evalType == 'static':
-                with open(self.outfn, 'a+') as f:
-                    f.write('{Move comments are from engine static evaluation.}\n')
-            elif self.evalType == 'search':
-                with open(self.outfn, 'a+') as f:
-                    hashValue = self.GetEngineOptionValue('Hash')
-                    if hashValue is None:
-                        hashValue = str(DEFAULT_HASH)
-                    threadsValue = self.GetEngineOptionValue('Threads')
-                    if threadsValue is None:
-                        threadsValue = str(DEFAULT_THREADS)
-                    
-                    # Don't write Hash in the comment if the analyzing engine
-                    # is Lc0 or Leela Chess Zero
-                    scoreLegend = ('move score is in pawn unit,\n'
-                                   'positive is good for white and negative '
-                                   'is good for black')
-                    if ('lc0' in engineIdName.lower() or
-                            'leela chess zero' in engineIdName.lower()):
-                        f.write('{Threads %s, analysis %0.1fs per position, %s}\n' % (
-                                threadsValue, self.moveTime/1000.0,
-                                scoreLegend))
+                # Get variant name in pgn tag, try to cover as wide as possible.
+                # Lichess: Chess960
+                # Chess.com: Chess960
+                # Winboard/Xboard: fischerandom
+                # WeekInChess: chess 960
+                try:
+                    variantTag = game.headers["Variant"]
+                    logging.info(f'Actual game Variant tag is {variantTag}.')
+                    if variantTag in ['Chess960', 'fischerandom', 'chess 960', 'chess960']:
+                        self.variantTag = 'chess960'
                     else:
-                        f.write('{Hash %smb, Threads %s, analysis %0.1fs per position, %s}\n' % (
-                                hashValue, threadsValue, self.moveTime/1000.0,
-                                scoreLegend))
+                        self.variantTag = variantTag
+                    logging.info(f'Set variant tag to {self.variantTag}.')
+                except KeyError:
+                    logging.info('There is no Variant tag in the game header.')
+                except:
+                    logging.exception('Error in getting game variant tag value')
 
-            # Save result to be written later as game termination marker.
-            res = game.headers['Result']
-            
-            self.matBal = Analyze.SaveMaterialBalance(game)
-            logging.info('Material balance wpov:')
-            logging.info('%s' % self.matBal)
+                # Analyze games by player
+                if self.player is not None or self.playerAndOpp is not None:
+                    playerName = self.player or self.playerAndOpp
+                    wplayer = game.headers['White']
+                    bplayer = game.headers['Black']
 
-            # Loop thru the moves within this game.
-            gameNode = game        
-            while gameNode.variations:
-                board = gameNode.board()
-                side = board.turn
-                fmvn = board.fullmove_number
-                curFen = board.fen()
-                nextNode = gameNode.variation(0)
-                logging.info('game_move: %s, san: %s' % (
-                        nextNode.move, nextNode.san()))
-                nextFen = nextNode.board().fen()
-                sanMove = nextNode.san()
-                complexityNumber, moveChanges = 0, 0
-                threatMove = None  
-                self.bookMove = None
-                self.passedPawnIsGood = False
-                self.kingSafetyIsGood = False
-                self.mobilityIsGood = False
-                self.matIsSacrificed = False
-                
-                # If --player is specified
-                if self.player is not None:
-                    if side and self.player == bplayer or not side and self.player == wplayer:
-                        self.WriteNotation(side, fmvn, sanMove, self.bookMove,
-                                       None, False, None, None, 0, 0,
-                                       None, threatMove)
-                        gameNode = nextNode
+                    # If color is specified
+                    if self.color == 'white' and playerName == bplayer:
+                        game = chess.pgn.read_game(pgnHandle)
                         continue
-                    
-                # Analyze specific color or side to move                
-                if self.color is not None:
-                    isEvaluatePos = False
-                    if self.playerAndOpp is None:
-                        if side and self.color == 'black' or not side and self.color == 'white':
+                    elif self.color == 'black' and playerName == wplayer:
+                        game = chess.pgn.read_game(pgnHandle)
+                        continue
+
+                    if playerName != wplayer and playerName != bplayer:
+                        game = chess.pgn.read_game(pgnHandle)
+                        continue
+
+                    if self.loss and not self.draw:
+                        gameResult = game.headers['Result']
+                        if not ((playerName == wplayer and gameResult == '0-1') or
+                                (playerName == bplayer and gameResult == '1-0')):
+                            game = chess.pgn.read_game(pgnHandle)
+                            continue
+                    elif not self.loss and self.draw:
+                        gameResult = game.headers['Result']
+                        if not ((playerName == wplayer and gameResult == '1/2-1/2') or
+                                (playerName == bplayer and gameResult == '1/2-1/2')):
+                            game = chess.pgn.read_game(pgnHandle)
+                            continue
+                    elif self.loss and self.draw:
+                        gameResult = game.headers['Result']
+                        if not ((playerName == wplayer and gameResult != '1-0') or
+                                (playerName == bplayer and gameResult != '0-1')):
+                            game = chess.pgn.read_game(pgnHandle)
+                            continue
+                else:
+                    # Only analyze games with draw results
+                    if self.draw and not self.loss:
+                        gameResult = game.headers['Result']
+                        if not (gameResult == '1/2-1/2'):
+                            game = chess.pgn.read_game(pgnHandle)
+                            continue
+
+                    # Analyze games except draws
+                    if not self.draw and self.loss:
+                        gameResult = game.headers['Result']
+                        if gameResult == '1/2-1/2' or gameResult == '*':
+                            game = chess.pgn.read_game(pgnHandle)
+                            continue
+
+                # Reset passed pawn comment every game. Passed pawn comment is
+                # only done once for white and once for black per game
+                self.whitePassedPawnCommentCnt = 0
+                self.blackPassedPawnCommentCnt = 0
+                self.whiteKingSafetyCommentCnt = 0
+                self.blackKingSafetyCommentCnt = 0
+                self.whiteMobilityCommentCnt = 0
+                self.blackMobilityCommentCnt = 0
+
+                # Initialize blunder/bad move counts in every game
+                self.blunderCnt = {'w': 0, 'b': 0}
+                self.badCnt = {'w': 0, 'b': 0}
+
+                # Used for formatting the output.
+                self.writeCnt = 0
+
+                # Show progress in console.
+                print('Annotating game %d...' %(gameCnt))
+
+                # Save the tag section of the game.
+                for key, value in game.headers.items():
+                    with open(self.outfn, 'a+') as f:
+                        f.write('[%s \"%s\"]\n' %(key, value))
+
+                # Write the annotator tag.
+                with open(self.outfn, 'a+') as f:
+                    f.write('[Annotator "engine: %s, program: %s %s"]\n\n' %(
+                            engineIdName, __script_name__, __version__))
+
+                # Before the movetext are written, add a comment of whether
+                # move comments are from static or search score of the engine.
+                if self.evalType == 'static':
+                    with open(self.outfn, 'a+') as f:
+                        f.write('{Move comments are from engine static evaluation.}\n')
+                elif self.evalType == 'search':
+                    with open(self.outfn, 'a+') as f:
+                        hashValue = self.GetEngineOptionValue('Hash')
+                        if hashValue is None:
+                            hashValue = str(DEFAULT_HASH)
+                        threadsValue = self.GetEngineOptionValue('Threads')
+                        if threadsValue is None:
+                            threadsValue = str(DEFAULT_THREADS)
+
+                        # Don't write Hash in the comment if the analyzing engine
+                        # is Lc0 or Leela Chess Zero
+                        scoreLegend = ('move score is in pawn unit,\n'
+                                       'positive is good for white and negative '
+                                       'is good for black')
+                        if ('lc0' in engineIdName.lower() or
+                                'leela chess zero' in engineIdName.lower()):
+                            f.write('{Threads %s, analysis %0.1fs per position, %s}\n' % (
+                                    threadsValue, self.moveTime/1000.0,
+                                    scoreLegend))
+                        else:
+                            f.write('{Hash %smb, Threads %s, analysis %0.1fs per position, %s}\n' % (
+                                    hashValue, threadsValue, self.moveTime/1000.0,
+                                    scoreLegend))
+
+                # Save result to be written later as game termination marker.
+                res = game.headers['Result']
+
+                self.matBal = Analyze.SaveMaterialBalance(game)
+                logging.info('Material balance wpov:')
+                logging.info('%s' % self.matBal)
+
+                # Loop thru the moves within this game.
+                gameNode = game
+                while gameNode.variations:
+                    board = gameNode.board()
+                    side = board.turn
+                    fmvn = board.fullmove_number
+                    curFen = board.fen()
+                    nextNode = gameNode.variation(0)
+                    logging.info('game_move: %s, san: %s' % (
+                            nextNode.move, nextNode.san()))
+                    nextFen = nextNode.board().fen()
+                    sanMove = nextNode.san()
+                    complexityNumber, moveChanges = 0, 0
+                    threatMove = None
+                    self.bookMove = None
+                    self.passedPawnIsGood = False
+                    self.kingSafetyIsGood = False
+                    self.mobilityIsGood = False
+                    self.matIsSacrificed = False
+
+                    # If --player is specified
+                    if self.player is not None:
+                        if side and self.player == bplayer or not side and self.player == wplayer:
                             self.WriteNotation(side, fmvn, sanMove, self.bookMove,
                                            None, False, None, None, 0, 0,
                                            None, threatMove)
                             gameNode = nextNode
                             continue
-                    else:
-                        # Analyze position of a player by color and its opp
-                        if self.playerAndOpp == wplayer and self.color == 'white':
-                            isEvaluatePos = True
-                        elif self.playerAndOpp == bplayer and self.color == 'black':
-                            isEvaluatePos = True
-                            
-                    if not isEvaluatePos:
+
+                    # Analyze specific color or side to move
+                    if self.color is not None:
+                        isEvaluatePos = False
+                        if self.playerAndOpp is None:
+                            if side and self.color == 'black' or not side and self.color == 'white':
+                                self.WriteNotation(side, fmvn, sanMove, self.bookMove,
+                                               None, False, None, None, 0, 0,
+                                               None, threatMove)
+                                gameNode = nextNode
+                                continue
+                        else:
+                            # Analyze position of a player by color and its opp
+                            if self.playerAndOpp == wplayer and self.color == 'white':
+                                isEvaluatePos = True
+                            elif self.playerAndOpp == bplayer and self.color == 'black':
+                                isEvaluatePos = True
+
+                        if not isEvaluatePos:
+                            self.WriteNotation(side, fmvn, sanMove, self.bookMove,
+                                               None, False, None, None, 0, 0,
+                                               None, threatMove)
+                            gameNode = nextNode
+                            continue
+
+                    print('side: %s, move_num: %d' % ('White' if side else 'Black',
+                                                      fmvn))
+
+                    # (1) Check move start
+                    if fmvn < self.analysisMoveStart:
                         self.WriteNotation(side, fmvn, sanMove, self.bookMove,
                                            None, False, None, None, 0, 0,
                                            None, threatMove)
                         gameNode = nextNode
-                        continue                            
-                
-                print('side: %s, move_num: %d' % ('White' if side else 'Black',
-                                                  fmvn))
+                        continue
 
-                # (1) Check move start
-                if fmvn < self.analysisMoveStart:
-                    self.WriteNotation(side, fmvn, sanMove, self.bookMove,
-                                       None, False, None, None, 0, 0,
-                                       None, threatMove)
-                    gameNode = nextNode
-                    continue
-                
-                # (1.1) Don't analyze beyond analysis move end
-                if fmvn > self.analysisMoveEnd:
-                    self.WriteNotation(side, fmvn, sanMove, self.bookMove,
-                                       None, False, None, None, 0, 0,
-                                       None, threatMove)
-                    gameNode = nextNode
-                    continue
+                    # (1.1) Don't analyze beyond analysis move end
+                    if fmvn > self.analysisMoveEnd:
+                        self.WriteNotation(side, fmvn, sanMove, self.bookMove,
+                                           None, False, None, None, 0, 0,
+                                           None, threatMove)
+                        gameNode = nextNode
+                        continue
 
-                # (1.2) Check if game is over by checkmate or stalemate.
-                isGameOver = self.GameOver(nextNode.board())
+                    # (1.2) Check if game is over by checkmate or stalemate.
+                    isGameOver = self.GameOver(nextNode.board())
 
-                # (2) Probe the book file and add the book move as comment to the player move.
-                if not isGameOver and fmvn <= BOOK_MOVE_LIMIT and self.bookFile is not None:
-                    self.bookMove = self.GetPolyglotBookMove(curFen)
+                    # (2) Probe the book file and add the book move as comment to the player move.
+                    if not isGameOver and fmvn <= BOOK_MOVE_LIMIT and self.bookFile is not None:
+                        self.bookMove = self.GetPolyglotBookMove(curFen)
 
-                # (3) Get the posScore or the score of the player move according to the analyzing engine.
-                # This can be static eval or search score.
-                posScore = None
-                if not isGameOver:
-                    if self.evalType == 'static':
-                        posScore = self.GetStaticEvalAfterMove(nextFen)
-                    elif self.evalType == 'search':
-                        posScore = self.GetSearchScoreAfterMove(nextFen, side)
+                    # (3) Get the posScore or the score of the player move according to the analyzing engine.
+                    # This can be static eval or search score.
+                    posScore = None
+                    if not isGameOver:
+                        if self.evalType == 'static':
+                            posScore = self.GetStaticEvalAfterMove(nextFen)
+                        elif self.evalType == 'search':
+                            posScore = self.GetSearchScoreAfterMove(nextFen, side)
 
-                # (4) Analyze the position with the engine. Save engine's best move, score, pv line and complexity.
-                engBestMove, engBestScore, pvLine = None, None, None
-                if posScore is None or (Analyze.relative_score(side, posScore) < self.maxScoreStopAnalysis and
-                        Analyze.relative_score(side, posScore) > self.minScoreStopAnalysis and
-                        self.jobType == 'analyze'):
-                    engBestMove, engBestScore, complexityNumber, moveChanges, pvLine = self.GetSearchScoreBeforeMove(curFen, side)
+                    # (4) Analyze the position with the engine. Save engine's best move, score, pv line and complexity.
+                    engBestMove, engBestScore, pvLine = None, None, None
+                    if posScore is None or (Analyze.relative_score(side, posScore) < self.maxScoreStopAnalysis and
+                            Analyze.relative_score(side, posScore) > self.minScoreStopAnalysis and
+                            self.jobType == 'analyze'):
+                        engBestMove, engBestScore, complexityNumber, moveChanges, pvLine = self.GetSearchScoreBeforeMove(curFen, side)
 
-                    # Update info in console.
-                    if sanMove == engBestMove:
-                        print('Game move: %s (%0.2f), Engine bestmove: %s (%0.2f)' % (
-                            sanMove, engBestScore, engBestMove, engBestScore))
-                    else:
-                        print('Game move: %s (%0.2f), Engine bestmove: %s (%0.2f)' % (
-                            sanMove, posScore, engBestMove, engBestScore))
+                        # Update info in console.
+                        if sanMove == engBestMove:
+                            print('Game move: %s (%0.2f), Engine bestmove: %s (%0.2f)' % (
+                                sanMove, engBestScore, engBestMove, engBestScore))
+                        else:
+                            print('Game move: %s (%0.2f), Engine bestmove: %s (%0.2f)' % (
+                                sanMove, posScore, engBestMove, engBestScore))
 
-                # (5.1) Calculate the threat move if game move and engine best
-                # move is the same and the position is complex and the engine
-                # score is not winning or lossing and not white first move
-                if (moveChanges >= 3 and sanMove == engBestMove and
-                        not nextNode.board().is_check() and
-                        abs(engBestScore) <= 2.0 and not (fmvn == 1 and side)):
-                    threatMove = self.GetThreatMove(nextFen)
-                    
-                # (5.2) Check if passed pawn of side to move is good.
-                if any(s in engineIdName.lower() for s in ['stockfish', 'brainfish']):
-                    if side and self.whitePassedPawnCommentCnt == 0:
-                        self.passedPawnIsGood = self.IsPassedPawnGood(
-                                curFen, side)
-                    elif not side and self.blackPassedPawnCommentCnt == 0:
-                        self.passedPawnIsGood = self.IsPassedPawnGood(
-                                curFen, side)
+                    # (5.1) Calculate the threat move if game move and engine best
+                    # move is the same and the position is complex and the engine
+                    # score is not winning or lossing and not white first move
+                    if (moveChanges >= 3 and sanMove == engBestMove and
+                            not nextNode.board().is_check() and
+                            abs(engBestScore) <= 2.0 and not (fmvn == 1 and side)):
+                        threatMove = self.GetThreatMove(nextFen)
 
-                if posScore is not None:
-                    # (5.3) Calculate the king safety of the side to move
+                    # (5.2) Check if passed pawn of side to move is good.
                     if any(s in engineIdName.lower() for s in ['stockfish', 'brainfish']):
-                        if not board.is_capture(nextNode.move) and abs(posScore) <= 1.5:
-                            if side and self.whiteKingSafetyCommentCnt == 0:
-                                self.kingSafetyIsGood = self.IsKingSafetyGood(nextFen, not side)
-                            elif not side and self.blackKingSafetyCommentCnt == 0:
-                                self.kingSafetyIsGood = self.IsKingSafetyGood(nextFen, not side)
+                        if side and self.whitePassedPawnCommentCnt == 0:
+                            self.passedPawnIsGood = self.IsPassedPawnGood(
+                                    curFen, side)
+                        elif not side and self.blackPassedPawnCommentCnt == 0:
+                            self.passedPawnIsGood = self.IsPassedPawnGood(
+                                    curFen, side)
 
-                    # (5.4) Check if mobility of side to move is good. We analyze
-                    # the fen after the game move is made on the board, to get the
-                    # impact of the move on piece mobility.
-                    if any(s in engineIdName.lower() for s in ['stockfish', 'brainfish']):
-                        if abs(posScore) <= 3.0:
-                            if side and self.whiteMobilityCommentCnt == 0:
-                                self.mobilityIsGood = self.IsMobilityGood(nextFen, side)
-                            elif not side and self.blackMobilityCommentCnt == 0:
-                                self.mobilityIsGood = self.IsMobilityGood(nextFen, side)
-                            
-                    # Check if a move sacrifices material
-                    sacMat = Analyze.GetSacrificedMaterial(curFen, self.matBal)
-                    self.matIsSacrificed = True if sacMat != 0 else False
-                
-                # (6) Write moves and comments.
-                self.WriteNotation(side, fmvn, sanMove, self.bookMove,
-                                   posScore, isGameOver,
-                                   engBestMove, engBestScore,
-                                   complexityNumber, moveChanges,
-                                   pvLine, threatMove)
-                gameNode = nextNode
-            
-            # Write blunder/bad counts, and game termination marker to output file.
-            pColor = None
-            if self.player is not None:
-                pColor = 'white' if self.player == wplayer else 'black'
-            elif self.playerAndOpp is not None:
-                pColor = 'white' if self.playerAndOpp == wplayer else 'black'
-            self.WriteTerminationMarker(pColor, res)
-            
-            # Read next game
-            game = chess.pgn.read_game(pgnHandle)
+                    if posScore is not None:
+                        # (5.3) Calculate the king safety of the side to move
+                        if any(s in engineIdName.lower() for s in ['stockfish', 'brainfish']):
+                            if not board.is_capture(nextNode.move) and abs(posScore) <= 1.5:
+                                if side and self.whiteKingSafetyCommentCnt == 0:
+                                    self.kingSafetyIsGood = self.IsKingSafetyGood(nextFen, not side)
+                                elif not side and self.blackKingSafetyCommentCnt == 0:
+                                    self.kingSafetyIsGood = self.IsKingSafetyGood(nextFen, not side)
 
-        pgnHandle.close()
+                        # (5.4) Check if mobility of side to move is good. We analyze
+                        # the fen after the game move is made on the board, to get the
+                        # impact of the move on piece mobility.
+                        if any(s in engineIdName.lower() for s in ['stockfish', 'brainfish']):
+                            if abs(posScore) <= 3.0:
+                                if side and self.whiteMobilityCommentCnt == 0:
+                                    self.mobilityIsGood = self.IsMobilityGood(nextFen, side)
+                                elif not side and self.blackMobilityCommentCnt == 0:
+                                    self.mobilityIsGood = self.IsMobilityGood(nextFen, side)
+
+                        # Check if a move sacrifices material
+                        sacMat = Analyze.GetSacrificedMaterial(curFen, self.matBal)
+                        self.matIsSacrificed = True if sacMat != 0 else False
+
+                    # (6) Write moves and comments.
+                    self.WriteNotation(side, fmvn, sanMove, self.bookMove,
+                                       posScore, isGameOver,
+                                       engBestMove, engBestScore,
+                                       complexityNumber, moveChanges,
+                                       pvLine, threatMove)
+                    gameNode = nextNode
+
+                # Write blunder/bad counts, and game termination marker to output file.
+                pColor = None
+                if self.player is not None:
+                    pColor = 'white' if self.player == wplayer else 'black'
+                elif self.playerAndOpp is not None:
+                    pColor = 'white' if self.playerAndOpp == wplayer else 'black'
+                self.WriteTerminationMarker(pColor, res)
 
     def AnnotateEpd(self):
         """ Annotate epd file with bm, ce, acs, acd, and Ae opcodes
