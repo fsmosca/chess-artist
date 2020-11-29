@@ -9,7 +9,7 @@ generate puzzles.
 
 __author__ = 'fsmosca'
 __script_name__ = 'Chess Artist'
-__version__ = 'v2.24.0'
+__version__ = 'v2.24.1'
 __credits__ = ['alxlk', 'ddugovic', 'huytd', 'kennyfrc', 'python-chess']
 
 
@@ -48,7 +48,8 @@ BEST = ['Excellent', 'Outstanding', 'Exceptional', 'Striking', 'Priceless',
 BETTER = ['Better', 'Preferable', 'More useful', 'Worthier', 'Superior',
           'More valuable']
 BOOK_COMMENT = 'Polyglot book'
-PLAN_COMMENT = ['with the idea of', 'planning', 'followed by']
+PLAN_COMMENT = ['with the idea of', 'planning', 'followed by', 'threatening',
+                'intending to play', 'with a bad intent to play']
     
 
 def DeleteFile(fn):
