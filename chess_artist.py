@@ -9,7 +9,7 @@ generate puzzles.
 
 __author__ = 'fsmosca'
 __script_name__ = 'Chess Artist'
-__version__ = 'v2.24.1'
+__version__ = 'v2.25.0'
 __credits__ = ['alxlk', 'ddugovic', 'huytd', 'kennyfrc', 'python-chess']
 
 
@@ -1972,7 +1972,10 @@ class Analyze():
                     posScore = None
                     if not isGameOver:
                         if self.evalType == 'static':
-                            posScore = self.GetStaticEvalAfterMove(nextFen)
+                            if chess.Board(nextFen).is_check():
+                                posScore = None
+                            else:
+                                posScore = self.GetStaticEvalAfterMove(nextFen)
                         elif self.evalType == 'search':
                             posScore = self.GetSearchScoreAfterMove(nextFen, side)
 
@@ -1985,11 +1988,9 @@ class Analyze():
 
                         # Update info in console.
                         if sanMove == engBestMove:
-                            print('Game move: %s (%0.2f), Engine bestmove: %s (%0.2f)' % (
-                                sanMove, engBestScore, engBestMove, engBestScore))
+                            print(f'Game move: {sanMove} ({engBestScore}), Engine bestmove: {engBestMove} ({engBestScore})')
                         else:
-                            print('Game move: %s (%0.2f), Engine bestmove: %s (%0.2f)' % (
-                                sanMove, posScore, engBestMove, engBestScore))
+                            print(f'Game move: {sanMove} ({posScore}), Engine bestmove: {engBestMove} ({engBestScore})')
 
                     # (5.1) Calculate the threat move if game move and engine best
                     # move is the same and the position is complex and the engine
