@@ -9,7 +9,7 @@ generate puzzles.
 
 __author__ = 'fsmosca'
 __script_name__ = 'Chess Artist'
-__version__ = 'v2.26.0'
+__version__ = 'v2.27.0'
 __credits__ = ['alxlk', 'ddugovic', 'huytd', 'kennyfrc', 'python-chess']
 
 
@@ -1686,6 +1686,8 @@ class Analyze():
         """
         mat = []
         gameNode = game
+        nextNode = None
+
         while gameNode.variations:
             board = gameNode.board()
             fen = board.fen()
@@ -1695,9 +1697,10 @@ class Analyze():
             nextNode = gameNode.variation(0)
             
             gameNode = nextNode
-            
-        endFen = nextNode.board().fen()
-        mat.append([endFen, Analyze.GetMaterialBalance(endFen)])
+
+        if nextNode is not None:
+            endFen = nextNode.board().fen()
+            mat.append([endFen, Analyze.GetMaterialBalance(endFen)])
             
         return mat
     
