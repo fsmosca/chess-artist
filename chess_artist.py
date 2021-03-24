@@ -9,8 +9,9 @@ generate puzzles.
 
 __author__ = 'fsmosca'
 __script_name__ = 'Chess Artist'
-__version__ = 'v2.27.0'
-__credits__ = ['alxlk', 'ddugovic', 'huytd', 'kennyfrc', 'python-chess']
+__version__ = 'v2.28.0'
+__credits__ = ['alxlk', 'ddugovic', 'huytd', 'kennyfrc', 'PixelAim',
+               'python-chess']
 
 
 import os
@@ -2348,6 +2349,7 @@ class Analyze():
         bestmove is higher than score at pvmove then save this as a test
         position.
         """
+        gameNum = 0
 
         WIN_CP_SCORE_THRESHOLD = 5000
         
@@ -2367,6 +2369,8 @@ class Analyze():
         with open(self.infn) as h:
             game = chess.pgn.read_game(h)
             while game:
+                gameNum += 1
+
                 try:
                     variantTag = game.headers["Variant"]
                     logging.info(f'Actual game Variant tag is {variantTag}.')
@@ -2379,13 +2383,25 @@ class Analyze():
                     logging.info('There is no Variant tag in the game header.')
                 except:
                     logging.exception('Error in getting game variant tag value')
+
+                logging.info(f'game number: {gameNum}')
+                print(f'game number: {gameNum}')
+
+                posNum = 0
                     
                 gameNode = game        
                 while gameNode.variations:
+                    posNum += 1
+
+                    logging.info(f'pos number: {posNum}')
+                    print(f'pos number: {posNum}')
+
+                    interestingPos = True
                     board = gameNode.board()
                     fmvn = board.fullmove_number
                     
                     nextNode = gameNode.variation(0)
+                    gameMove = nextNode.san()
                     
                     if fmvn < self.analysisMoveStart:
                         gameNode = nextNode
@@ -2399,7 +2415,7 @@ class Analyze():
                     self.Send(p, 'ucinewgame')                 
                     self.Send(p, 'position fen %s' % fen)
                     
-                    start_time = time.time()
+                    start_time = time.perf_counter()
                     self.Send(p, 'go movetime %s' % self.moveTime)
                     
                     for eline in iter(p.stdout.readline, ''):       
@@ -2411,9 +2427,12 @@ class Analyze():
                             logging.debug('<< %s' % line)
                             
                             splitLine = line.split()
+
+                            depth = int(line.split('depth ')[1].split()[0])
         
-                            # Save pv move and score at quarter of movetime                            
-                            if (time.time() - start_time) * 1000 < self.moveTime//4:
+                            # Save pv move and score at quarter of movetime
+                            elapse = (time.perf_counter() - start_time) * 1000
+                            if elapse < self.moveTime//4:
                                 pvMove = splitLine[splitLine.index('pv')+1].strip()
                                 
                                 if 'score cp ' in line:
@@ -2425,10 +2444,13 @@ class Analyze():
                                     scoreIndex = splitStr.index('score')
                                     mateInN = int(splitStr[scoreIndex + 2])            
                                     pvScore = self.MateDistanceToValue(mateInN)
-                                    
+
                                 # Don't save winning or losing positions
-                                if abs(pvScore) > WIN_CP_SCORE_THRESHOLD:
-                                    break
+                                if ((elapse >= self.moveTime // 16 or depth >= 8)
+                                        and interestingPos
+                                        and abs(pvScore) > WIN_CP_SCORE_THRESHOLD):
+                                    self.Send(p, 'stop')
+                                    interestingPos = False
                             else:
                                 if 'score cp ' in line:
                                     splitStr = line.split()
@@ -2444,10 +2466,9 @@ class Analyze():
                             bestMove = line.split()[1]
                             logging.debug('<< %s' % line)
                             break
-                        
-                    # Read next game if pos is lossing or winning
-                    if abs(pvScore) > WIN_CP_SCORE_THRESHOLD:
-                        print('Read next game')
+
+                    # Read next game if pos is not interesting or lossing or winning
+                    if not interestingPos:
                         break
                     
                     logging.info('bestPv: %s, pvScore: %d' % (pvMove, pvScore))
@@ -2457,7 +2478,7 @@ class Analyze():
                     if bestMove != pvMove and bestScore >= pvScore + self.puzzleScoreMargin:
                         print('save fen in puzzle.epd')
                         epdLine = f'{board.epd()} bm {board.san(chess.Move.from_uci(bestMove))};'
-                        epdLine += f' Ubm {bestMove}; Ae "{self.engIdName}";'
+                        epdLine += f' Ubm {bestMove}; sm {gameMove}; Ae "{self.engIdName}";'
                         if self.variantTag is not None:
                             epdLine += f' variant "{self.variantTag.lower()}";'
                             if self.variantTag != 'chess960' and self.game960:
@@ -2467,7 +2488,7 @@ class Analyze():
                     
                     gameNode = nextNode
                     
-                game = chess.pgn.read_game(h)    
+                game = chess.pgn.read_game(h)
         
         self.Send(p, 'quit')
         p.communicate()   
