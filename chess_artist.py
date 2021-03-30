@@ -9,7 +9,7 @@ generate puzzles.
 
 __author__ = 'fsmosca'
 __script_name__ = 'Chess Artist'
-__version__ = 'v2.28.0'
+__version__ = 'v2.29.0'
 __credits__ = ['alxlk', 'ddugovic', 'huytd', 'kennyfrc', 'PixelAim',
                'python-chess']
 
@@ -789,12 +789,28 @@ class Analyze():
                 else:
                     f.write('%d... %s ' % (moveNumber, sanMove))
 
+    def WritePosFromNoMoveGame(self, side, moveNumber, engMove, engScore, depth):
+        with open(self.outfn, 'a+') as f:
+            if side:
+                f.write(f'{moveNumber}. {engMove} {{{engScore}/{depth}}}')
+            else:
+                f.write(f'{moveNumber}... {engMove} {{{engScore}/{depth}}}')
+
     def WriteNotation(self, side, fmvn, sanMove, bookMove, posScore,
                       isGameOver, engMove, engScore, complexityNumber,
-                      moveChanges, pvLine, threatMove):
+                      moveChanges, pvLine, threatMove, depth=0):
         """ Write moves and comments to the output file """
+        if isGameOver:
+            self.WriteSanMove(side, fmvn, sanMove)
+            return
+
+        # IF game has no move we write the pgn here.
+        if depth > 0:
+            self.WritePosFromNoMoveGame(side, fmvn, engMove, engScore, depth)
+            return
+
         # (0) If game is over [mate, stalemate] just print the move.
-        if isGameOver or (posScore is None and bookMove is None):
+        if posScore is None and bookMove is None:
             self.WriteSanMove(side, fmvn, sanMove)
             return
 
@@ -1296,6 +1312,7 @@ class Analyze():
                 splitLine = line.split()
                 pvIndex = splitLine.index('pv')
                 pvLine = splitLine[pvIndex+1:pvIndex+6]
+                searchDepth = int(splitLine[splitLine.index('depth') + 1])
                     
             if 'score cp ' in line:
                 splitStr = line.split()
@@ -1346,7 +1363,7 @@ class Analyze():
             scoreCp = -1 * scoreCp
 
         scoreP = float(scoreCp)/100.0
-        return bestMove, scoreP, complexityNumber, moveChanges, pvLineSan
+        return bestMove, scoreP, complexityNumber, moveChanges, pvLineSan, searchDepth
 
     def GetComplexityNumber(self, savedMove, fen):
         """
@@ -1893,7 +1910,7 @@ class Analyze():
                 logging.info('%s' % self.matBal)
 
                 # Loop thru the moves within this game.
-                gameNode = game
+                gameNode, curFen = game, None
                 while gameNode.variations:
                     board = gameNode.board()
                     side = board.turn
@@ -1988,7 +2005,7 @@ class Analyze():
                     if posScore is None or (Analyze.relative_score(side, posScore) < self.maxScoreStopAnalysis and
                             Analyze.relative_score(side, posScore) > self.minScoreStopAnalysis and
                             self.jobType == 'analyze'):
-                        engBestMove, engBestScore, complexityNumber, moveChanges, pvLine = self.GetSearchScoreBeforeMove(curFen, side)
+                        engBestMove, engBestScore, complexityNumber, moveChanges, pvLine, _ = self.GetSearchScoreBeforeMove(curFen, side)
 
                     # Update info in console.
                     if sanMove == engBestMove:
@@ -2046,13 +2063,41 @@ class Analyze():
                                        pvLine, threatMove)
                     gameNode = nextNode
 
-                # Write blunder/bad counts, and game termination marker to output file.
-                pColor = None
-                if self.player is not None:
-                    pColor = 'white' if self.player == wplayer else 'black'
-                elif self.playerAndOpp is not None:
-                    pColor = 'white' if self.playerAndOpp == wplayer else 'black'
-                self.WriteTerminationMarker(pColor, res)
+                if curFen is None:
+                    logging.info('This game has no move.')
+                    board = gameNode.board()
+
+                    try:
+                        res = gameNode.headers['Result']
+                    except:
+                        res = '*'
+
+                    isGameOver = self.GameOver(board)
+                    side = board.turn
+                    fmvn = board.fullmove_number
+                    sanMove = None
+                    self.bookMove = None # Don't use a book just analyze.
+                    posScore = None
+                    if not isGameOver:
+                        engBestMove, engBestScore, pvLine, threatMove = None, None, None, None
+                        if self.jobType == 'analyze':
+                            engBestMove, engBestScore, complexityNumber, moveChanges, pvLine, depth = \
+                                self.GetSearchScoreBeforeMove(board.fen(), side)
+                            self.WriteNotation(side, fmvn, sanMove, self.bookMove,
+                                               posScore, isGameOver,
+                                               engBestMove, engBestScore,
+                                               complexityNumber, moveChanges,
+                                               pvLine, threatMove, depth)
+                            with open(self.outfn, 'a') as w:
+                                w.write(f' {res} \n\n')
+                else:
+                    # Write blunder/bad counts, and game termination marker to output file.
+                    pColor = None
+                    if self.player is not None:
+                        pColor = 'white' if self.player == wplayer else 'black'
+                    elif self.playerAndOpp is not None:
+                        pColor = 'white' if self.playerAndOpp == wplayer else 'black'
+                    self.WriteTerminationMarker(pColor, res)
 
     def AnnotateEpd(self):
         """ Annotate epd file with bm, ce, acs, acd, and Ae opcodes
