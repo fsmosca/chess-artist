@@ -9,7 +9,7 @@ generate puzzles.
 
 __author__ = 'fsmosca'
 __script_name__ = 'Chess Artist'
-__version__ = 'v2.29.0'
+__version__ = 'v2.30.0'
 __credits__ = ['alxlk', 'ddugovic', 'huytd', 'kennyfrc', 'PixelAim',
                'python-chess']
 
@@ -1767,7 +1767,7 @@ class Analyze():
         engineIdName = self.engIdName
         gameCnt = 0
 
-        with open(self.infn) as pgnHandle:
+        with open(self.infn, encoding='ISO-8859-1') as pgnHandle:
             while True:
                 game = chess.pgn.read_game(pgnHandle)
                 if game is None:
@@ -2411,7 +2411,7 @@ class Analyze():
         self.ReadEngineReply(p, 'isready')
                     
         print('Creating test positions ...')
-        with open(self.infn) as h:
+        with open(self.infn, encoding='ISO-8859-1') as h:
             game = chess.pgn.read_game(h)
             while game:
                 gameNum += 1
