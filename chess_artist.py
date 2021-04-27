@@ -9,7 +9,7 @@ generate puzzles.
 
 __author__ = 'fsmosca'
 __script_name__ = 'Chess Artist'
-__version__ = 'v2.31.0'
+__version__ = 'v2.32.0'
 __credits__ = ['alxlk', 'ddugovic', 'huytd', 'kennyfrc', 'PixelAim',
                'python-chess']
 
@@ -1940,6 +1940,7 @@ class Analyze():
                                                None, threatMove)
                                 gameNode = nextNode
                                 continue
+                            isEvaluatePos = True
                         else:
                             # Analyze position of a player by color and its opp
                             if self.playerAndOpp == wplayer and self.color == 'white':
