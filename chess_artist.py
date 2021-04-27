@@ -9,7 +9,7 @@ generate puzzles.
 
 __author__ = 'fsmosca'
 __script_name__ = 'Chess Artist'
-__version__ = 'v2.30.0'
+__version__ = 'v2.31.0'
 __credits__ = ['alxlk', 'ddugovic', 'huytd', 'kennyfrc', 'PixelAim',
                'python-chess']
 
@@ -1801,47 +1801,39 @@ class Analyze():
 
                     # If color is specified
                     if self.color == 'white' and playerName == bplayer:
-                        game = chess.pgn.read_game(pgnHandle)
                         continue
                     elif self.color == 'black' and playerName == wplayer:
-                        game = chess.pgn.read_game(pgnHandle)
                         continue
 
                     if playerName != wplayer and playerName != bplayer:
-                        game = chess.pgn.read_game(pgnHandle)
                         continue
 
                     if self.loss and not self.draw:
                         gameResult = game.headers['Result']
                         if not ((playerName == wplayer and gameResult == '0-1') or
                                 (playerName == bplayer and gameResult == '1-0')):
-                            game = chess.pgn.read_game(pgnHandle)
                             continue
                     elif not self.loss and self.draw:
                         gameResult = game.headers['Result']
                         if not ((playerName == wplayer and gameResult == '1/2-1/2') or
                                 (playerName == bplayer and gameResult == '1/2-1/2')):
-                            game = chess.pgn.read_game(pgnHandle)
                             continue
                     elif self.loss and self.draw:
                         gameResult = game.headers['Result']
                         if not ((playerName == wplayer and gameResult != '1-0') or
                                 (playerName == bplayer and gameResult != '0-1')):
-                            game = chess.pgn.read_game(pgnHandle)
                             continue
                 else:
                     # Only analyze games with draw results
                     if self.draw and not self.loss:
                         gameResult = game.headers['Result']
                         if not (gameResult == '1/2-1/2'):
-                            game = chess.pgn.read_game(pgnHandle)
                             continue
 
                     # Analyze games except draws
                     if not self.draw and self.loss:
                         gameResult = game.headers['Result']
                         if gameResult == '1/2-1/2' or gameResult == '*':
-                            game = chess.pgn.read_game(pgnHandle)
                             continue
 
                 # Reset passed pawn comment every game. Passed pawn comment is
