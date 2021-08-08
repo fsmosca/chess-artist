@@ -9,8 +9,8 @@ generate puzzles.
 
 __author__ = 'fsmosca'
 __script_name__ = 'Chess Artist'
-__version__ = 'v2.33.0'
-__credits__ = ['alxlk', 'ddugovic', 'huytd', 'kennyfrc', 'PixelAim',
+__version__ = 'v3.0.0'
+__credits__ = ['al75an', 'alxlk', 'ddugovic', 'huytd', 'kennyfrc', 'PixelAim',
                'python-chess']
 
 
@@ -141,8 +141,6 @@ class Analyze():
                 return chess.variant.AtomicBoard(fen, chess960=self.game960)
             else:
                 raise Exception(f'Variant {self.variantTag} is not supported.')
-
-        return None
 
     def UciToSanMove(self, fen, uciMove):
         """ Returns san move given fen and uci move """
@@ -1762,12 +1760,51 @@ class Analyze():
         :score: is wpov in pawn unit        
         """
         return score if side else -score
+
+    def GameExist(self, header, baseHeader):
+        """
+        Returns true if header is found in baseHeader list.
+        """
+        for g in baseHeader:
+            if g == header:
+                return True
+
+        return False
+
+    def SavegameHeaders(self):
+        gameHeaders = []
+
+        outfile_path = Path(self.outfn)
+        if not outfile_path.is_file():
+            return gameHeaders
+
+        with open(self.outfn, encoding='ISO-8859-1') as h:
+            while True:
+                game = chess.pgn.read_game(h)
+                if game is None:
+                    break
+
+                # Copy game headers except Annotator tag.
+                header = {}
+                for key, value in game.headers.items():
+                    if key != 'Annotator':
+                        header.update({key: value})
+
+                # Add ActualPly header in the game. This is also used to determine
+                # if a game is already fully annotated.
+                header.update({'ActualPly' : str(game.end().ply())})
+                gameHeaders.append(header)
+
+        return gameHeaders
     
     def AnnotatePgn(self):
         """ Parse the pgn file and annotate the games """
         # Get engine id name for the Annotator tag.
         engineIdName = self.engIdName
         gameCnt = 0
+
+        # Save the headers of the input pgn file.
+        outputGameHeaders = self.SavegameHeaders()
 
         with open(self.infn, encoding='ISO-8859-1') as pgnHandle:
             while True:
@@ -1776,6 +1813,21 @@ class Analyze():
                     break
 
                 gameCnt += 1
+
+                # Show progress in console.
+                print('Annotating game %d...' % (gameCnt))
+
+                # Check if this game is already annotated.
+                tmpHeader = {}
+                for key, value in game.headers.items():
+                    if key != 'Annotator':
+                        tmpHeader.update({key: value})
+                tmpHeader.update({'ActualPly': str(game.end().ply())})
+
+                if self.GameExist(tmpHeader, outputGameHeaders):
+                    logging.info('Skip annotation, game {gameCnt} is already fully annotated.')
+                    print(f'Skip annotation, game {gameCnt} is already fully annotated.')
+                    continue
 
                 # Get variant name in pgn tag, try to cover as wide as possible.
                 # Lichess: Chess960
@@ -1853,9 +1905,6 @@ class Analyze():
 
                 # Used for formatting the output.
                 self.writeCnt = 0
-
-                # Show progress in console.
-                print('Annotating game %d...' %(gameCnt))
 
                 # Save the tag section of the game.
                 outfile_path = Path(self.outfn)
