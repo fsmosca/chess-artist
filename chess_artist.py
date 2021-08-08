@@ -9,7 +9,7 @@ generate puzzles.
 
 __author__ = 'fsmosca'
 __script_name__ = 'Chess Artist'
-__version__ = 'v2.32.0'
+__version__ = 'v2.33.0'
 __credits__ = ['alxlk', 'ddugovic', 'huytd', 'kennyfrc', 'PixelAim',
                'python-chess']
 
@@ -20,6 +20,8 @@ import argparse
 import random
 import logging
 import time
+from pathlib import Path  # python 3.4 or later
+
 import chess.pgn
 import chess.polyglot
 import chess.variant
@@ -1856,8 +1858,16 @@ class Analyze():
                 print('Annotating game %d...' %(gameCnt))
 
                 # Save the tag section of the game.
-                for key, value in game.headers.items():
-                    with open(self.outfn, 'a+') as f:
+                outfile_path = Path(self.outfn)
+
+                # Add 2 vertical space when writing a game as interrupted
+                # game may have no space to separate the games.
+                if outfile_path.is_file():
+                    with open(self.outfn, 'a') as f:
+                        f.write('\n\n')
+
+                with open(self.outfn, 'a') as f:
+                    for key, value in game.headers.items():
                         f.write('[%s \"%s\"]\n' %(key, value))
 
                 # Write the annotator tag.
