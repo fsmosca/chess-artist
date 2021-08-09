@@ -9,7 +9,7 @@ generate puzzles.
 
 __author__ = 'fsmosca'
 __script_name__ = 'Chess Artist'
-__version__ = 'v3.0.0'
+__version__ = 'v3.0.1'
 __credits__ = ['al75an', 'alxlk', 'ddugovic', 'huytd', 'kennyfrc', 'PixelAim',
                'python-chess']
 
@@ -1803,7 +1803,7 @@ class Analyze():
         engineIdName = self.engIdName
         gameCnt = 0
 
-        # Save the headers of the input pgn file.
+        # Save the headers of the output pgn file.
         outputGameHeaders = self.SavegameHeaders()
 
         with open(self.infn, encoding='ISO-8859-1') as pgnHandle:
