@@ -9,9 +9,9 @@ generate puzzles.
 
 __author__ = 'fsmosca'
 __script_name__ = 'Chess Artist'
-__version__ = 'v3.0.1'
-__credits__ = ['al75an', 'alxlk', 'ddugovic', 'huytd', 'kennyfrc', 'PixelAim',
-               'python-chess']
+__version__ = 'v3.1.0'
+__credits__ = ['aochoam', 'al75an', 'alxlk', 'ddugovic', 'huytd', 'kennyfrc',
+               'PixelAim', 'python-chess']
 
 
 import os
@@ -979,7 +979,7 @@ class Analyze():
             if 'King safety ' in line:
                 kingSafetyCommentNext = line
                 break
-            if 'final evaluation:' in line.lower() or 'total evaluation:' in line.lower():
+            if 'final evaluation' in line.lower():
                 break
 
         self.Send(p, 'quit')
@@ -1032,7 +1032,7 @@ class Analyze():
             if 'Passed ' in line:
                 passedPawnComment = line
                 break
-            if 'final evaluation:' in line.lower() or 'total evaluation:' in line.lower():
+            if 'final evaluation' in line.lower():
                 break
 
         self.Send(p, 'quit')
@@ -1041,8 +1041,8 @@ class Analyze():
         if passedPawnComment is None:
             return False
         
-        MgPassedValue = float(passedPawnComment.split()[8])
-        EgPassedValue = float(passedPawnComment.split()[9])
+        MgPassedValue = float(passedPawnComment.split()[9])
+        EgPassedValue = float(passedPawnComment.split()[10])
         logging.info('mgpassed: %0.1f, egpassed: %0.1f' % (MgPassedValue, EgPassedValue))
         
         if side:
@@ -1082,7 +1082,7 @@ class Analyze():
             
             if 'Mobility ' in line:
                 mobilityComment = line
-            if 'final evaluation:' in line.lower() or 'total evaluation:' in line.lower():
+            if 'final evaluation' in line.lower():
                 break
 
         self.Send(p, 'quit')
@@ -1092,8 +1092,8 @@ class Analyze():
             logging.warning('Mobility comment from eval command is missing.')
             return False
         
-        MgMobilityValue = float(mobilityComment.split()[8])
-        EgMobilityValue = float(mobilityComment.split()[9])
+        MgMobilityValue = float(mobilityComment.split()[9])
+        EgMobilityValue = float(mobilityComment.split()[10])
         logging.info('side: %s, mgmob: %0.2f, egmob: %0.2f' % (
             'white' if side else 'black', MgMobilityValue, EgMobilityValue))
         logging.info(f'Good mobility threshold: {MOBILITY_THRESHOLD}')
