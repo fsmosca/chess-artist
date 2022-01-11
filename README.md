@@ -104,18 +104,11 @@ positive is good for white and negative is good for black}
 
 ### 2. Test engine with test suite
 #### Use movetime of 500ms
-`python chess_artist.py --infile wacnew.epd --outfile result_wacnew.txt --enginefile stockfish_10.exe --engineoptions "Hash value 128, Threads value 1" --eval search --job test --movetime 500`<br><br>
-Output file result_wacnew.txt<br>
 ```
-:: EPD wacnew.epd TEST RESULTS ::
-Engine        : Stockfish 10 64 POPCNT
-Time/pos (sec): 5.0
-
-Total epd lines       : 300
-Total tested positions: 300
-Total correct         : 292
-Correct percentage    : 97.33
-
+python chess_artist.py --infile ./EPD/wacnew.epd --outfile result_wacnew.txt --enginefile stockfish_10.exe --engineoptions "Hash value 128, Threads value 1" --eval search --job test --movetime 500
+```
+Output file result_wacnew.txt
+```
 :: EPD wacnew.epd TEST RESULTS ::
 Engine        : Stockfish 10 64 POPCNT
 Time/pos (sec): 0.5
