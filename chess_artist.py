@@ -9,8 +9,8 @@ generate puzzles.
 
 __author__ = 'fsmosca'
 __script_name__ = 'Chess Artist'
-__version__ = 'v3.1.0'
-__credits__ = ['aochoam', 'al75an', 'alxlk', 'ddugovic', 'huytd', 'kennyfrc',
+__version__ = 'v3.2.0'
+__credits__ = ['aochoam', 'al75an', 'alxlk', 'ddugovic', 'drai8192', 'huytd', 'kennyfrc',
                'PixelAim', 'python-chess']
 
 
@@ -2745,14 +2745,14 @@ def main():
     g.PrintEngineIdName()
 
     # Process input file depending on the infile format
-    if inputFile.endswith('.epd'):
+    if inputFile.lower().endswith('.epd'):
         if jobType == 'test':
             logging.info('Test engine with epd suite')
             g.TestEngineWithEpd()
         else:
             logging.info('Annotate epd')
             g.AnnotateEpd()            
-    elif inputFile.endswith('.pgn'):
+    elif inputFile.lower().endswith('.pgn'):
         if jobType == 'analyze':
             logging.info('Annotate game')
             g.AnnotatePgn()
